@@ -12,9 +12,12 @@ node_modules/
 # Secrets and environment files
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *.p12
+application-local.properties
+*.local.properties
 
 # IntelliJ IDEA
 .idea/
