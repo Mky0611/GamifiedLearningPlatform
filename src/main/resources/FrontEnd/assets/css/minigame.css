@@ -457,7 +457,7 @@ body.raid-body{
   .board-objectives-section{grid-template-columns:1fr}
   .core-mask__slot{width:36px;height:42px}
   .board-actions .btn-soft,.paper-card .btn-soft,.attack-dock .btn-soft{min-width:0;width:100%}
-  .attack-dock .btn-soft{padding:6px 8px;min-height:36px;font-size:0.82rem;border-width:4px}
+  .attack-dock .btn-soft{padding:8px 10px;min-height:40px;font-size:0.84rem;border-width:4px}
   .battle-stage{aspect-ratio:960/420;min-height:125px;max-height:175px;border-width:4px}
   .arena-panel{padding:6px;gap:6px}
 }
@@ -468,8 +468,8 @@ body.raid-body{
   .board-grid{gap:3px}
   .board-shell,.arena-panel{padding:4px}
   .battle-stage{min-height:115px;max-height:140px}
-  .attack-dock{padding:4px 6px;gap:4px}
-  .attack-dock .btn-soft{font-size:0.75rem;padding:4px 6px;min-height:32px}
+  .attack-dock{padding:6px 6px;gap:6px}
+  .attack-dock .btn-soft{font-size:0.8rem;padding:6px 8px;min-height:40px}
 }
 
 /* Arena Quick HUD Overlay (Mobile priority) */

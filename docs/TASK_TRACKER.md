@@ -12,11 +12,27 @@
 | :---: | :--- | :---: | :--- |
 | **SEC** | **Security Post-Audit & Credential Sanitization** | **IN PROGRESS (MÃ NGUỒN SẠCH / CHỜ ROTATION LOCAL)** | Main branch sạch; test suite 13/13 pass; chờ đổi mật khẩu local DB. |
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **PARTIALLY COMPLETE** | Mã nguồn đã sửa xong; chờ xác nhận trình duyệt thật (Playwright). |
-| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **COMPLETED** | Nâng Java 21 + Spring Boot 4.2 hoàn tất; Design System, Battle UI, Home & Nav đồng bộ. |
+| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **COMPLETED & QA VERIFIED** | Nâng Java 21 + Spring Boot 4.2 hoàn tất; Design System, Battle UI, Home & Nav đồng bộ. Tap target 320px tối ưu >=40px. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | `TODO` | Xây dựng bộ từ vựng 6 cấp độ CEFR và taxonomy chuyên ngành IT. |
 | **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
 | **P5** | **Microservices Evaluation** | `TODO` | Đánh giá kiến trúc mở rộng và tối ưu hóa hệ thống. |
+
+---
+
+## 4. CHI TIẾT CÁC TASKS GIAI ĐOẠN P1 (INDEPENDENT QA & COMPLETION)
+
+| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
+| :--- | :--- | :---: | :--- | :--- |
+| **P1-T1** | Nâng cấp Java 21 LTS & Spring Boot 4.2.0 | **BUILD PASS** | `pom.xml`, `effective-pom.xml` | Maven compiler 3.16.0 release 21, Lombok 1.18.36, HikariCP + SQL Server context load 5.8s. |
+| **P1-T2** | Xác minh Starter Web (`web` vs `webmvc`) | **STATIC PASS** | `pom.xml`, dependency:tree | `spring-boot-starter-web:4.2.0` chuẩn, tích hợp Tomcat 11.0.27 + Spring WebMVC. |
+| **P1-T3** | API Regression Smoke Test | **API INTEGRATION PASS** | `src/main/java/.../controller` | Khảo sát & kiểm thử contracts các endpoint Auth, Account, Home, Lex Raid, Quiz, Volcard. |
+| **P1-T4** | Thiết lập Design Tokens Pixel RPG | **STATIC PASS** | `pixel-rpg.css`, `DESIGN_SYSTEM.md` | Bộ tokens chuẩn Wood, Gold, Parchment, Combat Indicators; các classes `.pixel-panel`, `.pixel-btn`, `.pixel-bar`. |
+| **P1-T5** | Pixel hóa Đấu trường Lex Raid & Word Board | **BROWSER PASS** | `minigame.css`, `minigame.html` | Đấu trường retro, thanh máu pixel, bảng chữ gỗ parchment, nút tấn công vàng đồng. |
+| **P1-T6** | Pixel hóa Trang chủ (Home) & Navigation | **BROWSER PASS** | `home.css`, `base.css`, `home.html` | Main navigation khung gỗ viền vàng, pixel chips, pixel quick stats, pixel game cards. |
+| **P1-T7** | Tối ưu hóa Touch Target nút Clear / Attack (320px) | **BROWSER PASS** | `minigame.css` | Nâng min-height từ 32px lên 40px (chuẩn mobile tap target >=40px), no-scroll chiều cao 452px/568px. |
+| **P1-T8** | Kiểm toán trực quan 8 Viewports | **BROWSER PASS** | 8 viewports chuẩn | Không tràn ngang (zero horizontal overflow), không che chữ, không chồng chéo nút bấm. |
+| **P1-T9** | Kiểm toán giao diện các trang còn lại | **STATIC PASS** | `quiz`, `volcard`, `auth`, `account`,... | Kế thừa base.css + pixel navbar; phân loại hiện trạng và lập lộ trình hoàn thiện cho P2/P3. |
 
 ---
 

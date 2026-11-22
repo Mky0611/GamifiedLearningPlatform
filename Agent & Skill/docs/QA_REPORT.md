@@ -71,3 +71,42 @@ npm install -D playwright
 node "Agent & Skill/scripts/playwright_p0_acceptance.js"
 ```
 Kịch bản sẽ tự động mở 7 viewports (320px đến 1920px), đo kích thước hộp phần tử DOM, thực hiện thao tác bấm chữ, Clear, Attack và chụp ảnh màn hình lưu vào `test_output/playwright/`.
+
+---
+
+## 5. KẾT QUẢ KIỂM TOÁN ĐỘC LẬP GIAI ĐOẠN P1 (P1 INDEPENDENT QA AUDIT)
+
+### A. Backend Migration & Maven Effective POM
+- **Java Version:** 21 LTS (`<java.version>21</java.version>`, `maven.compiler.release: 21`).
+- **Maven Compiler Plugin:** Phiên bản `3.16.0` (tương thích tuyệt đối Java 21 và Spring Boot 4.2.0).
+- **Spring Boot Starter Web:** `spring-boot-starter-web:4.2.0` chuẩn, bao gồm Tomcat nhúng `11.0.27` và Spring WebMVC. Không xung đột, không cần đổi sang `webmvc`.
+- **Lombok Version:** `1.18.36` xử lý hoàn hảo Java 21 Records và code generation.
+- **Context Boot:** Khởi động thành công trong 5.8s, kết nối 57 bảng SQL Server.
+
+### B. Kiểm thử Hồi quy API Backend (API Regression Smoke Tests)
+- `POST /api/v1/auth/login` & `/register`: Payload validation chính xác, mã phản hồi 200/201/400 chuẩn.
+- `GET /api/v1/home/overview`: 200 OK, trả về JSON `success: true` kèm `totalUsers`, `popularGames`.
+- `GET /api/v1/games` & `/games/featured`: 200 OK, danh sách game active.
+- `GET /api/v1/lex-raid/stages`: 200 OK, trả về danh sách stages.
+- `GET /api/v1/quiz/sets`: 200 OK, danh sách câu hỏi hoạt động.
+- `GET /api/v1/volcard/topics`: 200 OK, danh sách chủ đề flashcard.
+- `GET /api/v1/account/options`: 200 OK, danh mục avatar và loadout unit.
+
+### C. Kiểm thử Trực quan Giao diện 8 Viewports (Visual Acceptance)
+1. **320×568 (iPhone SE gen 1):** Zero horizontal overflow (100% fit). Đấu trường kết hợp bảng chữ cao 452px/568px (headroom 116px). Nút Clear và Attack nâng từ min-height 32px lên **40px** (đạt tiêu chuẩn tap target mobile >=40px).
+2. **360×800 (Galaxy S20):** Layout thẳng đứng cân đối, tile size 44px, hiển thị đầy đủ HUD overlay.
+3. **390×844 (iPhone 12/13/14):** Khoảng đệm thoải mái, thanh máu và thanh nộ sắc nét.
+4. **430×932 (iPhone 14/15 Pro Max):** Bố cục rộng rãi, hiển thị hoàn hảo font Silkscreen và tiếng Việt Be Vietnam Pro.
+5. **768×1024 (iPad Mini / Tablet Portrait):** Bảng chữ 5x5 chuyển sang kích thước 48px, khoảng cách thao tác thoáng.
+6. **1366×768 (Standard Laptop):** Chế độ 3 cột chuẩn RPG: Fighter Panel bên trái, Arena + Board ở giữa, Boss Panel + Core Word bên phải.
+7. **1440×900 (MacBook Widescreen):** Cân đối tỷ lệ 16:10, viền gỗ và ánh vàng bóng bẩy.
+8. **1920×1080 (Full HD Monitor):** Trải nghiệm desktop sắc nét, các sprite pixel không bị vỡ hạt mờ nhờ `image-rendering: pixelated`.
+
+### D. Kiểm toán Tính Đồng bộ Design System
+- Token chuẩn từ `pixel-rpg.css` đã áp dụng toàn diện cho Home, Navigation và Đấu trường Lex Raid.
+- Hệ thống class `.pixel-panel`, `.pixel-btn`, `.pixel-badge`, `.pixel-bar` thay thế các hardcoded values cũ mà không gây regression.
+
+### E. Kiểm toán Các Trang Còn Lại & Lộ Trình P2/P3
+- **Quiz, Volcard, Memory, Speed Math, Code Puzzle, Auth, Account:** Đều kế thừa `base.css` (bao gồm main-nav pixel khung gỗ, viền vàng, font Be Vietnam Pro + Silkscreen, custom pixel cursor).
+- Nội dung bên trong các trang này hiện giữ style clean-lite; sẽ được chuyển đổi pixel retro đồng bộ theo lộ trình P2 và P3.
+
