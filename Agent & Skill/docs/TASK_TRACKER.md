@@ -12,7 +12,7 @@
 | :---: | :--- | :---: | :--- |
 | **SEC** | **Security Post-Audit & Credential Sanitization** | **IN PROGRESS (MÃ NGUỒN SẠCH / CHỜ ROTATION LOCAL)** | Main branch sạch; test suite 13/13 pass; chờ đổi mật khẩu local DB. |
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **PARTIALLY COMPLETE** | Mã nguồn đã sửa xong; chờ xác nhận trình duyệt thật (Playwright). |
-| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **IN PROGRESS** | P1-A (Java 21 + Spring Boot 4.2) DONE; P1-B Design System in progress. |
+| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **COMPLETED** | Nâng Java 21 + Spring Boot 4.2 hoàn tất; Design System, Battle UI, Home & Nav đồng bộ. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | `TODO` | Xây dựng bộ từ vựng 6 cấp độ CEFR và taxonomy chuyên ngành IT. |
 | **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
@@ -56,7 +56,7 @@
 | Mã Task | Tên nhiệm vụ | Trạng thái | Mục tiêu chi tiết |
 | :--- | :--- | :---: | :--- |
 | **P1-A** | Nâng cấp Java 21 LTS & Spring Boot 4.2.0 | **DONE** | Cập nhật pom.xml, Lombok 1.18.36, compile 112 classes, test MainTests pass. |
-| **P1-T1** | Chuẩn hóa bảng màu Pixel RPG Palette | `TODO` | Màu gỗ sồi, viền vàng kim, nền giấy da parchment, hiệu ứng viền bóng pixel. |
-| **P1-T2** | Bộ UI Components dùng chung (Buttons, Panels, Banners) | `TODO` | 9-slice borders cho khung thoại, nút bấm có trạng thái pressed/disabled. |
-| **P1-T3** | Đồng bộ hóa toàn bộ các trang con | `TODO` | Áp dụng phong cách Pixel đồng nhất lên `home.html`, `quiz.html`, `memory.html`, `speed-math.html`, `code-puzzle.html`. |
-| **P1-T4** | Font chữ Pixel & Retro Typography | `TODO` | Tích hợp font pixel hỗ trợ đầy đủ tiếng Việt không bị lỗi dấu. |
+| **P1-T1** | Chuẩn hóa bảng màu Pixel RPG Palette | **DONE** | Màu gỗ sồi, viền vàng kim, nền giấy da parchment, hiệu ứng viền bóng pixel. |
+| **P1-T2** | Bộ UI Components dùng chung (Buttons, Panels, Banners) | **DONE** | Khung .pixel-panel, nút bấm .pixel-btn 3D stepped, thanh máu .pixel-bar, huy hiệu .pixel-badge. |
+| **P1-T3** | Đồng bộ hóa giao diện Lex Raid Battle & Home Page | **DONE** | Nâng cấp toàn diện minigame.css và home.css theo chuẩn Pixel RPG retro. |
+| **P1-T4** | Font chữ Pixel & Retro Typography | **DONE** | Tích hợp font Silkscreen/VT323 kết hợp Be Vietnam Pro hỗ trợ tiếng Việt hoàn hảo. |

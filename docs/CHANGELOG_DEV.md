@@ -69,3 +69,33 @@
   - Ánh xạ đầy đủ JPA entities trong 5.8s.
   - Kết quả kiểm thử: `Tests run: 1, Failures: 0, Errors: 0, BUILD SUCCESS`.
 - **Packaging:** `mvn package -DskipTests` đóng gói thành công file thực thi Spring Boot 4.2.0 JAR.
+
+
+---
+
+## [P1-B & P1-C & P1-D] — 23/11/2026: Pixel RPG Design System & Frontend Transformation
+
+### 1. Pixel RPG Design System Foundation
+- **`docs/DESIGN_SYSTEM.md`:**
+  - Định hình quy chuẩn thiết kế Fantasy Pixel RPG nguyên bản.
+  - Xây dựng bảng màu Wood (`#1c120c`, `#3c2a1a`, `#7a5432`), Gold (`#f6c344`, `#d49b29`, `#8f6010`), Parchment (`#fae9c5`, `#fff5df`, `#dfd0b0`) và Combat Accents (`#d9383a`, `#3b72d9`, `#2ea44f`).
+  - Phân tầng Typography: Font hiển thị retro `'Silkscreen'` / `'VT323'` kết hợp font nội dung học tập rõ nét hỗ trợ tiếng Việt `'Be Vietnam Pro'`.
+- **`src/main/resources/FrontEnd/assets/css/pixel-rpg.css`:**
+  - Khung viền gỗ viền vàng `.pixel-panel`.
+  - Nút bấm 3D stepped lún thật `.pixel-btn` (biến thể default, danger, wood).
+  - Huy hiệu pixel góc khía `.pixel-badge`.
+  - Thanh máu và năng lượng phân mảnh pixel `.pixel-bar`.
+
+### 2. Lex Raid Battle UX & Mobile Responsive
+- **`src/main/resources/FrontEnd/assets/css/minigame.css`:**
+  - Chuyển đổi đấu trường `.battle-stage` sang viền gỗ 4px sắc nét, loại bỏ góc bo tròn hiện đại 26px.
+  - Chuẩn hóa Attack Dock với khay chữ retro nổi bật và các nút bấm có phản hồi xúc giác.
+  - Nâng cấp ô chữ `.board-tile` sang kiểu gạch pixel parchment, có hiệu ứng nhấn chìm 4px khi chọn.
+  - Duy trì chuẩn No-Scroll Battle Loop trên mobile (Arena + Quick HUD + Attack Dock + Word Board nằm gọn trong màn hình).
+
+### 3. Home Page & Navigation Synchronization
+- **`src/main/resources/FrontEnd/assets/css/base.css`:**
+  - Tích hợp `pixel-rpg.css`.
+  - Chuyển đổi thanh điều hướng `.main-nav` sang viền gỗ sẫm, nút điều hướng `.nav-link-soft` phong cách retro, user chip pixel.
+- **`src/main/resources/FrontEnd/assets/css/home.css`:**
+  - Tái cấu trúc toàn bộ thẻ Hero, Quest Feature Cards, Bảng xếp hạng và Stage Previews sang phong cách Quest Board gỗ và giấy da cổ.
