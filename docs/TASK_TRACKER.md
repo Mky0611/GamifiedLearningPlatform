@@ -12,7 +12,7 @@
 | :---: | :--- | :---: | :--- |
 | **SEC** | **Security Post-Audit & Credential Sanitization** | **IN PROGRESS (MÃ NGUỒN SẠCH / CHỜ ROTATION LOCAL)** | Main branch sạch; test suite 13/13 pass; chờ đổi mật khẩu local DB. |
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **PARTIALLY COMPLETE** | Mã nguồn đã sửa xong; chờ xác nhận trình duyệt thật (Playwright). |
-| **P1** | **Pixel RPG Design System** | `TODO` | Chuẩn hóa bảng màu, khung viền gỗ/vàng, font pixel, UI components. |
+| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **IN PROGRESS** | P1-A (Java 21 + Spring Boot 4.2) DONE; P1-B Design System in progress. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | `TODO` | Xây dựng bộ từ vựng 6 cấp độ CEFR và taxonomy chuyên ngành IT. |
 | **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
@@ -55,6 +55,7 @@
 
 | Mã Task | Tên nhiệm vụ | Trạng thái | Mục tiêu chi tiết |
 | :--- | :--- | :---: | :--- |
+| **P1-A** | Nâng cấp Java 21 LTS & Spring Boot 4.2.0 | **DONE** | Cập nhật pom.xml, Lombok 1.18.36, compile 112 classes, test MainTests pass. |
 | **P1-T1** | Chuẩn hóa bảng màu Pixel RPG Palette | `TODO` | Màu gỗ sồi, viền vàng kim, nền giấy da parchment, hiệu ứng viền bóng pixel. |
 | **P1-T2** | Bộ UI Components dùng chung (Buttons, Panels, Banners) | `TODO` | 9-slice borders cho khung thoại, nút bấm có trạng thái pressed/disabled. |
 | **P1-T3** | Đồng bộ hóa toàn bộ các trang con | `TODO` | Áp dụng phong cách Pixel đồng nhất lên `home.html`, `quiz.html`, `memory.html`, `speed-math.html`, `code-puzzle.html`. |

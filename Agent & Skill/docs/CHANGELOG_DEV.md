@@ -49,3 +49,23 @@
   - Tạo mới kịch bản kiểm thử tự động Playwright đo đạc 7 viewports và thực hiện tương tác chiến đấu thực tế.
 - **`src/main/resources/FrontEnd/assets/qa_audit/`:**
   - Tạo 5 tệp ảnh kiểm chứng trực quan frame-by-frame và phối cảnh đấu trường.
+
+
+---
+
+## [P1-A] — 23/11/2026: Java 21 LTS & Spring Boot 4.2.0 Migration
+
+### 1. Build & Dependency Upgrade
+- **`pom.xml`:**
+  - Nâng cấp Spring Boot parent từ `3.3.5` lên `4.2.0` stable.
+  - Chuyển `java.version` từ `17` sang `21` LTS.
+  - Cập nhật `lombok.version` lên `1.18.36` tương thích Java 21 compiler.
+  - Cấu hình `maven-compiler-plugin` 3.16.0 với target release 21.
+
+### 2. Verification & Testing
+- **Compilation:** `mvn clean compile` biên dịch thành công toàn bộ 112 file nguồn Java bằng JDK 21 (0 warnings/errors).
+- **Runtime Integration Test:** `mvn test -Dtest=MainTests` kiểm thử Spring Context với Spring Boot 4.2.0:
+  - Khởi tạo HikariPool kết nối Microsoft SQL Server cục bộ (57 bảng).
+  - Ánh xạ đầy đủ JPA entities trong 5.8s.
+  - Kết quả kiểm thử: `Tests run: 1, Failures: 0, Errors: 0, BUILD SUCCESS`.
+- **Packaging:** `mvn package -DskipTests` đóng gói thành công file thực thi Spring Boot 4.2.0 JAR.

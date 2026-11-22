@@ -3,7 +3,8 @@
 **Thời điểm cập nhật:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Trạng thái hiện tại:** **P0 PARTIALLY COMPLETE (CHƯA NGHIỆM THU HOÀN TOÀN) | SECURITY POST-AUDIT IN PROGRESS**  
+**Nhánh phát triển:** `feature/p1-pixel-rpg-java21`  
+**Trạng thái hiện tại:** **P1-A COMPLETED (Java 21 + Spring Boot 4.2.0) | P1-B IN PROGRESS (Pixel RPG Design System)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -11,8 +12,8 @@
 
 ## 1. TỔNG QUAN DỰ ÁN
 
-Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG (lấy cảm hứng từ lối chơi săn boss của Bookworm Adventures nhưng mang bản sắc đồ họa và nội dung riêng). Dự án được xây dựng trên nền tảng:
-- **Backend:** Java 17 / Java 21, Spring Boot 3.3.5, Spring Data JPA, Spring Security.
+Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG chiến đấu bằng từ vựng. Dự án được xây dựng trên nền tảng:
+- **Backend:** Java 21 LTS, Spring Boot 4.2.0, Spring Data JPA, Spring Security.
 - **Database:** Microsoft SQL Server (`script_GPL_v2.sql` — 57 bảng).
 - **Frontend:** Vanilla HTML5, CSS3 Pixel Design, JavaScript ES6+.
 - **Game Engine:** Phaser 3.90.0 (kèm Canvas 2D Fallback khi không có mạng/CDN).
