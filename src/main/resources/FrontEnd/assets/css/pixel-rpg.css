@@ -1,0 +1,316 @@
+/* ==============================================================================
+ * LEX RAID — PIXEL RPG DESIGN SYSTEM
+ * Classic Fantasy Pixel RPG Theme · Original Retro Tokens · Responsive Ergonomics
+ * ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap');
+
+:root {
+  /* Wood & Timber Palette */
+  --wood-dark: #1c120c;
+  --wood-frame: #3c2a1a;
+  --wood-medium: #5a3d24;
+  --wood-light: #7a5432;
+
+  /* Gold & Brass Palette */
+  --gold-bright: #f6c344;
+  --gold-base: #d49b29;
+  --gold-shadow: #8f6010;
+  --gold-highlight: #ffebb3;
+
+  /* Parchment & Slate Palette */
+  --parchment-base: #fae9c5;
+  --parchment-light: #fff5df;
+  --parchment-dark: #dfd0b0;
+  --parchment-border: #b89c72;
+
+  /* Combat Indicators */
+  --hp-crimson: #d9383a;
+  --hp-shadow: #8b181a;
+  --hp-highlight: #ff7b7d;
+  --mana-azure: #3b72d9;
+  --mana-shadow: #1e4594;
+  --mana-highlight: #709eff;
+  --xp-emerald: #2ea44f;
+  --xp-shadow: #17652e;
+  --xp-highlight: #5bd47e;
+  --gold-coin: #f59e0b;
+
+  /* Ink & Typography */
+  --ink-deep: #140e0a;
+  --ink-primary: #2b1d14;
+  --ink-muted: #695241;
+  --font-pixel: 'Silkscreen', 'VT323', monospace, sans-serif;
+  --font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+
+  /* Retro Pixel Shadows */
+  --pixel-shadow-sm: 0 2px 0 0 rgba(0, 0, 0, 0.4);
+  --pixel-shadow-md: 0 4px 0 0 rgba(0, 0, 0, 0.45);
+  --pixel-shadow-lg: 0 6px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Base Pixel Reset */
+.pixel-crisp {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ==============================================================================
+ * PIXEL PANELS (Khung gỗ, viền vàng, nền giấy cổ)
+ * ============================================================================== */
+.pixel-panel {
+  position: relative;
+  background: var(--parchment-base);
+  color: var(--ink-primary);
+  border: 4px solid var(--wood-dark);
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 2px var(--gold-base),
+    inset 0 0 0 4px var(--wood-frame),
+    var(--pixel-shadow-md);
+  box-sizing: border-box;
+}
+
+.pixel-panel--dark {
+  background: #251b14;
+  color: #fff4df;
+  border-color: #0e0906;
+  box-shadow:
+    inset 0 0 0 2px #5a3d24,
+    inset 0 0 0 4px #1c120c,
+    var(--pixel-shadow-md);
+}
+
+.pixel-panel--inset {
+  background: var(--parchment-dark);
+  border: 3px solid var(--wood-dark);
+  box-shadow: inset 2px 2px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+/* ==============================================================================
+ * PIXEL BUTTONS (Nút bấm 3D stepped có độ lún thật)
+ * ============================================================================== */
+.pixel-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 18px;
+  font-family: var(--font-pixel);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--wood-dark);
+  background: var(--gold-bright);
+  border: 3px solid var(--wood-dark);
+  border-radius: 0 !important;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  box-shadow:
+    inset -3px -3px 0 0 var(--gold-shadow),
+    inset 3px 3px 0 0 var(--gold-highlight),
+    0 4px 0 0 var(--wood-dark);
+  transform: translateY(0);
+  transition: none !important;
+}
+
+.pixel-btn:hover {
+  background: #ffd666;
+  transform: translateY(1px);
+  box-shadow:
+    inset -3px -3px 0 0 var(--gold-shadow),
+    inset 3px 3px 0 0 #ffffff,
+    0 3px 0 0 var(--wood-dark);
+}
+
+.pixel-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    inset -2px -2px 0 0 var(--gold-shadow),
+    inset 2px 2px 0 0 var(--gold-highlight),
+    0 0 0 0 var(--wood-dark);
+}
+
+.pixel-btn:disabled,
+.pixel-btn.is-disabled {
+  background: #a3947f;
+  color: #55483a;
+  cursor: not-allowed;
+  transform: translateY(2px);
+  box-shadow:
+    inset -2px -2px 0 0 #786955,
+    inset 2px 2px 0 0 #c2b39f,
+    0 2px 0 0 var(--wood-dark);
+  opacity: 0.85;
+}
+
+/* Variant: Danger / Attack Button */
+.pixel-btn--danger {
+  background: var(--hp-crimson);
+  color: #ffffff;
+  box-shadow:
+    inset -3px -3px 0 0 var(--hp-shadow),
+    inset 3px 3px 0 0 var(--hp-highlight),
+    0 4px 0 0 var(--wood-dark);
+}
+
+.pixel-btn--danger:hover {
+  background: #e64547;
+  box-shadow:
+    inset -3px -3px 0 0 var(--hp-shadow),
+    inset 3px 3px 0 0 #ff999b,
+    0 3px 0 0 var(--wood-dark);
+}
+
+/* Variant: Wood / Slate Secondary Button */
+.pixel-btn--wood {
+  background: var(--wood-medium);
+  color: #fff1cf;
+  box-shadow:
+    inset -3px -3px 0 0 var(--wood-dark),
+    inset 3px 3px 0 0 var(--wood-light),
+    0 4px 0 0 var(--wood-dark);
+}
+
+.pixel-btn--wood:hover {
+  background: #6a492c;
+  box-shadow:
+    inset -3px -3px 0 0 var(--wood-dark),
+    inset 3px 3px 0 0 #8f653d,
+    0 3px 0 0 var(--wood-dark);
+}
+
+/* ==============================================================================
+ * PIXEL BADGES & CHIPS (Huy hiệu góc khía pixel)
+ * ============================================================================== */
+.pixel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-pixel);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--wood-dark);
+  background: var(--gold-highlight);
+  border: 2px solid var(--wood-dark);
+  border-radius: 0 !important;
+  box-shadow: inset -1px -1px 0 0 var(--gold-shadow), inset 1px 1px 0 0 #ffffff;
+}
+
+.pixel-badge--crimson {
+  background: var(--hp-crimson);
+  color: #ffffff;
+  box-shadow: inset -1px -1px 0 0 var(--hp-shadow), inset 1px 1px 0 0 var(--hp-highlight);
+}
+
+.pixel-badge--azure {
+  background: var(--mana-azure);
+  color: #ffffff;
+  box-shadow: inset -1px -1px 0 0 var(--mana-shadow), inset 1px 1px 0 0 var(--mana-highlight);
+}
+
+.pixel-badge--emerald {
+  background: var(--xp-emerald);
+  color: #ffffff;
+  box-shadow: inset -1px -1px 0 0 var(--xp-shadow), inset 1px 1px 0 0 var(--xp-highlight);
+}
+
+/* ==============================================================================
+ * PIXEL COMBAT GAUGE BARS (Thanh máu và năng lượng)
+ * ============================================================================== */
+.pixel-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pixel-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-pixel);
+  font-size: 0.72rem;
+  color: var(--ink-primary);
+}
+
+.pixel-bar {
+  position: relative;
+  height: 18px;
+  background: #251b14;
+  border: 3px solid var(--wood-dark);
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px 0 0 rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.pixel-bar__fill {
+  height: 100%;
+  width: 100%;
+  transition: width 0.28s steps(12, end);
+}
+
+.pixel-bar__fill--hp {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--hp-crimson) 0,
+    var(--hp-crimson) 8px,
+    var(--hp-highlight) 8px,
+    var(--hp-highlight) 10px
+  );
+  box-shadow: inset 0 2px 0 0 var(--hp-highlight), inset 0 -2px 0 0 var(--hp-shadow);
+}
+
+.pixel-bar__fill--mana {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--mana-azure) 0,
+    var(--mana-azure) 8px,
+    var(--mana-highlight) 8px,
+    var(--mana-highlight) 10px
+  );
+  box-shadow: inset 0 2px 0 0 var(--mana-highlight), inset 0 -2px 0 0 var(--mana-shadow);
+}
+
+.pixel-bar__fill--xp {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--xp-emerald) 0,
+    var(--xp-emerald) 8px,
+    var(--xp-highlight) 8px,
+    var(--xp-highlight) 10px
+  );
+  box-shadow: inset 0 2px 0 0 var(--xp-highlight), inset 0 -2px 0 0 var(--xp-shadow);
+}
+
+/* ==============================================================================
+ * RETRO NAVIGATION
+ * ============================================================================== */
+.pixel-nav-link {
+  position: relative;
+  padding: 8px 14px;
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
+  color: var(--ink-primary);
+  text-transform: uppercase;
+  border: 2px solid transparent;
+  border-radius: 0 !important;
+  transition: none;
+}
+
+.pixel-nav-link:hover {
+  background: var(--gold-highlight);
+  border-color: var(--wood-dark);
+  box-shadow: 0 2px 0 0 var(--wood-dark);
+}
+
+.pixel-nav-link.is-active {
+  background: var(--gold-base);
+  color: #ffffff;
+  border-color: var(--wood-dark);
+  box-shadow: inset -2px -2px 0 0 var(--gold-shadow), inset 2px 2px 0 0 var(--gold-highlight), 0 2px 0 0 var(--wood-dark);
+}
