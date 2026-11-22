@@ -6,6 +6,8 @@ target/
 # Build and temporary outputs
 test_output/
 node_modules/
+__pycache__/
+*.pyc
 *.log
 *.tmp
 

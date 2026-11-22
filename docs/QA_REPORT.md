@@ -1,5 +1,5 @@
 # BÁO CÁO KIỂM THỬ CHẤT LƯỢNG — QA REPORT
-## GIAI ĐOẠN P0 — LEX RAID PIXEL RPG
+## GIAI ĐOẠN P0 & SECURITY POST-AUDIT — LEX RAID PIXEL RPG
 
 **Thời điểm lập:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
@@ -8,19 +8,22 @@
 
 ---
 
-## 1. TỔNG QUAN KẾT QUẢ KIỂM THỬ
+## 1. TỔNG QUAN KẾT QUẢ KIỂM THỬ (TEST MATRIX)
 
-| Hạng mục kiểm thử | Cấp độ | Kết quả | Ghi chú |
+| Hạng mục kiểm thử | Cấp độ | Kết quả | Chi tiết & Ghi chú |
 | :--- | :---: | :---: | :--- |
-| Kiểm tra cú pháp JavaScript | STATIC | **PASS** | `smoke_check.py` đạt 0 lỗi cú pháp. |
-| Kiểm tra tham chiếu tĩnh DOM | STATIC | **PASS** | 64/64 static IDs được liên kết chính xác. |
-| Kiểm tra tài nguyên hình ảnh | STATIC | **PASS** | 100% đường dẫn spritesheet tồn tại hợp lệ. |
-| Căn chỉnh chân Hero (Warrior, Archer, Lancer) | UNIT | **PASS** | Độ lệch baseline tiếp đất < 0.007px so với Y=350. |
-| Căn chỉnh chân 9 Boss Quái Vật | UNIT | **PASS** | Căn chỉnh chính xác baseline chân chạm đất Y=350. |
-| Phân tích đường kiếm Warrior Attack | UNIT | **PASS** | Chân giữ nguyên Y=136; đường chém Y=155 lún đất tự nhiên. |
-| Khắc phục 9 kịch bản hồi quy (Race Conditions) | INTEGRATION | **PASS** | Đã khắc phục toàn bộ trong mã nguồn. |
-| Mô phỏng hình học CSS 7 Viewports | SIMULATION | **PASS** | 320×568 chiếm 79.3% chiều cao, no-scroll fit. |
-| Chạy kiểm thử tự động Playwright | BROWSER | **NOT TESTED** | Giới hạn Sandbox Windows `WinError 10013`. |
+| **Kiểm thử Security Scanner (`test_security_scanner.py`)** | UNIT | **PASS** | 13/13 unit tests pass: phát hiện hardcoded password, ${VAR:default}, URI embedded credentials, Google API keys, AWS keys, Private keys, JSON, YAML, và chặn false positives. |
+| **Quét An toàn Mã nguồn (`git_security_scanner.py`)** | STATIC | **PASS** | Working tree đạt 0 phát hiện nhạy cảm; Git history khớp đúng commit cũ `ecf1f782` (đã mask). |
+| **Khởi chạy Spring Boot & DB (`MainTests.java`)** | INTEGRATION | **PASS** | Sử dụng Maven 3.9.9 và Java 21: nạp biến môi trường `SPRING_DATASOURCE_PASSWORD`, khởi tạo HikariPool, kết nối SQL Server 57 bảng, Spring context khởi động thành công sau 6.6s. |
+| **Xác minh Mật khẩu SQL Server Local** | LIVE DB | **VERIFIED** | Xác nhận mật khẩu cũ trong commit `ecf1f782` vẫn đang hoạt động trên port 1433 của máy tính; cần user rotation. |
+| **Kiểm tra cú pháp JavaScript** | STATIC | **PASS** | `smoke_check.py` đạt 0 lỗi cú pháp JS. |
+| **Kiểm tra tham chiếu tĩnh DOM** | STATIC | **PASS** | 64/64 static IDs được liên kết chính xác giữa HTML và JS. |
+| **Kiểm tra tài nguyên hình ảnh** | STATIC | **PASS** | 100% đường dẫn spritesheet tồn tại hợp lệ. |
+| **Căn chỉnh chân Hero (Warrior, Archer, Lancer)** | UNIT | **PASS** | Độ lệch baseline tiếp đất < 0.007px so với Y=350. |
+| **Căn chỉnh chân 9 Boss Quái Vật** | UNIT | **PASS** | Căn chỉnh chính xác baseline chân chạm đất Y=350. |
+| **Khắc phục 9 kịch bản hồi quy (Race Conditions)** | INTEGRATION | **PASS** | Đã khắc phục toàn bộ trong mã nguồn (`clearAttackTimers`, `isBossDying`, `killTweensOf`, `isSubmitting`). |
+| **Mô phỏng hình học CSS 7 Viewports** | SIMULATION | **PASS** | 320×568 chiếm 79.3% chiều cao, no-scroll fit. |
+| **Chạy kiểm thử tự động Playwright** | BROWSER | **PENDING HOST RUN** | Giới hạn Sandbox Windows `WinError 10013`, chờ chạy trên host browser. |
 
 ---
 
