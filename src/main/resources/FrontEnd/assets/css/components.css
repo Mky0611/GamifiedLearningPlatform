@@ -1,0 +1,153 @@
+.hero-pill-group,
+.filter-chip-row,
+.quick-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filter-chip-row .chip,
+.hero-pill-group .chip {
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-soft);
+  border: 1px solid rgba(107, 140, 255, 0.14);
+  font-weight: 600;
+}
+
+.stat-card,
+.feature-card,
+.roadmap-card,
+.focus-card {
+  padding: 1.35rem;
+  height: 100%;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.feature-card h4,
+.focus-card h4,
+.roadmap-card h4,
+.stat-card h3 {
+  font-weight: 800;
+}
+
+.mini-metric {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.metric-row strong {
+  font-size: 0.95rem;
+}
+
+.metric-value {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.auth-info-panel {
+  background:
+    radial-gradient(circle at top left, rgba(123, 220, 181, 0.18), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(255, 183, 213, 0.2), transparent 24%),
+    rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(107, 140, 255, 0.13);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.auth-info-panel h2 {
+  font-size: clamp(1.65rem, 1.1rem + 1.4vw, 2.25rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.auth-info-panel p {
+  color: var(--text-soft);
+}
+
+.benefit-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.benefit-item {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.benefit-item strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.raid-side-card {
+  padding: 1.4rem;
+}
+
+.boss-orb {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  background: linear-gradient(135deg, rgba(189, 169, 255, 0.36), rgba(107, 140, 255, 0.24));
+  color: #6247d5;
+}
+
+.objective-box,
+.clue-box {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(107, 140, 255, 0.06);
+  border: 1px solid rgba(107, 140, 255, 0.1);
+}
+
+.objective-list {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+}
+
+.objective-list li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.6rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.objective-list i {
+  color: var(--primary-deep);
+}
+
+.toast-mini {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(107, 140, 255, 0.14);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 0.8rem 1rem;
+}
+
+@media (max-width: 991px) {
+  .auth-info-panel,
+  .raid-side-card {
+    padding: 1.4rem;
+  }
+}

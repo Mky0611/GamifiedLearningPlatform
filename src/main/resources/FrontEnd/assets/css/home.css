@@ -1,0 +1,67 @@
+body.home-body{
+  background:url('/ui/assets/imgs/background.png') center top / cover fixed no-repeat;
+}
+body.home-body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:url('/ui/assets/imgs/map2.gif') center top / cover no-repeat;
+  opacity:.16;
+  pointer-events:none;
+  z-index:-2;
+}
+body.home-body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:linear-gradient(180deg,rgba(246,240,227,.52) 0%,rgba(239,228,207,.62) 100%);
+  pointer-events:none;
+  z-index:-1;
+}
+.home-body .main-nav{background:rgba(255,248,236,.96);backdrop-filter:none}
+.home-body .app-shell{background:transparent}
+
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(340px,.82fr);gap:26px;align-items:stretch}
+.hero-copy,.hero-panel,.leaderboard-card,.feature-card,.stage-preview-card{padding:28px}
+.hero-copy{overflow:hidden;background:linear-gradient(180deg,rgba(255,251,244,.97),rgba(250,233,197,.96));min-height:100%}
+.hero-copy::after{content:'';position:absolute;right:-40px;bottom:-50px;width:340px;height:340px;background:url('/ui/assets/imgs/background.png') center/cover no-repeat;opacity:.18;pointer-events:none}
+.hero-actions,.hero-actions-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:24px}
+.hero-crest{display:grid;grid-template-columns:152px 1fr;gap:18px;align-items:center;margin-top:22px;padding:18px;border-radius:22px;background:rgba(255,248,231,.9);box-shadow:inset 0 0 0 1px rgba(100,75,45,.08)}
+.hero-crest__logo{width:152px;height:152px;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(0,0,0,.15))}
+
+.hero-panel{padding:24px;background:linear-gradient(180deg,rgba(42,31,23,.76),rgba(25,18,15,.86)), url('/ui/assets/imgs/map1.gif') center/cover no-repeat;color:#fff;overflow:hidden;min-height:100%}
+.hero-panel::after{content:'';position:absolute;inset:0;background:url('/ui/assets/imgs/map3.gif') center/cover no-repeat;opacity:.16;mix-blend-mode:screen;pointer-events:none}
+.hero-panel__content{position:relative;z-index:2;display:grid;gap:18px;height:100%;grid-template-rows:auto auto auto 1fr auto}
+.hero-stage-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.hero-stage-top img{width:90px;height:90px;border-radius:20px;object-fit:cover;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06)}
+.hero-stage-name{font-size:2rem;font-weight:900;line-height:1.06}
+.hero-stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.hero-stage-stat{padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.hero-stage-stat span{display:block;color:rgba(255,255,255,.74);font-size:.78rem}.hero-stage-stat strong{font-size:1.05rem}
+
+.card-grid{display:grid;gap:18px}.card-grid--3{grid-template-columns:repeat(3,1fr)}.card-grid--2{grid-template-columns:1.1fr .9fr}
+.feature-card{display:grid;gap:18px;min-height:260px;background:linear-gradient(180deg,rgba(255,250,241,.98),rgba(245,233,208,.97))}
+.feature-card__art{height:146px;border-radius:22px;background:linear-gradient(180deg,rgba(72,52,29,.10),rgba(88,61,31,.04));display:flex;align-items:center;justify-content:center;overflow:hidden}
+.feature-card:nth-child(1) .feature-card__art{background:linear-gradient(180deg,rgba(246,240,226,.7),rgba(236,223,191,.5)),url('/ui/assets/imgs/map1.gif') center/cover no-repeat}
+.feature-card:nth-child(2) .feature-card__art{background:linear-gradient(180deg,rgba(246,240,226,.7),rgba(236,223,191,.5)),url('/ui/assets/imgs/map2.gif') center/cover no-repeat}
+.feature-card:nth-child(3) .feature-card__art{background:linear-gradient(180deg,rgba(246,240,226,.7),rgba(236,223,191,.5)),url('/ui/assets/imgs/map3.gif') center/cover no-repeat}
+.feature-card__art img{max-width:82%;max-height:130px;object-fit:contain;image-rendering:pixelated}
+.feature-card__head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.feature-card__type{padding:8px 12px;border-radius:999px;background:#fff0cb;font-weight:800;font-size:.78rem;color:#764d16}
+.feature-card__actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+
+.leaderboard-card{background:linear-gradient(180deg,rgba(255,250,241,.98),rgba(245,233,208,.97))}
+.leaderboard-list{display:grid;gap:12px}
+.leaderboard-item{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.58);box-shadow:inset 0 0 0 1px rgba(100,75,45,.08)}
+.leaderboard-rank{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:18px;background:linear-gradient(180deg,#ffd979,#d39232);font-weight:900;color:#503300}
+.level-pill{padding:8px 12px;border-radius:999px;background:#fff0cf;font-weight:800;color:#754d17}
+.stage-preview-grid{display:grid;gap:18px}
+.stage-preview-card{padding:24px;display:grid;gap:16px;background:linear-gradient(180deg,rgba(255,250,241,.98),rgba(245,233,208,.97))}
+.stage-preview-grid .stage-preview-card:first-child{background:linear-gradient(180deg,rgba(255,250,241,.95),rgba(245,233,208,.96)),url('/ui/assets/imgs/map2.gif') center/cover no-repeat}
+.stage-preview-grid .stage-preview-card:last-child{background:linear-gradient(180deg,rgba(255,250,241,.95),rgba(245,233,208,.96)),url('/ui/assets/imgs/map3.gif') center/cover no-repeat}
+.stage-preview-card__footer{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-top:auto}
+.badge-soft{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#fff0cf;font-weight:800;color:#754d17;width:max-content}
+.pill-link{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:999px;background:#fff3d7;font-weight:800;color:#724814;box-shadow:inset 0 0 0 1px rgba(100,75,45,.08)}
+
+@media (max-width:1100px){.hero-grid,.card-grid--3,.card-grid--2{grid-template-columns:1fr}.hero-stage-grid{grid-template-columns:1fr 1fr 1fr}}
+@media (max-width:700px){.hero-crest{grid-template-columns:1fr}.hero-crest__logo{margin:auto}.hero-stage-grid{grid-template-columns:1fr 1fr}.leaderboard-item{grid-template-columns:56px 1fr}}

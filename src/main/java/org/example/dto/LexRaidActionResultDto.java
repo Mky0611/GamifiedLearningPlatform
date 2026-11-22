@@ -1,0 +1,41 @@
+package org.example.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LexRaidActionResultDto {
+    private boolean accepted;
+    private String actionType;
+    private String submittedWord;
+    private String normalizedWord;
+    private Long vocabularyWordId;
+    private Integer damageDealt;
+    private Integer shieldDamage;
+    private Integer manaGain;
+    private Integer scoreGain;
+    private Integer comboAfter;
+    private Integer bossHpRemaining;
+    private Integer bossShieldRemaining;
+    private Integer rageValue;
+    private String raidStatus;
+    private String resultCode;
+    private String rejectionReason;
+    private String clueProgressJson;
+    private List<String> unlockedClues;
+    private Integer activeCoreIndex;
+    private Long activeStageCoreWordId;
+    private String activeCoreWord;
+    private String activeClueText;
+    private boolean coreSolved;
+    private List<LexRaidCoreWordDto> coreWords;
+    private List<List<String>> board;
+    private LexRaidSessionDto session;
+}
