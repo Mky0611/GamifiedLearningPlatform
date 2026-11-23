@@ -24,4 +24,12 @@ public class LexRaidSessionDto {
     private Integer manaValue;
     private Integer totalScore;
     private String clueProgressJson;
+    private Integer xpEarned;
+    private Integer coinsEarned;
+    private Integer userLevelCurrent;
+    private Integer userXpTotal;
+    private Integer userCoins;
+    private Boolean levelUpOccurred;
+    private Integer levelsGained;
+    private Integer starsEarned;
 }

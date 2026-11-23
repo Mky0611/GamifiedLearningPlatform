@@ -46,6 +46,7 @@ public class LexRaidServiceImpl implements LexRaidService {
     private final UserWordMasteryRepository userWordMasteryRepository;
     private final UserStageProgressRepository userStageProgressRepository;
     private final BossRepository bossRepository;
+    private final RpgProgressionService rpgProgressionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -187,8 +188,7 @@ public class LexRaidServiceImpl implements LexRaidService {
         RaidSession raidSession = findSession(raidSessionId);
         applySync(raidSession, request, true);
         saveSnapshotIfPresent(raidSession, request, DEFAULT_BOARD_REASON);
-        finalizeGameSession(raidSession, request.getResultCode(), request.getDurationSec());
-        updateStageProgress(raidSession, 0, 0);
+        finalizeGameSessionAndAward(raidSession, request.getResultCode(), request.getDurationSec());
         return toSessionDto(raidSessionRepository.save(raidSession));
     }
 
@@ -240,14 +240,14 @@ public class LexRaidServiceImpl implements LexRaidService {
             }
 
             updateWordMastery(raidSession.getGameSession().getUser(), matchedWord, true, solvedCoreBySubmit);
-            updateStageProgress(raidSession, 1, solvedCoreBySubmit ? 1 : 0);
+            updateStageWordProgress(raidSession, 1, solvedCoreBySubmit ? 1 : 0);
 
             if (raidSession.getBossHpRemaining() <= 0) {
                 StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
                 if (nextWordCheck == null) {
                     raidSession.setStatus(WON);
                     raidSession.setEndedAt(LocalDateTime.now());
-                    finalizeGameSession(raidSession, WON, null);
+                    finalizeGameSessionAndAward(raidSession, WON, null);
                 } else {
                     raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                     raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
@@ -358,13 +358,13 @@ public class LexRaidServiceImpl implements LexRaidService {
             raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), stageCoreWord));
             solvedIds.add(stageCoreWord.getStageCoreWordId());
             updateWordMastery(raidSession.getGameSession().getUser(), stageCoreWord.getWord(), true, true);
-            updateStageProgress(raidSession, 0, 1);
+            updateStageWordProgress(raidSession, 0, 1);
             
             StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
             if (nextWordCheck == null) {
                 raidSession.setStatus(WON);
                 raidSession.setEndedAt(LocalDateTime.now());
-                finalizeGameSession(raidSession, WON, null);
+                finalizeGameSessionAndAward(raidSession, WON, null);
             } else {
                 raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                 raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
@@ -418,15 +418,45 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .build();
     }
 
-    private void finalizeGameSession(RaidSession raidSession, String incomingResultCode, Integer incomingDurationSec) {
+    private void finalizeGameSessionAndAward(RaidSession raidSession, String incomingResultCode, Integer incomingDurationSec) {
         GameSession gameSession = raidSession.getGameSession();
-        gameSession.setScoreTotal(raidSession.getTotalScore());
-        gameSession.setResultCode(blankToNull(incomingResultCode) != null ? incomingResultCode : (WON.equalsIgnoreCase(raidSession.getStatus()) ? WON : LOST));
-        gameSession.setStatus(resolveGameSessionStatus(raidSession.getStatus()));
+        if (gameSession == null) {
+            return;
+        }
+
+        // STRICT IDEMPOTENCY: If session is already COMPLETED, rewards were already awarded. Skip duplicate!
+        if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) {
+            return;
+        }
+
+        String resultCode = blankToNull(incomingResultCode);
+        if (resultCode == null) {
+            resultCode = WON.equalsIgnoreCase(raidSession.getStatus()) ? WON : LOST;
+        }
+        boolean won = WON.equalsIgnoreCase(resultCode);
+
+        gameSession.setStatus(COMPLETED);
+        gameSession.setResultCode(resultCode);
         gameSession.setEndedAt(LocalDateTime.now());
         gameSession.setDurationSec(resolveDurationSec(gameSession.getStartedAt(), incomingDurationSec));
-        gameSession.setXpEarned(defaultIfNull(gameSession.getXpEarned(), 0) + Math.max(5, defaultIfNull(raidSession.getTotalScore(), 0) / 20));
+        gameSession.setScoreTotal(defaultIfNull(raidSession.getTotalScore(), 0));
+
+        // Calculate verified rewards on backend
+        int xpReward = rpgProgressionService.calculateLexRaidXp(won, defaultIfNull(raidSession.getTotalScore(), 0));
+        int coinReward = rpgProgressionService.calculateLexRaidCoins(won, defaultIfNull(raidSession.getTotalScore(), 0));
+
+        gameSession.setXpEarned(xpReward);
+        gameSession.setCoinsEarned(coinReward);
         gameSessionRepository.save(gameSession);
+
+        // Update User stats
+        User user = gameSession.getUser();
+        if (user != null) {
+            rpgProgressionService.applyReward(user, xpReward, coinReward);
+        }
+
+        // Increment clearCount or failCount exactly once on completion
+        updateStageProgressOnCompletion(raidSession, won);
     }
 
     private void applySync(RaidSession raidSession, LexRaidSessionSyncRequest request, boolean markFinished) {
@@ -441,7 +471,7 @@ public class LexRaidServiceImpl implements LexRaidService {
             raidSession.setClueProgressJson(request.getClueProgressJson());
         }
         if (markFinished) {
-            raidSession.setStatus(blankToNull(request.getStatus()) != null ? request.getStatus() : raidSession.getBossHpRemaining() <= 0 ? WON : LOST);
+            raidSession.setStatus(blankToNull(request.getStatus()) != null ? request.getStatus() : defaultIfNull(raidSession.getBossHpRemaining(), 0) <= 0 ? WON : LOST);
             raidSession.setEndedAt(LocalDateTime.now());
         } else if (blankToNull(request.getStatus()) != null) {
             raidSession.setStatus(request.getStatus());
@@ -497,10 +527,8 @@ public class LexRaidServiceImpl implements LexRaidService {
         userWordMasteryRepository.save(mastery);
     }
 
-    private void updateStageProgress(RaidSession raidSession, int wordsFoundDelta, int coreWordsGuessedDelta) {
-        User user = raidSession.getGameSession().getUser();
-        Stage stage = raidSession.getStage();
-        UserStageProgress progress = userStageProgressRepository.findByUserUserIdAndStageStageId(user.getUserId(), stage.getStageId())
+    private UserStageProgress getOrCreateStageProgress(User user, Stage stage) {
+        return userStageProgressRepository.findByUserUserIdAndStageStageId(user.getUserId(), stage.getStageId())
                 .orElseGet(() -> {
                     UserStageProgress created = new UserStageProgress();
                     created.setUser(user);
@@ -514,19 +542,37 @@ public class LexRaidServiceImpl implements LexRaidService {
                     created.setTotalCoreWordsGuessed(0);
                     return created;
                 });
+    }
+
+    private void updateStageWordProgress(RaidSession raidSession, int wordsFoundDelta, int coreWordsGuessedDelta) {
+        User user = raidSession.getGameSession().getUser();
+        Stage stage = raidSession.getStage();
+        UserStageProgress progress = getOrCreateStageProgress(user, stage);
         progress.setBestScore(Math.max(defaultIfNull(progress.getBestScore(), 0), defaultIfNull(raidSession.getTotalScore(), 0)));
         progress.setHighestCombo(Math.max(defaultIfNull(progress.getHighestCombo(), 0), defaultIfNull(raidSession.getComboCount(), 0)));
         progress.setTotalWordsFound(defaultIfNull(progress.getTotalWordsFound(), 0) + wordsFoundDelta);
         progress.setTotalCoreWordsGuessed(defaultIfNull(progress.getTotalCoreWordsGuessed(), 0) + coreWordsGuessedDelta);
         progress.setLastPlayedAt(LocalDateTime.now());
-        if (WON.equalsIgnoreCase(raidSession.getStatus())) {
+        userStageProgressRepository.save(progress);
+    }
+
+    private void updateStageProgressOnCompletion(RaidSession raidSession, boolean won) {
+        User user = raidSession.getGameSession().getUser();
+        Stage stage = raidSession.getStage();
+        UserStageProgress progress = getOrCreateStageProgress(user, stage);
+        progress.setBestScore(Math.max(defaultIfNull(progress.getBestScore(), 0), defaultIfNull(raidSession.getTotalScore(), 0)));
+        progress.setHighestCombo(Math.max(defaultIfNull(progress.getHighestCombo(), 0), defaultIfNull(raidSession.getComboCount(), 0)));
+        progress.setLastPlayedAt(LocalDateTime.now());
+
+        if (won) {
             progress.setClearCount(defaultIfNull(progress.getClearCount(), 0) + 1);
             progress.setLastResult(WON);
-            progress.setStarsEarned(resolveStars(raidSession));
+            int newStars = resolveStars(raidSession);
+            progress.setStarsEarned(Math.max(defaultIfNull(progress.getStarsEarned(), 0), newStars));
             if (progress.getFirstClearedAt() == null) {
                 progress.setFirstClearedAt(LocalDateTime.now());
             }
-        } else if (LOST.equalsIgnoreCase(raidSession.getStatus())) {
+        } else {
             progress.setFailCount(defaultIfNull(progress.getFailCount(), 0) + 1);
             progress.setLastResult(LOST);
         }
@@ -873,13 +919,35 @@ public class LexRaidServiceImpl implements LexRaidService {
     }
 
     private LexRaidSessionDto toSessionDto(RaidSession raidSession) {
+        if (raidSession == null) {
+            return null;
+        }
+        GameSession gameSession = raidSession.getGameSession();
+        User user = gameSession != null ? gameSession.getUser() : null;
+        Integer stars = null;
+        if (user != null && raidSession.getStage() != null) {
+            stars = userStageProgressRepository.findByUserUserIdAndStageStageId(user.getUserId(), raidSession.getStage().getStageId())
+                    .map(UserStageProgress::getStarsEarned)
+                    .orElse(null);
+        }
+
+        Boolean levelUpOccurred = null;
+        Integer levelsGained = null;
+        if (user != null && gameSession != null && gameSession.getXpEarned() != null && gameSession.getXpEarned() > 0) {
+            int prevXp = Math.max(0, defaultIfNull(user.getXpTotal(), 0) - gameSession.getXpEarned());
+            int prevLevel = rpgProgressionService.calculateLevel(prevXp);
+            int curLevel = defaultIfNull(user.getLevelCurrent(), 1);
+            levelUpOccurred = curLevel > prevLevel;
+            levelsGained = Math.max(0, curLevel - prevLevel);
+        }
+
         return LexRaidSessionDto.builder()
                 .raidSessionId(raidSession.getRaidSessionId())
-                .gameSessionId(raidSession.getGameSession().getGameSessionId())
-                .stageId(raidSession.getStage().getStageId())
-                .userId(raidSession.getGameSession().getUser().getUserId())
+                .gameSessionId(gameSession != null ? gameSession.getGameSessionId() : null)
+                .stageId(raidSession.getStage() != null ? raidSession.getStage().getStageId() : null)
+                .userId(user != null ? user.getUserId() : null)
                 .status(raidSession.getStatus())
-                .resultCode(raidSession.getGameSession().getResultCode())
+                .resultCode(gameSession != null ? gameSession.getResultCode() : null)
                 .currentRound(raidSession.getCurrentRound())
                 .bossHpRemaining(raidSession.getBossHpRemaining())
                 .bossShieldRemaining(raidSession.getBossShieldRemaining())
@@ -888,6 +956,14 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .manaValue(raidSession.getManaValue())
                 .totalScore(raidSession.getTotalScore())
                 .clueProgressJson(raidSession.getClueProgressJson())
+                .xpEarned(gameSession != null ? gameSession.getXpEarned() : null)
+                .coinsEarned(gameSession != null ? gameSession.getCoinsEarned() : null)
+                .userLevelCurrent(user != null ? user.getLevelCurrent() : null)
+                .userXpTotal(user != null ? user.getXpTotal() : null)
+                .userCoins(user != null ? user.getCoins() : null)
+                .levelUpOccurred(levelUpOccurred)
+                .levelsGained(levelsGained)
+                .starsEarned(stars)
                 .build();
     }
 
