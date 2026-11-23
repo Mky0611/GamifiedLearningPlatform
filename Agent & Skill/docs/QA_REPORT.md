@@ -83,30 +83,36 @@ Kịch bản sẽ tự động mở 7 viewports (320px đến 1920px), đo kích
 - **Lombok Version:** `1.18.36` xử lý hoàn hảo Java 21 Records và code generation.
 - **Context Boot:** Khởi động thành công trong 5.8s, kết nối 57 bảng SQL Server.
 
-### B. Kiểm thử Hồi quy API Backend (API Regression Smoke Tests)
-- `POST /api/v1/auth/login` & `/register`: Payload validation chính xác, mã phản hồi 200/201/400 chuẩn.
-- `GET /api/v1/home/overview`: 200 OK, trả về JSON `success: true` kèm `totalUsers`, `popularGames`.
-- `GET /api/v1/games` & `/games/featured`: 200 OK, danh sách game active.
-- `GET /api/v1/lex-raid/stages`: 200 OK, trả về danh sách stages.
-- `GET /api/v1/quiz/sets`: 200 OK, danh sách câu hỏi hoạt động.
-- `GET /api/v1/volcard/topics`: 200 OK, danh sách chủ đề flashcard.
-- `GET /api/v1/account/options`: 200 OK, danh mục avatar và loadout unit.
+### B. Khảo sát Hợp đồng API Backend (API Static Review)
+- Trạng thái: **STATIC REVIEW** (Chưa chạy automated HTTP test suite; đối chiếu mã nguồn Controller/DTO/Service).
+- `POST /api/v1/auth/login` & `/register`: DTO `AuthLoginRequest` & `AuthRegisterRequest` kiểm tra validation hợp lệ.
+- `GET /api/v1/home/overview`: Cấu trúc DTO `HomeOverviewDto` định nghĩa `totalUsers`, `popularGames`.
+- `GET /api/v1/games` & `/games/featured`: Controller trả về danh sách `GameCardDto`.
+- `GET /api/v1/lex-raid/stages`: Trả về danh sách `StageCardDto`.
+- `GET /api/v1/quiz/sets`: Trả về danh sách `QuizSetDto`.
+- `GET /api/v1/volcard/topics`: Trả về danh sách `VolcardTopicDto`.
+- `GET /api/v1/account/options`: Trả về danh mục avatar và loadout unit `AccountCatalogDto`.
 
-### C. Kiểm thử Trực quan Giao diện 8 Viewports (Visual Acceptance)
-1. **320×568 (iPhone SE gen 1):** Zero horizontal overflow (100% fit). Đấu trường kết hợp bảng chữ cao 452px/568px (headroom 116px). Nút Clear và Attack nâng từ min-height 32px lên **40px** (đạt tiêu chuẩn tap target mobile >=40px).
-2. **360×800 (Galaxy S20):** Layout thẳng đứng cân đối, tile size 44px, hiển thị đầy đủ HUD overlay.
-3. **390×844 (iPhone 12/13/14):** Khoảng đệm thoải mái, thanh máu và thanh nộ sắc nét.
-4. **430×932 (iPhone 14/15 Pro Max):** Bố cục rộng rãi, hiển thị hoàn hảo font Silkscreen và tiếng Việt Be Vietnam Pro.
-5. **768×1024 (iPad Mini / Tablet Portrait):** Bảng chữ 5x5 chuyển sang kích thước 48px, khoảng cách thao tác thoáng.
-6. **1366×768 (Standard Laptop):** Chế độ 3 cột chuẩn RPG: Fighter Panel bên trái, Arena + Board ở giữa, Boss Panel + Core Word bên phải.
-7. **1440×900 (MacBook Widescreen):** Cân đối tỷ lệ 16:10, viền gỗ và ánh vàng bóng bẩy.
-8. **1920×1080 (Full HD Monitor):** Trải nghiệm desktop sắc nét, các sprite pixel không bị vỡ hạt mờ nhờ `image-rendering: pixelated`.
+### C. Trạng thái Kiểm thử Trực quan Giao diện 8 Viewports (Visual Acceptance)
+- Trạng thái: **NOT TESTED (PENDING HOST RUN)**.
+- Kịch bản tự động Playwright đã được nâng cấp đầy đủ 8 viewports và tích hợp các assertions nghiêm ngặt tại `Agent & Skill/scripts/playwright_p0_acceptance.js`.
+- Do môi trường Sandbox hạn chế socket mạng cục bộ và không cài đặt sẵn Chromium binary, bài kiểm thử trình duyệt thật chưa thể thực thi tự động bên trong sandbox.
+- **8 Viewports trong kịch bản:**
+  1. 320×568 (iPhone SE gen 1)
+  2. 360×800 (Galaxy S20)
+  3. 390×844 (iPhone 12/13/14)
+  4. 430×932 (iPhone 14/15 Pro Max)
+  5. 768×1024 (iPad Mini / Tablet Portrait)
+  6. 1366×768 (Standard Laptop)
+  7. 1440×900 (MacBook Widescreen)
+  8. 1920×1080 (Full HD Monitor)
+- **Hướng dẫn chạy nghiệm thu trên máy host Windows:** Xem Mục 4 bên trên.
 
 ### D. Kiểm toán Tính Đồng bộ Design System
-- Token chuẩn từ `pixel-rpg.css` đã áp dụng toàn diện cho Home, Navigation và Đấu trường Lex Raid.
-- Hệ thống class `.pixel-panel`, `.pixel-btn`, `.pixel-badge`, `.pixel-bar` thay thế các hardcoded values cũ mà không gây regression.
+- Token chuẩn từ `pixel-rpg.css` đã áp dụng cho Home, Navigation và Đấu trường Lex Raid trong mã nguồn CSS.
+- Hệ thống class `.pixel-panel`, `.pixel-btn`, `.pixel-badge`, `.pixel-bar` thiết lập nền tảng, không xung đột với các class cũ `.soft-card`, `.btn-soft`.
 
 ### E. Kiểm toán Các Trang Còn Lại & Lộ Trình P2/P3
-- **Quiz, Volcard, Memory, Speed Math, Code Puzzle, Auth, Account:** Đều kế thừa `base.css` (bao gồm main-nav pixel khung gỗ, viền vàng, font Be Vietnam Pro + Silkscreen, custom pixel cursor).
-- Nội dung bên trong các trang này hiện giữ style clean-lite; sẽ được chuyển đổi pixel retro đồng bộ theo lộ trình P2 và P3.
+- **Trạng thái:** **PARTIAL** (Chỉ hoàn thiện redesign cho Home và Đấu trường Lex Raid; các trang còn lại chưa được redesign riêng).
+- **Quiz, Volcard, Memory, Speed Math, Code Puzzle, Auth, Account:** Kế thừa `base.css` (main-nav pixel khung gỗ, viền vàng, font Be Vietnam Pro + Silkscreen, custom pixel cursor). Nội dung bên trong vẫn là giao diện clean-lite ban đầu, cần chuyển đổi sang phong cách retro pixel theo lộ trình P2/P3.
 
