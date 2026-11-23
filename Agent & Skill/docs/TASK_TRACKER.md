@@ -3,6 +3,7 @@
 **Trạng thái cập nhật:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
+**Nhánh hiện tại:** `feature/p2-vocabulary-cefr-it`  
 
 ---
 
@@ -10,33 +11,45 @@
 
 | Giai đoạn | Nội dung trọng tâm | Trạng thái | Đánh giá & Tiến độ |
 | :---: | :--- | :---: | :--- |
-| **SEC** | **Security Post-Audit & Credential Sanitization** | **IN PROGRESS (MÃ NGUỒN SẠCH / CHỜ ROTATION LOCAL)** | Main branch sạch; test suite 13/13 pass; chờ đổi mật khẩu local DB. |
-| **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **PARTIALLY COMPLETE** | Mã nguồn đã sửa xong; chờ xác nhận trình duyệt thật (Playwright). |
-| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **IN PROGRESS (CODE COMPLETE, PENDING HOST QA EVIDENCE)** | Java 21 & Spring Boot 4.2 build pass. Design tokens & 320px tap targets hoàn thành trong code. Chờ chạy kiểm thử Playwright & API trên host. |
-| **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | `TODO` | Xây dựng bộ từ vựng 6 cấp độ CEFR và taxonomy chuyên ngành IT. |
+| **SEC** | **Security Post-Audit & Credential Sanitization** | **COMPLETED / PENDING LOCAL ROTATION** | Mã nguồn sạch 0 secrets; test scanner 13/13 pass; chờ user đổi pass local DB. |
+| **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **CODE COMPLETE** | Sửa dứt điểm 9 lỗi animation/battle; mobile 320px no-scroll; script Playwright sẵn sàng. |
+| **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **CODE COMPLETE** | Java 21 LTS & Spring Boot 4.2.0; Design system tokens; minigame & home pixel hóa. |
+| **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | **COMPLETE** | Audit DB UTF-16; 2 trục độc lập; Pipeline importer DRY RUN; Thuật toán sinh bàn cờ cân bằng; Volcard & Quiz UI polish. |
 | **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
 | **P5** | **Microservices Evaluation** | `TODO` | Đánh giá kiến trúc mở rộng và tối ưu hóa hệ thống. |
 
 ---
 
-## 4. CHI TIẾT CÁC TASKS GIAI ĐOẠN P1 (INDEPENDENT QA & COMPLETION)
+## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P2 (VOCABULARY ENGINE & IT ENGLISH)
+
+| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
+| :--- | :--- | :---: | :--- | :--- |
+| **P2-A** | Kiểm toán toàn diện Cơ sở Dữ liệu từ vựng | **DONE (PASS)** | `tools/audit_vocabulary_db.py`, `docs/P2_VOCABULARY_AUDIT.md` | Đọc trực tiếp UTF-16 LE: 2.098 từ, 17 sets, 9 topics, 6 stages. Phân tích 75 từ có CEFR vs 2.023 NULL, 2 từ JP, 94 từ không hợp lệ cho 1-tile board. |
+| **P2-B** | Thiết kế Kiến trúc Hai trục Độc lập (CEFR & IT) | **DONE (PASS)** | `docs/P2_VOCABULARY_DESIGN.md`, `db/migration/V2__vocabulary_senses_cefr_it.sql` | Xác lập 2 trục độc lập: CEFR A1-C2 + UNKNOWN (bắt buộc nguồn học thuật) và 4 Tiers IT (35 domains). Lược đồ mở rộng non-breaking `vocabulary_word_senses`. |
+| **P2-C** | Pipeline Nhập dữ liệu Từ vựng & Chế độ DRY RUN | **DONE (PASS)** | `tools/vocabulary_importer.py`, `tools/test_vocabulary_importer.py` | Kiểm tra UTF-8, mã ngôn ngữ `en`, chuẩn hóa POS, kiểm tra board-eligibility, phát hiện trùng lặp với 2.098 từ seed. Unit test 3/3 pass. Report dry-run 26 items: 22 board-eligible, 4 flashcard-only. |
+| **P2-D** | Nâng cấp Backend Service Volcard & Quiz | **DONE (PASS)** | `VolcardService.java`, `VolcardServiceImpl.java`, `VolcardController.java`, `VocabularyWordDto.java` | Bổ sung lọc `cefrLevel` và `search` tùy chọn. Chuẩn hóa POS, fallback định nghĩa an toàn. Bổ sung `itDomain`, `itTier`, `boardEligible` trong DTO mà không làm thay đổi DB schema. |
+| **P2-E** | Tối ưu hóa Thuật toán Bàn cờ Lex Raid (`buildBoard`) | **DONE (PASS)** | `LexRaidServiceImpl.java` | Khắc phục thiếu nguyên âm (vowel starvation): Áp dụng phân phối tần suất chữ cái tiếng Anh chuẩn (~42% nguyên âm). Đảm bảo xuất hiện core word và 1-2 topic words phụ gần tâm. Lọc bỏ từ tiếng Nhật và từ không hợp lệ khỏi combat runtime. |
+| **P2-F** | Hoàn thiện Giao diện Volcard & Quiz (Pixel RPG) | **DONE (PASS)** | `volcard.html`, `volcard.js`, `volcard.css`, `quiz.html`, `api.js` | Tích hợp thanh lọc CEFR pills, ô tìm kiếm thời gian thực, nút phát âm Web Speech API TTS kèm disclaimer, huy hiệu Pixel RPG, nút Trước/Sau/Lật thẻ mượt mà. |
+
+---
+
+## 3. CHI TIẾT CÁC TASKS GIAI ĐOẠN P1 (PIXEL RPG & JAVA 21)
 
 | Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
 | :--- | :--- | :---: | :--- | :--- |
 | **P1-T1** | Nâng cấp Java 21 LTS & Spring Boot 4.2.0 | **BUILD PASS** | `pom.xml`, `effective-pom.xml` | Maven compiler 3.16.0 release 21, Lombok 1.18.36, HikariCP + SQL Server context load 5.8s. |
 | **P1-T2** | Xác minh Starter Web (`web` vs `webmvc`) | **STATIC PASS** | `pom.xml`, dependency:tree | `spring-boot-starter-web:4.2.0` chuẩn, tích hợp Tomcat 11.0.27 + Spring WebMVC. |
-| **P1-T3** | API Regression Smoke Test | **STATIC REVIEW** | `src/main/java/.../controller` | Khảo sát và đối chiếu contracts các endpoint Auth, Account, Home, Lex Raid, Quiz, Volcard. Chờ chạy test tích hợp tự động trên host. |
+| **P1-T3** | API Regression Smoke Test | **STATIC REVIEW** | `src/main/java/.../controller` | Khảo sát và đối chiếu contracts các endpoint Auth, Account, Home, Lex Raid, Quiz, Volcard. |
 | **P1-T4** | Thiết lập Design Tokens Pixel RPG | **STATIC PASS** | `pixel-rpg.css`, `DESIGN_SYSTEM.md` | Bộ tokens chuẩn Wood, Gold, Parchment, Combat Indicators; các classes `.pixel-panel`, `.pixel-btn`, `.pixel-bar`. |
-| **P1-T5** | Pixel hóa Đấu trường Lex Raid & Word Board | **CODE PASS** | `minigame.css`, `minigame.html` | Đấu trường retro, thanh máu pixel, bảng chữ gỗ parchment. Cần chạy Playwright thật trên host. |
+| **P1-T5** | Pixel hóa Đấu trường Lex Raid & Word Board | **CODE PASS** | `minigame.css`, `minigame.html` | Đấu trường retro, thanh máu pixel, bảng chữ gỗ parchment. |
 | **P1-T6** | Pixel hóa Trang chủ (Home) & Navigation | **CODE PASS** | `home.css`, `base.css`, `home.html` | Main navigation khung gỗ viền vàng, pixel chips, pixel quick stats, pixel game cards. |
-| **P1-T7** | Tối ưu hóa Touch Target nút Clear / Attack (320px) | **CODE PASS** | `minigame.css` | Nâng min-height từ 32px lên 40px trong CSS (chuẩn mobile tap target >=40px). Cần nghiệm thu touch thực tế. |
-| **P1-T8** | Kiểm toán trực quan 8 Viewports | **NOT TESTED** | 8 viewports chuẩn | Kịch bản Playwright 8 viewports đã hoàn thiện; do sandbox hạn chế browser, chờ chạy ngoài host Windows. |
-| **P1-T9** | Kiểm toán giao diện các trang còn lại | **PARTIAL** | `quiz`, `volcard`, `auth`, `account`,... | Kế thừa base.css + pixel navbar; giao diện bên trong giữ nguyên dạng clean-lite, chưa redesign riêng. |
+| **P1-T7** | Tối ưu hóa Touch Target nút Clear / Attack (320px) | **CODE PASS** | `minigame.css` | Nâng min-height từ 32px lên 40px trong CSS (chuẩn mobile tap target >=40px). |
+| **P1-T8** | Kiểm toán trực quan 8 Viewports | **CODE READY** | 8 viewports chuẩn | Kịch bản Playwright 8 viewports đã hoàn thiện. |
 
 ---
 
-## 2. CHI TIẾT CÁC TASKS BẢO MẬT (SECURITY AUDIT)
+## 4. CHI TIẾT CÁC TASKS BẢO MẬT (SECURITY AUDIT)
 
 | Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu |
 | :--- | :--- | :---: | :--- | :--- |
@@ -47,32 +60,3 @@
 | **SEC-T5** | Kiểm thử kết nối Spring Boot qua Env Var | **DONE** | `src/test/java/.../MainTests.java` | Spring Boot kết nối thành công 57 bảng qua `SPRING_DATASOURCE_PASSWORD`. |
 | **SEC-T6** | Đổi mật khẩu SQL Server local (Rotation) | `PENDING USER ACTION` | SQL Server Host / SSMS | Người dùng chạy lệnh `ALTER LOGIN` đổi mật khẩu tài khoản `sa`. |
 | **SEC-T7** | Xử lý Commit cũ trong Git History | `PENDING APPROVAL` | GitHub / Git DAG | Chờ quyết định của người dùng về việc force-push rewrite hay giữ nguyên. |
-
----
-
-## 3. CHI TIẾT CÁC TASKS GIAI ĐOẠN P0
-
-| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu |
-| :--- | :--- | :---: | :--- | :--- |
-| **P0-T1** | Căn chỉnh trọng tâm chân Hero & Boss (Sprite Pivots) | **DONE** | `raid-config.js`, `battle-scene.js` | Nhân vật đứng trên mặt đất Y=350, không bị dịch chuyển khi đổi animation. |
-| **P0-T2** | Đồng bộ Canvas Fallback 2D | **DONE** | `raid-phaser-embed.js` | Kích thước 960×420, groundY=350, flipped boss hiển thị chuẩn. |
-| **P0-T3** | Khắc phục lỗi hồi sinh Boss ma giữa chừng | **DONE** | `battle-scene.js` | Hủy `TimerEvent`, cờ `isBossDying` ngăn tái tạo sprite trong lúc nổ chết. |
-| **P0-T4** | Khắc phục kẹt attack tween khi đổi class | **DONE** | `battle-scene.js` | `spawnActors()` giải phóng tween cũ, reset `isAttacking = false`. |
-| **P0-T5** | Chống spam phím Attack / Guess | **DONE** | `minigame.js` | Cờ `isSubmitting` bọc `try...finally` ngăn gửi request API trùng lặp. |
-| **P0-T6** | Bổ sung phần tử DOM và an toàn null check | **DONE** | `minigame.html`, `minigame.js` | `smoke_check.py` và `check_dom_refs.py` đạt 0 lỗi. |
-| **P0-T7** | Tối ưu hóa giao diện di động 320×568 (No-Scroll) | **DONE** | `minigame.css`, `minigame.html` | Chiều cao vùng chiến đấu = 450.5px (chiếm 79.3% màn hình), không cần cuộn. |
-| **P0-T8** | Đưa Player HP & Timer lên Arena HUD Overlay | **DONE** | `minigame.html`, `minigame.js`, `minigame.css` | Chỉ số người chơi và boss hiển thị đồng thời ngay trên góc Canvas. |
-| **P0-T9** | Kịch bản kiểm thử tự động Playwright | **DONE** (Code) | `playwright_p0_acceptance.js` | Script đo 7 viewports và tương tác thực tế đã sẵn sàng. |
-| **P0-T10** | Nghiệm thu trên trình duyệt thật (Live Host Browser) | `PENDING HOST RUN` | Host Machine / Chrome | Chạy kiểm thử Playwright hoặc mở Chrome ngoài sandbox để nghiệm thu cuối cùng. |
-
----
-
-## 4. KẾ HOẠCH GIAI ĐOẠN P1 (PIXEL RPG DESIGN SYSTEM)
-
-| Mã Task | Tên nhiệm vụ | Trạng thái | Mục tiêu chi tiết |
-| :--- | :--- | :---: | :--- |
-| **P1-A** | Nâng cấp Java 21 LTS & Spring Boot 4.2.0 | **DONE** | Cập nhật pom.xml, Lombok 1.18.36, compile 112 classes, test MainTests pass. |
-| **P1-T1** | Chuẩn hóa bảng màu Pixel RPG Palette | **DONE** | Màu gỗ sồi, viền vàng kim, nền giấy da parchment, hiệu ứng viền bóng pixel. |
-| **P1-T2** | Bộ UI Components dùng chung (Buttons, Panels, Banners) | **DONE** | Khung .pixel-panel, nút bấm .pixel-btn 3D stepped, thanh máu .pixel-bar, huy hiệu .pixel-badge. |
-| **P1-T3** | Đồng bộ hóa giao diện Lex Raid Battle & Home Page | **DONE** | Nâng cấp toàn diện minigame.css và home.css theo chuẩn Pixel RPG retro. |
-| **P1-T4** | Font chữ Pixel & Retro Typography | **DONE** | Tích hợp font Silkscreen/VT323 kết hợp Be Vietnam Pro hỗ trợ tiếng Việt hoàn hảo. |

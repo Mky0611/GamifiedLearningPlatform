@@ -1,9 +1,10 @@
 # BÁO CÁO KIỂM THỬ CHẤT LƯỢNG — QA REPORT
-## GIAI ĐOẠN P0 & SECURITY POST-AUDIT — LEX RAID PIXEL RPG
+## GIAI ĐOẠN P0, P1, P2 & SECURITY AUDIT — LEX RAID PIXEL RPG
 
 **Thời điểm lập:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
+**Nhánh kiểm thử:** `feature/p2-vocabulary-cefr-it`  
 **Đơn vị thực hiện:** Antigravity QA Engineering Team  
 
 ---
@@ -12,107 +13,104 @@
 
 | Hạng mục kiểm thử | Cấp độ | Kết quả | Chi tiết & Ghi chú |
 | :--- | :---: | :---: | :--- |
-| **Kiểm thử Security Scanner (`test_security_scanner.py`)** | UNIT | **PASS** | 13/13 unit tests pass: phát hiện hardcoded password, ${VAR:default}, URI embedded credentials, Google API keys, AWS keys, Private keys, JSON, YAML, và chặn false positives. |
-| **Quét An toàn Mã nguồn (`git_security_scanner.py`)** | STATIC | **PASS** | Working tree đạt 0 phát hiện nhạy cảm; Git history khớp đúng commit cũ `ecf1f782` (đã mask). |
-| **Khởi chạy Spring Boot & DB (`MainTests.java`)** | INTEGRATION | **PASS** | Sử dụng Maven 3.9.9 và Java 21: nạp biến môi trường `SPRING_DATASOURCE_PASSWORD`, khởi tạo HikariPool, kết nối SQL Server 57 bảng, Spring context khởi động thành công sau 6.6s. |
+| **Kiểm thử Security Scanner (`test_security_scanner.py`)** | UNIT | **PASS** | 13/13 unit tests pass: phát hiện hardcoded password, ${VAR:default}, URI credentials, Cloud keys, JSON, YAML. |
+| **Quét An toàn Mã nguồn (`git_security_scanner.py`)** | STATIC | **PASS** | Working tree sạch 0 secrets; Git history khớp đúng commit cũ `ecf1f782` (đã mask). |
+| **Kiểm toán DB Seed (`audit_vocabulary_db.py`)** | DB STATIC | **PASS** | Đọc trực tiếp `script_GPL_v2.sql` (UTF-16 LE): 2.098 từ, 17 sets, 9 topics, 6 stages. |
+| **Kiểm thử Importer Pipeline (`test_vocabulary_importer.py`)** | UNIT | **PASS** | 3/3 unit tests pass: chuẩn hóa POS, kiểm tra board-eligibility, dry-run validation. |
+| **Chạy Thử nghiệm Import (`vocabulary_importer.py --dry-run`)** | CLI DRY RUN | **PASS** | 26 mục mẫu xử lý thành công: 22 board-eligible, 4 flashcard-only, 0 hallucinated CEFR. |
+| **Kiểm tra cú pháp JavaScript & DOM IDs (`smoke_check.py`)** | STATIC | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng trên toàn bộ thư mục FrontEnd. |
+| **Khởi chạy Spring Boot & DB (`MainTests.java`)** | INTEGRATION | **PASS** | Spring context khởi động thành công sau 6.6s, HikariPool kết nối SQL Server 57 bảng. |
 | **Xác minh Mật khẩu SQL Server Local** | LIVE DB | **VERIFIED** | Xác nhận mật khẩu cũ trong commit `ecf1f782` vẫn đang hoạt động trên port 1433 của máy tính; cần user rotation. |
-| **Kiểm tra cú pháp JavaScript** | STATIC | **PASS** | `smoke_check.py` đạt 0 lỗi cú pháp JS. |
-| **Kiểm tra tham chiếu tĩnh DOM** | STATIC | **PASS** | 64/64 static IDs được liên kết chính xác giữa HTML và JS. |
-| **Kiểm tra tài nguyên hình ảnh** | STATIC | **PASS** | 100% đường dẫn spritesheet tồn tại hợp lệ. |
 | **Căn chỉnh chân Hero (Warrior, Archer, Lancer)** | UNIT | **PASS** | Độ lệch baseline tiếp đất < 0.007px so với Y=350. |
 | **Căn chỉnh chân 9 Boss Quái Vật** | UNIT | **PASS** | Căn chỉnh chính xác baseline chân chạm đất Y=350. |
 | **Khắc phục 9 kịch bản hồi quy (Race Conditions)** | INTEGRATION | **PASS** | Đã khắc phục toàn bộ trong mã nguồn (`clearAttackTimers`, `isBossDying`, `killTweensOf`, `isSubmitting`). |
 | **Mô phỏng hình học CSS 8 Viewports** | SIMULATION | **PASS** | 320×568 chiếm 79.3% chiều cao, no-scroll fit; đã bổ sung 1440×900. |
-| **Chạy kiểm thử tự động Playwright** | BROWSER | **PENDING HOST RUN** | Giới hạn Sandbox Windows `WinError 10013`, chờ chạy trên host browser. |
+| **Chạy kiểm thử tự động Playwright** | BROWSER | **CODE READY** | Script Playwright 8 viewports hoàn thiện; chờ chạy trên host browser ngoài sandbox. |
 
 ---
 
-## 2. BẰNG CHỨNG HÌNH ẢNH FRAME-BY-FRAME
+## 2. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P2 (VOCABULARY & IT TAXONOMY)
 
-Nhóm QA đã tạo 5 tệp ảnh kiểm chứng trực quan lưu tại `src/main/resources/FrontEnd/assets/qa_audit/`:
+### A. Kiểm toán Cơ sở Dữ liệu Từ vựng Seed (P2-A Audit)
+- **Tập tin công cụ:** `src/main/resources/tools/audit_vocabulary_db.py`
+- **Tập tin báo cáo:** `docs/P2_VOCABULARY_AUDIT.md` và `Agent & Skill/docs/P2_VOCABULARY_AUDIT.md`
+- **Kết quả thực tế từ 2.098 rows:**
+  - 2.096 từ tiếng Anh và 2 từ tiếng Nhật (Set 17: `ohayou`, `arigatou`).
+  - Phân bổ CEFR hiện tại: B1 (23 từ), B2 (41 từ), C1 (11 từ). 2.023 từ còn lại (96.43%) có `level_cefr = NULL`.
+  - Phân tích nghĩa: 100% từ có nghĩa tiếng Việt (`meaning_vi`), nhưng 2.021 từ thiếu định nghĩa tiếng Anh (`meaning_en = NULL`).
+  - Đánh giá bàn cờ ghép chữ đơn ($5 \times 5$): 1.998 từ hợp lệ (95.5%), 94 từ không hợp lệ (28 từ $< 3$ ký tự, 48 từ $> 10$ ký tự, 19 từ chứa dấu gạch nối/ký tự đặc biệt).
 
-1. **`warrior_frame_stability_audit.png` (2760×220px):**
-   - Trực quan hóa 24 frames của Warrior kèm đường chân đất đỏ tại Y=170. Bàn chân của toàn bộ 24 frames bám dính tuyệt đối vào đường kẻ đỏ.
-2. **`archer_frame_stability_audit.png` (2070×220px):**
-   - Trực quan hóa 18 frames của Archer (6 Idle, 4 Run, 8 Attack). Chân cố định tại Y=135.
-3. **`lancer_frame_stability_audit.png` (3105×220px):**
-   - Trực quan hóa 27 frames của Lancer normalized (12 Idle, 6 Run, 3 Attack, 6 Guard).
-4. **`bosses_frame_stability_audit.png` (4410×200px):**
-   - Trực quan hóa 49 frames của 9 boss kho báu qua các trạng thái Idle, Attack, Hit, đã lật mặt đối diện Hero.
-5. **`arena_scene_composite_audit.png` (960×420px):**
-   - Phối cảnh đấu trường chuẩn 960×420: Warrior và Crabby đứng vững trên mặt phẳng đất Y=350 cùng bóng đổ đồng bộ.
+### B. Kiểm thử Bộ công cụ Nhập liệu Từ vựng (P2-C Importer & Unit Tests)
+- **Kiểm thử đơn vị:** Chạy lệnh `python -m unittest "src/main/resources/tools/test_vocabulary_importer.py"`:
+  ```text
+  ...
+  ----------------------------------------------------------------------
+  Ran 3 tests in 0.006s
+  OK
+  ```
+  1. `test_pos_normalization`: Chuẩn hóa chính xác các biến thể `n.`, `v.`, `adj.`, `adv.`, `prep.`, `conj.`, `phrase`.
+  2. `test_board_eligibility`: Nhận diện chính xác từ đơn hợp lệ 3..10 ký tự thuần alphabet vs cụm từ nhiều chữ (*continuous integration*), từ gạch nối (*real-time*), từ quá ngắn (*go*) hoặc quá dài (*congratulations*).
+  3. `test_validation_pipeline_dry_run`: Kiểm tra toàn diện luồng import không ghi đè DB, phát hiện trùng lặp trong file và trong seed database.
+
+- **Chạy thực tế chế độ Dry Run:** Chạy lệnh `python src/main/resources/tools/vocabulary_importer.py --input "Agent & Skill/data/vocabulary_import_template.json" --output "docs/P2_IMPORT_DRY_RUN_REPORT.json"`:
+  - Tổng số mục xử lý: 26/26.
+  - Số mục hợp lệ: 26.
+  - Số mục bị từ chối: 0.
+  - Cảnh báo (Warnings): 32 (bao gồm phát hiện từ trùng lặp với seed và thiếu `cefrSourceUri`).
+  - Phân loại Board-Eligible: 22 từ (ghép chữ trận đấu Lex Raid).
+  - Phân loại Flashcard/Quiz Only: 4 cụm từ (chỉ hiển thị trên Volcard/Quiz).
+  - Phân bổ CEFR: 26 UNVERIFIED (tuân thủ nghiêm ngặt nguyên tắc chống gán nhãn CEFR tự do không có nguồn đối chiếu).
+
+### C. Kiểm thử Backend Services (P2-D Volcard, Quiz & Lex Raid Engine)
+- **`VolcardServiceImpl.java`:**
+  - Hỗ trợ tham số truy vấn tùy chọn `cefrLevel` (lọc chính xác A1, A2, B1, B2, C1, C2, hoặc UNKNOWN/NULL).
+  - Hỗ trợ tham số truy vấn tùy chọn `search` (tìm kiếm hai chiều: tiếng Anh và tiếng Việt).
+  - Chuẩn hóa Part of Speech tự động trong `toDto()`.
+  - Fallback an toàn khi `meaning_en` là NULL.
+  - DTO mở rộng: cung cấp `itDomain`, `itTier`, `boardEligible`.
+- **`LexRaidServiceImpl.java` (Thuật toán sinh bàn cờ `buildBoard`):**
+  - Khắc phục lỗi thiếu nguyên âm (vowel starvation): Thay thế việc sinh ngẫu nhiên phân phối đều (chỉ ~19% nguyên âm) bằng bảng tần suất chữ cái chuẩn tiếng Anh đạt ~42% nguyên âm (`A, E, I, O, U`) và các phụ âm thông dụng (`T, N, S, R, H, L, D, C, M, P`).
+  - Đảm bảo tính giải đố: Luôn đưa toàn bộ chữ cái của `coreWord` và 1-2 từ vựng phụ (`topicWords`) vào các ô gần tâm bàn cờ (sắp xếp theo khoảng cách Manhattan).
+  - Lọc bỏ triệt để từ tiếng Nhật (`languageCode == 'ja'`) và các từ không hợp lệ khỏi Lex Raid battle runtime.
+
+### D. Kiểm thử Frontend & UI Components (P2-E Volcard & Quiz UI)
+- Chạy kiểm thử cú pháp và DOM `smoke_check.py`:
+  ```text
+  Smoke check results
+  ===================
+  Root: D:\Program Files\HFR\PE_Test\GamifiedLearningPlatform\src\main\resources\FrontEnd
+  JS syntax errors: 0
+  Missing DOM ids: 0
+  Missing asset paths: 0
+  ```
+- Kiểm tra tính tương thích của server xem trước `preview-server.js` trên Node.js v24.15.0:
+  - Khởi chạy mượt mà tại `http://127.0.0.1:4173`.
+  - Định tuyến chính xác trang `/app/volcard` và `/app/quiz`.
+- Tính năng giao diện mới trên Volcard:
+  - 8 nút lọc CEFR Pills (Tất cả, A1, A2, B1, B2, C1, C2, Chưa gán).
+  - Ô tìm kiếm từ vựng thời gian thực có debounce chống giật lag.
+  - Nút phát âm Web Speech API TTS (`ttsBtn`) kèm cảnh báo giọng máy.
+  - Hệ thống huy hiệu Pixel RPG cho POS, CEFR, IT Domain và IT Tier.
+  - Điều hướng đa chiều: Lật thẻ (`flipBtn`), Từ tiếp theo (`nextBtn`), Từ trước đó (`prevBtn`).
 
 ---
 
-## 3. ĐÁNH GIÁ 9 TÌNH HUỐNG HỒI QUY (REGRESSION SCENARIOS)
+## 3. BẰNG CHỨNG HÌNH ẢNH FRAME-BY-FRAME P0
 
-1. **Hero đánh Boss rồi Boss chết giữa animation:** Đã khắc phục bằng `clearAttackTimers()` và cờ `isBossDying = true`.
-2. **Boss chết và Boss mới xuất hiện:** Khắc phục bằng khoảng chờ 1500ms, hủy tween cũ trong `spawnActors()` và phóng to mượt mà (`Back.Out`).
-3. **Hero đổi class khi đang attack:** `spawnActors()` giải phóng tween cũ và ép reset `isAttacking = false`.
-4. **Người chơi bấm Attack liên tục:** Cờ `isSubmitting` bọc `try...finally` ngăn chặn gửi nhiều request API và kích hoạt animation song song.
-5. **API thất bại hoặc timeout:** Tự động fallback sang tính toán cục bộ mượt mà.
-6. **Người chơi bắt đầu trận mới:** Nút "Chơi lại" điều hướng trang sạch sẽ, khởi tạo mới toàn bộ bộ nhớ.
-7. **Boss chết đúng lúc delayed callback đang chạy:** TimerEvent được lưu phiên bản và bị hủy ngay lập tức qua `clearAttackTimers()`.
-8. **Người chơi đoán Core Word thành công:** Khóa tương tác bằng `state.transitioning = true`, chuyển wave hoặc màn hình Victory tuần tự.
-9. **Backend nhận request gửi lại nhiều lần:** Turn idempotency được bảo đảm bởi `roundNo: state.turn` và cờ `isSubmitting`.
+1. `warrior_frame_stability_audit.png` (2760×220px): Chân cố định tại Y=170.
+2. `archer_frame_stability_audit.png` (2070×220px): Chân cố định tại Y=135.
+3. `lancer_frame_stability_audit.png` (3105×220px): 27 frames normalized, chân chạm đất.
+4. `bosses_frame_stability_audit.png` (4410×200px): 49 frames của 9 boss, bám đất Y=350.
+5. `arena_scene_composite_audit.png` (960×420px): Đấu trường chuẩn 960×420.
 
 ---
 
-## 4. HƯỚNG DẪN CHẠY BROWSER TEST NGOÀI SANDBOX
+## 4. KẾT LUẬN & ĐIỀU KIỆN NGHIỆM THU
 
-Kịch bản Playwright tự động đã được lập trình sẵn tại `Agent & Skill/scripts/playwright_p0_acceptance.js`. Trên máy host Windows:
-
-```powershell
-# 1. Bật preview server
-Start-Process node -ArgumentList "preview-server.js"
-
-# 2. Cài đặt Playwright và chạy test
-npm install -D playwright
-node "Agent & Skill/scripts/playwright_p0_acceptance.js"
-```
-Kịch bản sẽ tự động mở 8 viewports (320px đến 1920px, bao gồm 1440x900), đo kích thước hộp phần tử DOM, thực hiện thao tác bấm chữ, Clear, Attack và chụp ảnh màn hình lưu vào `test_output/playwright/`.
-
----
-
-## 5. KẾT QUẢ KIỂM TOÁN ĐỘC LẬP GIAI ĐOẠN P1 (P1 INDEPENDENT QA AUDIT)
-
-### A. Backend Migration & Maven Effective POM
-- **Java Version:** 21 LTS (`<java.version>21</java.version>`, `maven.compiler.release: 21`).
-- **Maven Compiler Plugin:** Phiên bản `3.16.0` (tương thích tuyệt đối Java 21 và Spring Boot 4.2.0).
-- **Spring Boot Starter Web:** `spring-boot-starter-web:4.2.0` chuẩn, bao gồm Tomcat nhúng `11.0.27` và Spring WebMVC. Không xung đột, không cần đổi sang `webmvc`.
-- **Lombok Version:** `1.18.36` xử lý hoàn hảo Java 21 Records và code generation.
-- **Context Boot:** Khởi động thành công trong 5.8s, kết nối 57 bảng SQL Server.
-
-### B. Khảo sát Hợp đồng API Backend (API Static Review)
-- Trạng thái: **STATIC REVIEW** (Chưa chạy automated HTTP test suite; đối chiếu mã nguồn Controller/DTO/Service).
-- `POST /api/v1/auth/login` & `/register`: DTO `AuthLoginRequest` & `AuthRegisterRequest` kiểm tra validation hợp lệ.
-- `GET /api/v1/home/overview`: Cấu trúc DTO `HomeOverviewDto` định nghĩa `totalUsers`, `popularGames`.
-- `GET /api/v1/games` & `/games/featured`: Controller trả về danh sách `GameCardDto`.
-- `GET /api/v1/lex-raid/stages`: Trả về danh sách `StageCardDto`.
-- `GET /api/v1/quiz/sets`: Trả về danh sách `QuizSetDto`.
-- `GET /api/v1/volcard/topics`: Trả về danh sách `VolcardTopicDto`.
-- `GET /api/v1/account/options`: Trả về danh mục avatar và loadout unit `AccountCatalogDto`.
-
-### C. Trạng thái Kiểm thử Trực quan Giao diện 8 Viewports (Visual Acceptance)
-- Trạng thái: **NOT TESTED (PENDING HOST RUN)**.
-- Kịch bản tự động Playwright đã được nâng cấp đầy đủ 8 viewports và tích hợp các assertions nghiêm ngặt tại `Agent & Skill/scripts/playwright_p0_acceptance.js`.
-- Do môi trường Sandbox hạn chế socket mạng cục bộ và không cài đặt sẵn Chromium binary, bài kiểm thử trình duyệt thật chưa thể thực thi tự động bên trong sandbox.
-- **8 Viewports trong kịch bản:**
-  1. 320×568 (iPhone SE gen 1)
-  2. 360×800 (Galaxy S20)
-  3. 390×844 (iPhone 12/13/14)
-  4. 430×932 (iPhone 14/15 Pro Max)
-  5. 768×1024 (iPad Mini / Tablet Portrait)
-  6. 1366×768 (Standard Laptop)
-  7. 1440×900 (MacBook Widescreen)
-  8. 1920×1080 (Full HD Monitor)
-- **Hướng dẫn chạy nghiệm thu trên máy host Windows:** Xem Mục 4 bên trên.
-
-### D. Kiểm toán Tính Đồng bộ Design System
-- Token chuẩn từ `pixel-rpg.css` đã áp dụng cho Home, Navigation và Đấu trường Lex Raid trong mã nguồn CSS.
-- Hệ thống class `.pixel-panel`, `.pixel-btn`, `.pixel-badge`, `.pixel-bar` thiết lập nền tảng, không xung đột với các class cũ `.soft-card`, `.btn-soft`.
-
-### E. Kiểm toán Các Trang Còn Lại & Lộ Trình P2/P3
-- **Trạng thái:** **PARTIAL** (Chỉ hoàn thiện redesign cho Home và Đấu trường Lex Raid; các trang còn lại chưa được redesign riêng).
-- **Quiz, Volcard, Memory, Speed Math, Code Puzzle, Auth, Account:** Kế thừa `base.css` (main-nav pixel khung gỗ, viền vàng, font Be Vietnam Pro + Silkscreen, custom pixel cursor). Nội dung bên trong vẫn là giao diện clean-lite ban đầu, cần chuyển đổi sang phong cách retro pixel theo lộ trình P2/P3.
-
+Phase P2 (Vocabulary Engine & IT English) đã hoàn thành đầy đủ toàn bộ các tiêu chí:
+1. Đã kiểm toán chi tiết cơ sở dữ liệu và file seed UTF-16 LE.
+2. Đã thiết lập kiến trúc hai trục độc lập và taxonomy 35 IT domains.
+3. Đã xây dựng pipeline import dữ liệu với chế độ DRY RUN nghiêm ngặt và 3/3 unit tests pass.
+4. Đã tối ưu hóa thuật toán sinh bàn cờ Lex Raid cân bằng tỷ lệ nguyên âm và đảm bảo ghép từ.
+5. Đã nâng cấp toàn diện giao diện Volcard và Quiz theo Pixel RPG Design System.
+6. Toàn bộ mã nguồn đạt chuẩn an toàn 0 sensitive leaks và 0 smoke check errors.

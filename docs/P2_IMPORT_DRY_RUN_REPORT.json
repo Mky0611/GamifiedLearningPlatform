@@ -1,0 +1,192 @@
+{
+  "dryRun": true,
+  "inputFile": "Agent & Skill\\data\\vocabulary_import_template.json",
+  "totalProcessed": 26,
+  "validCount": 26,
+  "rejectedCount": 0,
+  "warningCount": 32,
+  "boardEligibleCount": 22,
+  "flashcardOnlyCount": 4,
+  "cefrBreakdown": {
+    "A1": 0,
+    "A2": 0,
+    "B1": 0,
+    "B2": 0,
+    "C1": 0,
+    "C2": 0,
+    "UNVERIFIED": 26
+  },
+  "tierBreakdown": {
+    "Foundation": 8,
+    "Practitioner": 12,
+    "Advanced": 5,
+    "Specialist": 1
+  },
+  "domainBreakdown": {
+    "GENERAL": 25,
+    "ACADEMIC": 1
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "id": "DRAFT-002",
+      "lemma": "family",
+      "warning": "Lemma 'family' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-003",
+      "lemma": "travel",
+      "warning": "Lemma 'travel' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-004",
+      "lemma": "improve",
+      "warning": "Lemma 'improve' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-006",
+      "lemma": "variable",
+      "warning": "Unknown IT domain 'PROGRAMMING'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-006",
+      "lemma": "variable",
+      "warning": "Lemma 'variable' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-007",
+      "lemma": "loop",
+      "warning": "Unknown IT domain 'PROGRAMMING'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-008",
+      "lemma": "compile",
+      "warning": "Unknown IT domain 'PROGRAMMING'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-008",
+      "lemma": "compile",
+      "warning": "Lemma 'compile' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-009",
+      "lemma": "interface",
+      "warning": "Unknown IT domain 'OOP'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-009",
+      "lemma": "interface",
+      "warning": "Lemma 'interface' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-010",
+      "lemma": "database",
+      "warning": "Unknown IT domain 'DATABASE'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-010",
+      "lemma": "database",
+      "warning": "Lemma 'database' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-011",
+      "lemma": "query",
+      "warning": "Unknown IT domain 'DATABASE'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-012",
+      "lemma": "index",
+      "warning": "Unknown IT domain 'DATABASE'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-013",
+      "lemma": "endpoint",
+      "warning": "Unknown IT domain 'BACKEND'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-014",
+      "lemma": "latency",
+      "warning": "Unknown IT domain 'NETWORKING'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-015",
+      "lemma": "container",
+      "warning": "Unknown IT domain 'DEVOPS'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-016",
+      "lemma": "deployment",
+      "warning": "Unknown IT domain 'DEVOPS'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-017",
+      "lemma": "microservice",
+      "warning": "Unknown IT domain 'DISTRIBUTED'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-017",
+      "lemma": "microservice",
+      "warning": "boardEligible mismatch: Specified True, but rules computed False (Length 12 is too long for 5x5 board (maximum 10 allowed)). Overriding."
+    },
+    {
+      "id": "DRAFT-018",
+      "lemma": "idempotency",
+      "warning": "Unknown IT domain 'DISTRIBUTED'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-018",
+      "lemma": "idempotency",
+      "warning": "boardEligible mismatch: Specified True, but rules computed False (Length 11 is too long for 5x5 board (maximum 10 allowed)). Overriding."
+    },
+    {
+      "id": "DRAFT-019",
+      "lemma": "encryption",
+      "warning": "Unknown IT domain 'SECURITY'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-020",
+      "lemma": "sprite",
+      "warning": "Unknown IT domain 'GAMEDEV'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-021",
+      "lemma": "spritesheet",
+      "warning": "Unknown IT domain 'GAMEDEV'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-021",
+      "lemma": "spritesheet",
+      "warning": "boardEligible mismatch: Specified True, but rules computed False (Length 11 is too long for 5x5 board (maximum 10 allowed)). Overriding."
+    },
+    {
+      "id": "DRAFT-022",
+      "lemma": "viewport",
+      "warning": "Unknown IT domain 'FRONTEND'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-023",
+      "lemma": "algorithm",
+      "warning": "Unknown IT domain 'CS'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-023",
+      "lemma": "algorithm",
+      "warning": "Lemma 'algorithm' already exists in seed database (2098 words)."
+    },
+    {
+      "id": "DRAFT-024",
+      "lemma": "embedding",
+      "warning": "Unknown IT domain 'AI'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-025",
+      "lemma": "rollback",
+      "warning": "Unknown IT domain 'DEVOPS'. Defaulted to 'GENERAL'."
+    },
+    {
+      "id": "DRAFT-026",
+      "lemma": "continuous integration",
+      "warning": "Unknown IT domain 'DEVOPS'. Defaulted to 'GENERAL'."
+    }
+  ]
+}

@@ -30,7 +30,9 @@ public class VolcardController {
     @GetMapping("/sets/{vocabularySetId}/cards")
     public ApiResponse<VolcardPageDto> getCards(@PathVariable Long vocabularySetId,
                                                 @RequestParam(required = false) Integer offset,
-                                                @RequestParam(required = false) Integer limit) {
-        return ApiResponse.<VolcardPageDto>builder().success(true).message("Lay flashcard thanh cong").data(volcardService.getCards(vocabularySetId, offset, limit)).build();
+                                                @RequestParam(required = false) Integer limit,
+                                                @RequestParam(required = false) String cefrLevel,
+                                                @RequestParam(required = false) String search) {
+        return ApiResponse.<VolcardPageDto>builder().success(true).message("Lay flashcard thanh cong").data(volcardService.getCards(vocabularySetId, offset, limit, cefrLevel, search)).build();
     }
 }

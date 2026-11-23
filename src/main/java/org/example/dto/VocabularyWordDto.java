@@ -12,8 +12,12 @@ import lombok.NoArgsConstructor;
 public class VocabularyWordDto {
     private Long wordId;
     private String wordText;
+    private String normalizedText;
     private String partOfSpeech;
     private String meaningVi;
     private String meaningEn;
     private String levelCefr;
+    private String itDomain;
+    private String itTier;
+    private Boolean boardEligible;
 }

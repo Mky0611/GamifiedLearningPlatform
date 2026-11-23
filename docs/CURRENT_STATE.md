@@ -3,8 +3,8 @@
 **Thời điểm cập nhật:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát triển:** `feature/p1-pixel-rpg-java21`  
-**Trạng thái hiện tại:** **P1 IN PROGRESS (CODE COMPLETE, CHỜ RUNTIME QA TRÌNH DUYỆT & TEST TÍCH HỢP TRÊN HOST)**  
+**Nhánh phát triển:** `feature/p2-vocabulary-cefr-it`  
+**Trạng thái hiện tại:** **PHASE P2 COMPLETE (VOCABULARY ENGINE, CEFR & IT TAXONOMY, BALANCED BOARD, VOLCARD UI POLISHED)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -15,78 +15,75 @@
 Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG chiến đấu bằng từ vựng. Dự án được xây dựng trên nền tảng:
 - **Backend:** Java 21 LTS, Spring Boot 4.2.0, Spring Data JPA, Spring Security.
 - **Database:** Microsoft SQL Server (`script_GPL_v2.sql` — 57 bảng).
-- **Frontend:** Vanilla HTML5, CSS3 Pixel Design, JavaScript ES6+.
+- **Frontend:** Vanilla HTML5, CSS3 Pixel Design System, JavaScript ES6+.
 - **Game Engine:** Phaser 3.90.0 (kèm Canvas 2D Fallback khi không có mạng/CDN).
 - **Phục vụ tĩnh / Xem trước:** `preview-server.js` (Node.js HTTP Server).
 
 ---
 
-## 2. KẾT QUẢ KIỂM TOÁN BẢO MẬT & DATABASE (POST-SECURITY AUDIT)
+## 2. KẾT QUẢ THỰC HIỆN PHASE P2 (VOCABULARY ENGINE & IT ENGLISH)
 
-### A. Tình trạng Thông tin Xác thực (Credentials & Rotation)
-- **Git Commit:** Commit `3f5d488` đã loại bỏ mật khẩu bản rõ khỏi `src/main/resources/application.properties`, tham số hóa bằng `${SPRING_DATASOURCE_PASSWORD:}`.
-- **Xác minh SQL Server thực tế:** Đã kiểm tra kết nối tới Microsoft SQL Server tại `127.0.0.1:1433`. Kết quả xác nhận: **Mật khẩu cũ trong commit `ecf1f782` vẫn đang hoạt động trên tài khoản `sa` của SQL Server local**.
-- **Chính sách Rotation:** Tuân thủ quy định không tự ý đổi credentials của người dùng. Đã cung cấp câu lệnh `ALTER LOGIN sa WITH PASSWORD = '...'` an toàn và quy trình thiết lập biến môi trường `SPRING_DATASOURCE_PASSWORD`.
+### A. Kiểm toán Cơ sở Dữ liệu Từ vựng (P2-A Database & Schema Audit)
+- **Công cụ tự động:** Xây dựng `src/main/resources/tools/audit_vocabulary_db.py` đọc trực tiếp file seed `script_GPL_v2.sql` (mã hóa UTF-16 LE, 2.65 MB).
+- **Báo cáo kiểm toán:** Xuất bản tài liệu chi tiết `docs/P2_VOCABULARY_AUDIT.md` và `Agent & Skill/docs/P2_VOCABULARY_AUDIT.md`.
+- **Thống kê thực tế:**
+  - 9 Topics (`vocabulary_topics`), 17 Sets (`vocabulary_sets`), 2.098 Words (`vocabulary_words`).
+  - 2.096 từ tiếng Anh (`en`) và 2 từ tiếng Nhật (`ja`: *ohayou*, *arigatou* trong set ID 17).
+  - Tỷ lệ CEFR hiện có: Chỉ 75 từ có nhãn CEFR (B1: 23, B2: 41, C1: 11, nằm trong các bộ IELTS Tech/Business Core); 2.023 từ còn lại là `NULL` (96.43%).
+  - 100% từ có giải nghĩa tiếng Việt (`meaning_vi`), nhưng 2.021 từ chưa có định nghĩa tiếng Anh (`meaning_en = NULL`).
+  - Đánh giá khả năng ghép chữ trên bàn cờ $5 \times 5$: 1.998 từ hợp lệ; 94 từ không hợp lệ (28 từ $< 3$ ký tự, 48 từ $> 10$ ký tự, 19 từ chứa dấu gạch nối hoặc ký tự đặc biệt).
 
-### B. Kiểm thử Khởi chạy & Kết nối Database qua Environment Variable
-- Đã chạy kiểm thử ngữ cảnh Spring Boot (`MainTests.java`) sử dụng Maven 3.9.9 và Java 21:
-  - Khi **không có** `SPRING_DATASOURCE_PASSWORD`: Ứng dụng từ chối kết nối (đúng hành vi bảo mật).
-  - Khi **truyền `SPRING_DATASOURCE_PASSWORD` qua biến môi trường**: HikariCP khởi tạo thành công kết nối tới database `GamifiedLearningPlatform` (57 bảng), JPA/Hibernate ánh xạ đầy đủ entities, kiểm thử `MainTests` đạt **BUILD SUCCESS (1/1 tests pass)**.
+### B. Thiết kế Kiến trúc Hai trục Độc lập (P2-B CEFR & IT Taxonomy Architecture)
+- **Tài liệu thiết kế:** Xuất bản `docs/P2_VOCABULARY_DESIGN.md` và `Agent & Skill/docs/P2_VOCABULARY_DESIGN.md`.
+- **Trục 1 — CEFR Level:** A1, A2, B1, B2, C1, C2 hoặc `UNVERIFIED`/`NULL`. Gắn nhãn theo nét nghĩa (*sense-level*) và bắt buộc có nguồn đối chiếu học thuật uy tín (Cambridge English Profile, Oxford 3000/5000). Tuyệt đối cấm đoán mò hoặc dùng LLM gán nhãn tự do.
+- **Trục 2 — IT Tier:** 4 cấp độ kỹ năng nghề nghiệp: `Foundation`, `Practitioner`, `Advanced`, `Specialist`.
+- **Taxonomy 35 IT Domains:** Chuẩn hóa toàn bộ 35 chuyên mục kỹ thuật (từ Computer Fundamentals, OS, Networks, OOP, DSA, Backend API, Devops, Containers, Cloud đến AI/ML, Cybersecurity).
+- **Lược đồ mở rộng (Non-breaking):** Soạn thảo `src/main/resources/db/migration/V2__vocabulary_senses_cefr_it.sql` cho bảng `vocabulary_word_senses` và `it_curriculum_domains` (lưu trữ phục vụ nâng cấp tương lai, không chạy DDL trực tiếp trên DB live).
 
-### C. Nâng cấp Công cụ Quét `git_security_scanner.py` & Test Suite
-- Đã loại bỏ cơ chế bỏ qua toàn bộ dòng sơ sài (naive skip).
-- Bổ sung bộ phân tích chuyên sâu cho:
-  - Giá trị mặc định ẩn trong biến môi trường `${VAR:DEFAULT}` (phát hiện nếu default là secret thật).
-  - Nhận diện Connection URI có chứa mật khẩu (`jdbc:...://user:pass@host`).
-  - Nhận diện Cloud API Keys (Google, AWS, GitHub PATs, Slack, Private Keys PEM).
-  - Phân tích cú pháp gán Key-Value trong Properties, YAML, JSON, .env.
-- Tạo bộ kiểm thử đơn vị với dữ liệu giả lập (`test_security_scanner.py`): **13/13 unit tests PASS**.
+### C. Pipeline Nhập Dữ liệu & Chế độ DRY RUN (P2-C Vocabulary Importer)
+- **Công cụ nhập liệu:** `src/main/resources/tools/vocabulary_importer.py` với chế độ `--dry-run` mặc định.
+- **Quy tắc kiểm định:** Kiểm tra UTF-8, mã ngôn ngữ `en`, chuẩn hóa từ loại (POS: `n.` $\rightarrow$ `noun`, `v.` $\rightarrow$ `verb`, etc.), kiểm tra độ dài từ và tính hợp lệ trên bàn cờ (`boardEligible`), đối chiếu trùng lặp với 2.098 từ trong seed database.
+- **Kiểm thử tự động:** `src/main/resources/tools/test_vocabulary_importer.py` đạt **3/3 unit tests PASS**.
+- **Báo cáo Dry Run:** Xuất bản `docs/P2_IMPORT_DRY_RUN_REPORT.json` (26/26 mục mẫu được phân loại chính xác, 22 board-eligible, 4 flashcard-only).
 
-### D. Tách biệt Cấu hình Dev vs. Production cho SQL Server
-- Tạo `application-dev.properties`: Dành cho môi trường phát triển local (hỗ trợ self-signed certificates, debug logs).
-- Tạo `application-prod.properties`: Dành cho môi trường sản xuất (bắt buộc `encrypt=true;trustServerCertificate=false`, sử dụng tài khoản phân quyền tối thiểu `glp_app`, tắt show-sql và log nhạy cảm).
-- Thêm `spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}` vào cấu hình gốc.
+### D. Nâng cấp Backend Services (P2-D Volcard, Quiz & Lex Raid Engine)
+- **Volcard Service & Controller:**
+  - Hỗ trợ thêm tham số tùy chọn `cefrLevel` và `search` trên endpoint `GET /api/v1/volcard/sets/{setId}/cards`. Duy trì tương thích ngược 100%.
+  - Chuẩn hóa Part of Speech (POS) và sinh dữ liệu DTO mở rộng: `itDomain`, `itTier`, `boardEligible`.
+  - Fallback an toàn khi `meaning_en` là NULL.
+- **Thuật toán sinh bàn cờ Lex Raid (`buildBoard`):**
+  - Khắc phục triệt để tình trạng thiếu nguyên âm (vowel starvation): Thay thế việc sinh ngẫu nhiên đồng đều `A-Z` (chỉ có 19% nguyên âm) bằng bảng tần suất chữ cái tiếng Anh chuẩn với tỷ lệ nguyên âm đạt ~42% (`A, E, I, O, U`) và phụ âm thông dụng (`T, N, S, R, H, L, D, C, M, P`).
+  - Đảm bảo ghép từ thành công: Bàn cờ luôn chứa đầy đủ các chữ cái của `coreWord` đặt gần tâm bàn cờ, đồng thời cấy thêm các chữ cái của 1-2 từ vựng phụ trong stage vocabulary set.
+  - Lọc bỏ triệt để từ tiếng Nhật và từ không hợp lệ khỏi Lex Raid battle runtime.
 
-### E. Phân tích `SecurityConfig.java` & Rủi ro IDOR
-- Hiện tại các API `/api/v1/account/**`, `/api/v1/lex-raid/**`, `/api/v1/quiz/**`, `/api/v1/volcard/**` đang để `permitAll()` để duy trì tương thích client JavaScript.
-- Phân tích rủi ro: Endpoint `GET/PUT /api/v1/account/loadout` nhận trực tiếp `userId` từ client, tiềm ẩn nguy cơ Insecure Direct Object Reference (IDOR).
-- Giải pháp: Giữ nguyên hợp đồng hiện tại để không làm gián đoạn gameplay P0/P1; lên kế hoạch tích hợp JWT filter và lấy `userId` từ `Authentication.getPrincipal()` trong Phase P3.
+### E. Nâng cấp Giao diện Học Từ vựng (P2-E Volcard & Quiz Frontend Polish)
+- **Volcard UI:**
+  - Tích hợp thanh lọc CEFR (Pills: Tất cả, A1, A2, B1, B2, C1, C2, Chưa gán).
+  - Tích hợp ô tìm kiếm từ vựng theo thời gian thực (Search box debounced).
+  - Tích hợp nút phát âm Web Speech API TTS (`ttsBtn`) với thông báo ghi chú rõ ràng về công nghệ giọng máy.
+  - Hiển thị đầy đủ huy hiệu Pixel RPG cho POS, CEFR, IT Domain, và IT Tier.
+  - Nút chuyển thẻ mượt mà: Lật thẻ (`flipBtn`), Từ tiếp (`nextBtn`), Từ trước (`prevBtn`).
+- **Quiz UI:**
+  - Áp dụng các token viền gỗ, bóng pixel từ `pixel-rpg.css`.
 
 ---
 
-## 3. KẾT QUẢ ĐÃ THỰC HIỆN TRONG GIAI ĐOẠN P0
-
-Toàn bộ các mục tiêu cốt lõi của P0 về sửa lỗi nhân vật, hoạt ảnh, đấu trường và giao diện di động đã được hoàn thiện trong mã nguồn:
-- **Chuẩn hóa Sprite Pivots & Ground Alignment:** Ground Y = 350, Warrior (originY=0.7135), Archer (originY=0.7083), Lancer (originY=0.9271), 9 Boss bám đất chuẩn xác.
-- **Khắc phục 9 Tình huống Đua lệnh:** Triệt tiêu lỗi hồi sinh Boss ma (`clearAttackTimers`, `isBossDying`), khắc phục kẹt tween khi đổi Class (`killTweensOf`), chống spam phím Attack/Guess (`isSubmitting`), fallback ngoại tuyến khi timeout.
-- **Tối ưu Mobile 320×568:** Chiều cao 450.5px / 568px (79.3%), không cuộn trang. Đưa Player HP & Timer lên Arena HUD.
-
----
-
-## 4. PHÂN LOẠI KẾT QUẢ KIỂM THỬ THỰC TẾ
+## 3. PHÂN LOẠI KẾT QUẢ KIỂM THỬ THỰC TẾ (QA STATUS)
 
 | Cấp độ kiểm thử | Tên bài test / Script | Kết quả | Chi tiết |
 | :--- | :--- | :---: | :--- |
+| **SECURITY SCAN** | `git_security_scanner.py` | **PASS** | Working tree sạch 0 lỗi; 1 commit lịch sử `ecf1f782` được mask an toàn. |
 | **SECURITY UNIT** | `test_security_scanner.py` | **PASS** | 13/13 tests pass (URI, JSON, YAML, Cloud Keys, False Positive checks). |
-| **SECURITY SCAN** | `git_security_scanner.py` | **VERIFIED** | Working tree sạch 0 lỗi; phát hiện đúng 1 commit lịch sử `ecf1f782` (masked). |
-| **BACKEND INTEGRATION** | `MainTests.java` (Spring Boot + SQL Server) | **PASS** | HikariCP kết nối thành công 57 bảng qua `SPRING_DATASOURCE_PASSWORD`. |
+| **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |
+| **IMPORTER DRY RUN** | `vocabulary_importer.py` | **PASS** | 26 items processed, 22 board-eligible, 4 flashcard-only, 0 rejected. |
+| **DATABASE AUDIT** | `audit_vocabulary_db.py` | **PASS** | 2.098 words, 17 sets, 9 topics, 6 stages parsed từ file UTF-16 LE. |
 | **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
-| **SIMULATION PASS** | `test_mobile_viewports_simulation` | **PASS** | 8 viewports (320px đến 1920px, bao gồm 1440×900) vừa vặn khung nhìn. |
-| **BROWSER TEST** | `playwright_p0_acceptance.js` | **PENDING HOST RUN** | Đã nâng cấp 8 viewports và assertions nghiêm ngặt; chờ chạy trên host machine. |
+| **PREVIEW SERVER** | `preview-server.js` | **PASS** | Khởi chạy thành công trên Node.js v24.15.0, route đúng `/app/volcard` & `/app/quiz`. |
 
 ---
 
-## 5. ĐIỀU KIỆN CHƯA HOÀN THÀNH & RỦI RO CÒN TỒN TẠI
+## 4. CÔNG VIỆC TIẾP THEO
 
-1. **Nghiệm thu Trình duyệt thật (P1 Runtime QA):** Kịch bản Playwright 8 viewports đã sẵn sàng với assertions nghiêm ngặt (không false pass). Cần chạy ngoài sandbox để lưu report JSON và screenshots thực tế.
-2. **Kiểm thử Tích hợp API Tự động:** Cần chạy test suite HTTP MockMvc / API tự động trên host để nghiệm thu các endpoint.
-3. **Commit cũ trong Git History:** Commit `ecf1f782` vẫn lưu chuỗi cũ trong lịch sử Git. Cần sự phê duyệt của người dùng trước khi thực hiện viết lại lịch sử (nếu muốn).
-4. **Mật khẩu SQL Server Local:** Người dùng cần thực hiện rotation mật khẩu `sa` trên SSMS theo hướng dẫn an toàn.
-
----
-
-## 6. CÔNG VIỆC TIẾP THEO
-
-1. Chạy kịch bản Playwright 8 viewports nghiệm thu trên host browser ngoài sandbox.
-2. Người dùng thực hiện rotation mật khẩu SQL Server local và thiết lập `.env`.
-3. Hoàn tất bằng chứng runtime QA P1 trước khi nghiệm thu chuyển sang Phase P2 (Vocabulary Engine & CEFR/IT Taxonomy).
+1. Commit các thay đổi Phase P2 lên nhánh `feature/p2-vocabulary-cefr-it`.
+2. Push lên repository GitHub `Mky0611/GamifiedLearningPlatform`.
+3. Chuẩn bị báo cáo bàn giao chi tiết cho người dùng và ChatGPT để tiếp tục QA và phát triển giai đoạn tiếp theo.

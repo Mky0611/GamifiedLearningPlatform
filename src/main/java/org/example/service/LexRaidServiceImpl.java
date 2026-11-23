@@ -27,6 +27,10 @@ public class LexRaidServiceImpl implements LexRaidService {
     private static final String DEFAULT_BOARD_REASON = "MANUAL_SAVE";
     private static final String WON = "WON";
     private static final String LOST = "LOST";
+    private static final String ENGLISH_LETTER_POOL =
+            "EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOOUUUU" +
+            "TTTTTTNNNNNNSSSSSRRRRRRHHHHLLLLDDDDCCCMMMPP" +
+            "BBFFGGVWWKYYJXQZ";
 
     private final StageRepository stageRepository;
     private final StageObjectiveRepository stageObjectiveRepository;
@@ -74,7 +78,15 @@ public class LexRaidServiceImpl implements LexRaidService {
         Set<Long> solvedIds = parseSolvedCoreWordIds(null);
         StageCoreWord activeCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
         int activeCoreIndex = resolveActiveCoreIndex(coreWords, activeCoreWord);
-        List<VocabularyWord> vocabulary = vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(stage.getVocabularySet().getVocabularySetId());
+        List<VocabularyWord> rawVocabulary = vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(stage.getVocabularySet().getVocabularySetId());
+        List<VocabularyWord> vocabulary = rawVocabulary.stream()
+                .filter(this::isEnglishLexiconWord)
+                .toList();
+        List<String> topicWords = vocabulary.stream()
+                .filter(w -> isBoardEligible(w.getWordText()))
+                .map(VocabularyWord::getWordText)
+                .limit(12)
+                .toList();
 
         return LexRaidStageRuntimeDto.builder()
                 .stage(toStageCardDto(stage))
@@ -95,7 +107,7 @@ public class LexRaidServiceImpl implements LexRaidService {
                         .targetValue(o.getTargetValue())
                         .sortOrder(o.getSortOrder())
                         .build()).toList())
-                .topicWords(vocabulary.stream().map(VocabularyWord::getWordText).limit(12).toList())
+                .topicWords(topicWords)
                 .vocabulary(vocabulary.stream().map(this::toVocabularyWordDto).toList())
                 .board(buildBoard(stage, vocabulary, activeCoreWord))
                 .build();
@@ -697,14 +709,67 @@ public class LexRaidServiceImpl implements LexRaidService {
     }
 
     private VocabularyWordDto toVocabularyWordDto(VocabularyWord word) {
+        String pos = standardizePos(word.getPartOfSpeech());
+        boolean eligible = isBoardEligible(word.getWordText());
+        String topicCode = (word.getVocabularySet() != null && word.getVocabularySet().getTopic() != null)
+                ? word.getVocabularySet().getTopic().getCode()
+                : "GENERAL";
+        String tier = mapTier(word.getVocabularySet() != null ? word.getVocabularySet().getDifficulty() : null);
+
         return VocabularyWordDto.builder()
                 .wordId(word.getWordId())
                 .wordText(word.getWordText())
-                .partOfSpeech(word.getPartOfSpeech())
+                .normalizedText(word.getNormalizedText())
+                .partOfSpeech(pos)
                 .meaningVi(word.getMeaningVi())
-                .meaningEn(word.getMeaningEn())
+                .meaningEn(word.getMeaningEn() != null && !word.getMeaningEn().isBlank() ? word.getMeaningEn() : null)
                 .levelCefr(word.getLevelCefr())
+                .itDomain(topicCode)
+                .itTier(tier)
+                .boardEligible(eligible)
                 .build();
+    }
+
+    private boolean isEnglishLexiconWord(VocabularyWord word) {
+        if (word == null || word.getWordText() == null) return false;
+        String text = word.getWordText().trim();
+        return text.matches("^[A-Za-z\\s\\-]+$");
+    }
+
+    private boolean isBoardEligible(String wordText) {
+        if (wordText == null) return false;
+        String trimmed = wordText.trim();
+        if (trimmed.length() < 3 || trimmed.length() > 10) return false;
+        return trimmed.matches("^[A-Za-z]+$");
+    }
+
+    private char getRandomEnglishLetter(Random random) {
+        return ENGLISH_LETTER_POOL.charAt(random.nextInt(ENGLISH_LETTER_POOL.length()));
+    }
+
+    private String standardizePos(String rawPos) {
+        if (rawPos == null || rawPos.isBlank()) return "noun";
+        String cleaned = rawPos.trim().toLowerCase(Locale.ROOT);
+        return switch (cleaned) {
+            case "n.", "n", "noun" -> "noun";
+            case "v.", "v", "verb" -> "verb";
+            case "adj.", "adj", "adjective" -> "adjective";
+            case "adv.", "adv", "adverb" -> "adverb";
+            case "prep.", "prep", "preposition" -> "preposition";
+            case "conj.", "conj", "conjunction" -> "conjunction";
+            case "phr.", "phrase", "idiom" -> "phrase";
+            default -> cleaned;
+        };
+    }
+
+    private String mapTier(String difficulty) {
+        if (difficulty == null) return "Foundation";
+        return switch (difficulty.trim().toUpperCase(Locale.ROOT)) {
+            case "EXPERT", "SPECIALIST" -> "Specialist";
+            case "HARD", "ADVANCED" -> "Advanced";
+            case "MEDIUM", "INTERMEDIATE", "PRACTITIONER" -> "Practitioner";
+            default -> "Foundation";
+        };
     }
 
     private String buildFallbackClue(StageCoreWord coreWord) {
@@ -724,29 +789,52 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         Random random = new Random(stage.getStageId() != null ? stage.getStageId() : 1L);
 
+        // Step 1: Initialize all board cells with frequency-balanced English letters (42% vowels)
         List<List<String>> board = new ArrayList<>();
         for (int r = 0; r < rows; r++) {
             List<String> row = new ArrayList<>();
             for (int c = 0; c < cols; c++) {
-                row.add(String.valueOf((char) ('A' + random.nextInt(26))));
+                row.add(String.valueOf(getRandomEnglishLetter(random)));
             }
             board.add(row);
         }
 
+        // Step 2: Collect guaranteed letters from core word and 1-2 eligible bonus vocabulary words
+        List<String> guaranteedLetters = new ArrayList<>();
         String normalizedCore = "";
         if (coreWord != null && coreWord.getWord() != null) {
             normalizedCore = normalizeWord(coreWord.getWord().getWordText());
         }
 
-        if (normalizedCore.isBlank()) {
+        if (!normalizedCore.isBlank()) {
+            for (char ch : normalizedCore.toCharArray()) {
+                guaranteedLetters.add(String.valueOf(ch));
+            }
+        }
+
+        // Add 1-2 valid bonus vocabulary words from stage vocabulary set (length 3..7)
+        if (vocabulary != null && !vocabulary.isEmpty()) {
+            int bonusAdded = 0;
+            for (VocabularyWord vWord : vocabulary) {
+                if (bonusAdded >= 2) break;
+                if (vWord == null || vWord.getWordText() == null) continue;
+                String normV = normalizeWord(vWord.getWordText());
+                if (normV.length() >= 3 && normV.length() <= 7 && !normV.equals(normalizedCore)) {
+                    if (guaranteedLetters.size() + normV.length() <= totalCells - 4) {
+                        for (char ch : normV.toCharArray()) {
+                            guaranteedLetters.add(String.valueOf(ch));
+                        }
+                        bonusAdded++;
+                    }
+                }
+            }
+        }
+
+        if (guaranteedLetters.isEmpty()) {
             return board;
         }
 
-        List<String> letters = normalizedCore.chars()
-                .mapToObj(ch -> String.valueOf((char) ch))
-                .limit(totalCells)
-                .toList();
-
+        // Step 3: Prioritize positions near the center for high connectivity
         class Cell {
             int row;
             int col;
@@ -772,12 +860,13 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         cells.sort(Comparator.comparingInt(cell -> cell.distance));
 
-        List<Cell> chosen = new ArrayList<>(cells.subList(0, Math.min(letters.size(), cells.size())));
+        int placeCount = Math.min(guaranteedLetters.size(), cells.size());
+        List<Cell> chosen = new ArrayList<>(cells.subList(0, placeCount));
         Collections.shuffle(chosen, random);
 
-        for (int i = 0; i < letters.size() && i < chosen.size(); i++) {
+        for (int i = 0; i < placeCount; i++) {
             Cell cell = chosen.get(i);
-            board.get(cell.row).set(cell.col, letters.get(i));
+            board.get(cell.row).set(cell.col, guaranteedLetters.get(i));
         }
 
         return board;

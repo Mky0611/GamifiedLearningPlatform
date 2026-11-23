@@ -10,4 +10,5 @@ public interface VolcardService {
     List<VolcardTopicDto> getTopics();
     List<VolcardSetDto> getSetsByTopic(Long topicId);
     VolcardPageDto getCards(Long vocabularySetId, Integer offset, Integer limit);
+    VolcardPageDto getCards(Long vocabularySetId, Integer offset, Integer limit, String cefrLevel, String search);
 }

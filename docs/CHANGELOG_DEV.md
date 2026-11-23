@@ -3,99 +3,79 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P0 (Animation, Gameplay UI, Mobile Responsive, Runtime QA)  
+**Giai đoạn:** P2 (Vocabulary Engine, CEFR A1–C2, IT Taxonomy, Balanced Board, Volcard UI)  
 
 ---
 
-## [P0-Finalization] — 23/11/2026
+## [P2-A & P2-B & P2-C & P2-D & P2-E & P2-F] — 23/11/2026: Phase P2 Master Delivery
 
-### 1. Phaser 3 Engine & Animation System
-- **`src/main/resources/FrontEnd/assets/js/phaser/raid-config.js`:**
-  - Thiết lập `groundY: 350`, `heroY: 350`, `bossY: 350` trên khung Canvas `960×420`.
-  - Tính toán chính xác `originY` bám đất cho:
-    - Warrior: `0.7135` ($137 / 192$)
-    - Archer: `0.7083` ($136 / 192$)
-    - Lancer: `0.9271` ($178 / 192$)
-    - 9 Boss quái vật kho báu: Captain (0.8), Crabby (0.9062), Fierce (0.9333), Pink (0.9667), Totem 1 (0.9688), Totem 2/3 (1.0), Seashell (1.0), Cannon (1.0).
-- **`src/main/resources/FrontEnd/assets/js/phaser/battle-scene.js`:**
-  - Thêm cờ `isBossDying = false`.
-  - Bổ sung hàm `clearAttackTimers()` và `clearBossTurnTimers()` để hủy các `Phaser.Time.TimerEvent` delayed callbacks khi nhân vật hoặc quái vật chết / đổi trạng thái.
-  - Ngăn chặn lỗi hồi sinh sprite Boss ma khi chết trong `applyState()`.
-  - Trong `spawnActors()`: Bổ sung lệnh hủy tween an toàn `this.tweens.killTweensOf` và reset `this.isAttacking = false`.
-  - Đồng bộ tọa độ bóng `heroShadow.x = hero.x` và `bossShadow.x = boss.x` liên tục theo thời gian thực trong mọi tween đòn đánh.
-- **`src/main/resources/FrontEnd/assets/js/raid-phaser-embed.js`:**
-  - Đồng bộ Canvas Fallback 2D khớp tỷ lệ 960×420, groundY=350, heroX=406, bossX=554 và thuật toán vẽ flipped boss đối diện hero.
+### 1. Database & Schema Audit (P2-A)
+- **`src/main/resources/tools/audit_vocabulary_db.py`:**
+  - Viết bộ parser đọc và giải mã file seed SQL Server `script_GPL_v2.sql` (UTF-16 LE).
+  - Phân tích toàn bộ 2.098 rows trong `vocabulary_words`: 2.096 từ tiếng Anh, 2 từ tiếng Nhật (`ohayou`, `arigatou`).
+  - Thống kê tỷ lệ CEFR: 75 từ có nhãn (B1: 23, B2: 41, C1: 11); 2.023 từ là `NULL` (96.43%).
+  - Đánh giá khả năng ghép chữ bàn cờ 1-tile 5x5: 1.998 từ hợp lệ (95.5%), 94 từ không hợp lệ (28 từ <3 ký tự, 48 từ >10 ký tự, 19 từ có dấu gạch/kí tự đặc biệt).
+- **`docs/P2_VOCABULARY_AUDIT.md` & `Agent & Skill/docs/P2_VOCABULARY_AUDIT.md`:**
+  - Xuất bản báo cáo kiểm toán đầy đủ 9 bảng số liệu và đề xuất kỹ thuật.
 
-### 2. Frontend Gameplay & Mobile Responsive
-- **`src/main/resources/FrontEnd/assets/js/minigame.js`:**
-  - Thêm cờ `isSubmitting` bọc trong `try ... finally { state.isSubmitting = false; }` cho cả `submitWord()` và `guessCoreWord()` để chống spam phím.
-  - Đồng bộ Máu người chơi (`#playerHpHudValue`) và Đồng hồ (`#timerHudValue`) lên Arena Quick HUD trong `fillBars()` và `tickTimer()`.
-  - Bổ sung thao tác tap-to-undo trên ô chữ vừa chọn.
-  - Thêm fallback tính toán điểm và trừ máu cục bộ khi backend API timeout hoặc mất kết nối.
-- **`src/main/resources/FrontEnd/src/pages/minigame.html`:**
-  - Bổ sung cấu trúc `.arena-hud-player` vào `.arena-hud-overlay` (hiển thị Player HP & Timer ngay trên góc Canvas).
-  - Bổ sung các ID DOM thiếu hụt: `#bossHpHudValue`, `#bossShieldHudValue`, `#bossSpriteSheet`.
-- **`src/main/resources/FrontEnd/assets/css/minigame.css`:**
-  - Tối ưu hóa layout compact cho mobile (< 720px): tự động ẩn thẻ `.raid-header` cồng kềnh trong lúc chiến đấu.
-  - Tối ưu hóa cho viewport 320×568 (iPhone SE): giảm padding, thu hẹp gap, sử dụng `--tile-size: clamp(38px, ...)` giúp toàn bộ màn hình combat chỉ chiếm 450.5px (79.3% màn hình), loại bỏ hoàn toàn việc phải cuộn trang.
-  - Bổ sung `.arena-hud-overlay` hiển thị đồng thời cả Player HUD (góc trái) và Boss HUD (góc phải).
+### 2. Architecture & Taxonomy Design (P2-B)
+- **`docs/P2_VOCABULARY_DESIGN.md` & `Agent & Skill/docs/P2_VOCABULARY_DESIGN.md`:**
+  - Định hình kiến trúc 2 trục độc lập: Trục 1 (CEFR A1-C2 + UNKNOWN/NULL theo sense-level với grounding học thuật nghiêm ngặt) và Trục 2 (IT Tier: Foundation, Practitioner, Advanced, Specialist).
+  - Chuẩn hóa danh mục 35 IT Domains (Computer Fundamentals, OS, Networks, OOP, DSA, Backend API, DevOps, Containers, Cloud, AI/ML, Cybersecurity,...).
+  - Xác lập quy tắc phân loại `boardEligible = true` (từ đơn 3..10 ký tự [A-Za-z]) vs `boardEligible = false` (cụm từ nhiều chữ cho Flashcard/Quiz).
+- **`src/main/resources/db/migration/V2__vocabulary_senses_cefr_it.sql`:**
+  - Soạn thảo lược đồ mở rộng an toàn (non-breaking) cho bảng `vocabulary_word_senses` và `it_curriculum_domains` (draft migration, không áp dụng trực tiếp lên DB live).
 
-### 3. Server & Tools
-- **`preview-server.js`:**
-  - Bổ sung MIME types cho font chữ (`.woff`, `.woff2`, `.ttf`), dữ liệu (`.json`), và âm thanh (`.mp3`, `.wav`, `.ogg`).
-- **`Agent & Skill/scripts/test_p0_verification.py`:**
-  - Cập nhật bộ test phân cấp minh bạch: STATIC PASS, UNIT PASS, SIMULATION PASS, BROWSER NOT TESTED.
-- **`Agent & Skill/scripts/playwright_p0_acceptance.js`:**
-  - Tạo mới kịch bản kiểm thử tự động Playwright đo đạc 7 viewports và thực hiện tương tác chiến đấu thực tế.
-- **`src/main/resources/FrontEnd/assets/qa_audit/`:**
-  - Tạo 5 tệp ảnh kiểm chứng trực quan frame-by-frame và phối cảnh đấu trường.
+### 3. Data Importer Pipeline & DRY RUN (P2-C)
+- **`src/main/resources/tools/vocabulary_importer.py`:**
+  - Pipeline CLI kiểm tra dữ liệu từ vựng với chế độ `--dry-run` mặc định.
+  - Chuẩn hóa Part of Speech (POS): `n.` -> `noun`, `v.` -> `verb`, `adj.` -> `adjective`, `adv.` -> `adverb`, `prep.` -> `preposition`, `conj.` -> `conjunction`, `phrase`.
+  - Kiểm tra tính hợp lệ trên bàn cờ (`boardEligible`), kiểm tra CEFR và IT domains, phát hiện trùng lặp với 2.098 từ trong seed database.
+- **`src/main/resources/tools/test_vocabulary_importer.py`:**
+  - Bộ kiểm thử tự động 3/3 tests PASS: `test_pos_normalization`, `test_board_eligibility`, `test_validation_pipeline_dry_run`.
+- **`docs/P2_IMPORT_DRY_RUN_REPORT.json` & `Agent & Skill/docs/P2_IMPORT_DRY_RUN_REPORT.json`:**
+  - Báo cáo chạy thử nghiệm 26 mục mẫu: 26 hợp lệ, 0 rejected, 22 board-eligible, 4 flashcard-only, 0 hallucinated CEFR.
 
+### 4. Backend Services Enhancement (P2-D & P2-E)
+- **`src/main/java/org/example/dto/VocabularyWordDto.java`:**
+  - Bổ sung các trường tùy chọn: `normalizedText`, `itDomain`, `itTier`, `boardEligible`. Duy trì tương thích JSON 100%.
+- **`src/main/java/org/example/service/VolcardService.java` & `VolcardServiceImpl.java`:**
+  - Mở rộng phương thức `getCards(vocabularySetId, offset, limit, cefrLevel, search)`.
+  - Lọc theo cấp độ CEFR linh hoạt (A1, A2, B1, B2, C1, C2, UNKNOWN/NULL, ALL).
+  - Tìm kiếm từ vựng theo thời gian thực hai chiều (tiếng Anh và tiếng Việt).
+  - Chuẩn hóa Part of Speech và fallback định nghĩa khi `meaning_en` là NULL.
+- **`src/main/java/org/example/controller/VolcardController.java`:**
+  - Tiếp nhận query params `@RequestParam(required = false) String cefrLevel` và `@RequestParam(required = false) String search`.
+- **`src/main/java/org/example/service/LexRaidServiceImpl.java`:**
+  - Tối ưu hóa thuật toán `buildBoard()`: Loại bỏ sinh ngẫu nhiên đồng đều `A-Z` (vốn chỉ có 19% nguyên âm), thay thế bằng bảng tần suất chữ cái chuẩn tiếng Anh (~42% nguyên âm A, E, I, O, U và phụ âm thông dụng T, N, S, R, H, L, D, C, M, P) khắc phục triệt để tình trạng thiếu nguyên âm (vowel starvation).
+  - Đảm bảo ghép từ thành công: Bố trí các chữ cái của `coreWord` và 1-2 từ vựng phụ (`topicWords`) vào các vị trí ưu tiên gần tâm bàn cờ theo khoảng cách Manhattan.
+  - Lọc bỏ triệt để từ tiếng Nhật và từ không hợp lệ khỏi Lex Raid battle runtime.
 
----
-
-## [P1-A] — 23/11/2026: Java 21 LTS & Spring Boot 4.2.0 Migration
-
-### 1. Build & Dependency Upgrade
-- **`pom.xml`:**
-  - Nâng cấp Spring Boot parent từ `3.3.5` lên `4.2.0` stable.
-  - Chuyển `java.version` từ `17` sang `21` LTS.
-  - Cập nhật `lombok.version` lên `1.18.36` tương thích Java 21 compiler.
-  - Cấu hình `maven-compiler-plugin` 3.16.0 với target release 21.
-
-### 2. Verification & Testing
-- **Compilation:** `mvn clean compile` biên dịch thành công toàn bộ 112 file nguồn Java bằng JDK 21 (0 warnings/errors).
-- **Runtime Integration Test:** `mvn test -Dtest=MainTests` kiểm thử Spring Context với Spring Boot 4.2.0:
-  - Khởi tạo HikariPool kết nối Microsoft SQL Server cục bộ (57 bảng).
-  - Ánh xạ đầy đủ JPA entities trong 5.8s.
-  - Kết quả kiểm thử: `Tests run: 1, Failures: 0, Errors: 0, BUILD SUCCESS`.
-- **Packaging:** `mvn package -DskipTests` đóng gói thành công file thực thi Spring Boot 4.2.0 JAR.
-
+### 5. Frontend UI & UX Polish (P2-F)
+- **`src/main/resources/FrontEnd/assets/js/api.js`:**
+  - Cập nhật `getVolcardCards(setId, offset, limit, cefrLevel, search)` hỗ trợ truyền params lọc lên backend.
+- **`src/main/resources/FrontEnd/src/pages/volcard.html` & `assets/css/volcard.css`:**
+  - Tích hợp `pixel-rpg.css` và hệ thống khung viền gỗ sẫm `.pixel-panel`.
+  - Bổ sung thanh 8 nút lọc CEFR Pills (Tất cả, A1, A2, B1, B2, C1, C2, Chưa gán).
+  - Bổ sung ô tìm kiếm từ vựng tiếng Anh / tiếng Việt có icon và bo góc retro.
+  - Thiết kế thẻ lật Flashcard 2 mặt với huy hiệu Pixel RPG cho POS, CEFR Level, IT Domain, IT Tier.
+  - Tích hợp nút phát âm Web Speech API TTS (`ttsBtn`) kèm disclaimer về chất lượng giọng máy.
+  - Bổ sung nút điều hướng trước/sau: Trước (`prevBtn`), Lật thẻ (`flipBtn`), Tiếp (`nextBtn`).
+- **`src/main/resources/FrontEnd/assets/js/volcard.js`:**
+  - Quản lý trạng thái bộ lọc `cefrFilter`, tìm kiếm debounce `searchQuery`, TTS Web Speech API phát âm chuẩn `en-US`.
+- **`src/main/resources/FrontEnd/src/pages/quiz.html`:**
+  - Tích hợp `pixel-rpg.css` đồng bộ phong cách Pixel RPG.
 
 ---
 
-## [P1-B & P1-C & P1-D] — 23/11/2026: Pixel RPG Design System & Frontend Transformation
+## [P1-A & P1-B & P1-C & P1-D] — 23/11/2026: Pixel RPG Design System & Java 21 LTS
+- Nâng cấp Java 21 LTS, Spring Boot 4.2.0, Lombok 1.18.36.
+- Thiết lập Pixel RPG Design System tokens trong `pixel-rpg.css`.
+- Đồng bộ giao diện Lex Raid Battle và Home Page.
 
-### 1. Pixel RPG Design System Foundation
-- **`docs/DESIGN_SYSTEM.md`:**
-  - Định hình quy chuẩn thiết kế Fantasy Pixel RPG nguyên bản.
-  - Xây dựng bảng màu Wood (`#1c120c`, `#3c2a1a`, `#7a5432`), Gold (`#f6c344`, `#d49b29`, `#8f6010`), Parchment (`#fae9c5`, `#fff5df`, `#dfd0b0`) và Combat Accents (`#d9383a`, `#3b72d9`, `#2ea44f`).
-  - Phân tầng Typography: Font hiển thị retro `'Silkscreen'` / `'VT323'` kết hợp font nội dung học tập rõ nét hỗ trợ tiếng Việt `'Be Vietnam Pro'`.
-- **`src/main/resources/FrontEnd/assets/css/pixel-rpg.css`:**
-  - Khung viền gỗ viền vàng `.pixel-panel`.
-  - Nút bấm 3D stepped lún thật `.pixel-btn` (biến thể default, danger, wood).
-  - Huy hiệu pixel góc khía `.pixel-badge`.
-  - Thanh máu và năng lượng phân mảnh pixel `.pixel-bar`.
+---
 
-### 2. Lex Raid Battle UX & Mobile Responsive
-- **`src/main/resources/FrontEnd/assets/css/minigame.css`:**
-  - Chuyển đổi đấu trường `.battle-stage` sang viền gỗ 4px sắc nét, loại bỏ góc bo tròn hiện đại 26px.
-  - Chuẩn hóa Attack Dock với khay chữ retro nổi bật và các nút bấm có phản hồi xúc giác.
-  - Nâng cấp ô chữ `.board-tile` sang kiểu gạch pixel parchment, có hiệu ứng nhấn chìm 4px khi chọn.
-  - Duy trì chuẩn No-Scroll Battle Loop trên mobile (Arena + Quick HUD + Attack Dock + Word Board nằm gọn trong màn hình).
-
-### 3. Home Page & Navigation Synchronization
-- **`src/main/resources/FrontEnd/assets/css/base.css`:**
-  - Tích hợp `pixel-rpg.css`.
-  - Chuyển đổi thanh điều hướng `.main-nav` sang viền gỗ sẫm, nút điều hướng `.nav-link-soft` phong cách retro, user chip pixel.
-- **`src/main/resources/FrontEnd/assets/css/home.css`:**
-  - Tái cấu trúc toàn bộ thẻ Hero, Quest Feature Cards, Bảng xếp hạng và Stage Previews sang phong cách Quest Board gỗ và giấy da cổ.
+## [P0-Finalization] — 23/11/2026: Animation, Battle Loop & Mobile Responsive
+- Căn chỉnh trọng tâm chân Hero & 9 Boss Quái vật (baseline Y=350).
+- Khắc phục 9 kịch bản hồi quy và race conditions trong gameplay.
+- Tối ưu hóa giao diện di động 320x568 không cần cuộn trang.
