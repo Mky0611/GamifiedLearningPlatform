@@ -15,13 +15,27 @@
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **CODE COMPLETE** | Sửa dứt điểm 9 lỗi animation/battle; mobile 320px no-scroll; script Playwright sẵn sàng. |
 | **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **CODE COMPLETE** | Java 21 LTS & Spring Boot 4.2.0; Design system tokens; minigame & home pixel hóa. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | **COMPLETE** | Audit DB UTF-16; 2 trục độc lập; Pipeline importer DRY RUN; Thuật toán sinh bàn cờ cân bằng; Volcard & Quiz UI polish. |
-| **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
+| **P3** | **RPG Progression, XP, Coins, Level, Sessions & Profile** | **COMPLETE** | Đường cong cấp độ O(1); Idempotency chống nhận thưởng 2 lần; Tiến trình ải; Player Profile API; 14/14 tests PASS. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
 | **P5** | **Microservices Evaluation** | `TODO` | Đánh giá kiến trúc mở rộng và tối ưu hóa hệ thống. |
 
 ---
 
-## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P2 (VOCABULARY ENGINE & IT ENGLISH)
+## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P3 (RPG PROGRESSION & SESSIONS)
+
+| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
+| :--- | :--- | :---: | :--- | :--- |
+| **P3-A** | Kiểm toán Entities & Luồng Dữ liệu Tiến trình | **DONE (PASS)** | `docs/P3_PROGRESSION_DESIGN.md` | Phát hiện 4 nguyên nhân gốc: user chưa từng được cộng thưởng, double reward khi gọi /finish, clear_count tăng liên tục, hạ sao kỷ lục cũ. |
+| **P3-B** | Động cơ Cấp độ $O(1)$ & Phần thưởng Cân bằng | **DONE (PASS)** | `RpgProgressionService.java`, `RpgProgressionServiceImpl.java`, `RpgProgressionServiceTest.java` | Công thức bậc 2: $L = \max(1, \lfloor (1 + \sqrt{1 + X / 12.5}) / 2 \rfloor)$. Bắt đầu L1 tại 0 XP. Ngưỡng L1..L10 chuẩn xác. Hỗ trợ multi-level jump. Test 7/7 PASS. |
+| **P3-C** | Triệt tiêu Double Reward & Idempotency Tuyệt đối | **DONE (PASS)** | `LexRaidServiceImpl.java`, `QuizServiceImpl.java`, `LexRaidProgressionTest.java` | Guard `if (COMPLETED.equalsIgnoreCase(session.getStatus())) return;` đảm bảo chỉ trao thưởng đúng 1 lần duy nhất cho mỗi session. Test 3/3 PASS. |
+| **P3-D** | Ghi nhận Tiến trình Ải & Bảo toàn Số sao Kỷ lục | **DONE (PASS)** | `UserStageProgressRepository.java`, `LexRaidServiceImpl.java` | Tách riêng cập nhật từ vựng (`updateStageWordProgress`) và cập nhật hoàn thành (`updateStageProgressOnCompletion`). Sao kỷ lục dùng `Math.max`. |
+| **P3-E** | Tích hợp Tiến trình Quiz Challenge | **DONE (PASS)** | `QuizServiceImpl.java`, `QuizProgressionTest.java` | Tính toán XP/Coins dựa trên điểm số thực tế khi kết thúc quiz. Ngăn chặn nộp câu hỏi sau khi COMPLETED. Test 2/2 PASS. |
+| **P3-F** | Xây dựng Player Profile API & Self-Healing | **DONE (PASS)** | `AccountService.java`, `AccountServiceImpl.java`, `AccountController.java`, `PlayerProfileDto.java` | Endpoint `GET /api/v1/account/profile?userId={userId}` trả về đầy đủ profile, level bar, loadout, stages cleared, best score. Tự động phục hồi cấp độ lệch trong DB. Test 2/2 PASS. |
+| **P3-G** | Hoàn thiện Giao diện Pixel RPG (Battle Modal, Account UI) | **DONE (PASS)** | `minigame.html`, `minigame.css`, `minigame.js`, `account.html`, `account.css`, `account.js`, `home.js` | Modal kết thúc trận đấu Pixel RPG (Cờ thắng/thua, sao ★★★, EXP, Gold, banner LEVEL UP). Profile card với thanh EXP bar và RPG metrics. Tự động đồng bộ nav bar. |
+
+---
+
+## 3. CHI TIẾT CÁC TASKS GIAI ĐOẠN P2 (VOCABULARY ENGINE & IT ENGLISH)
 
 | Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
 | :--- | :--- | :---: | :--- | :--- |

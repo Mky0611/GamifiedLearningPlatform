@@ -3,7 +3,55 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P2 (Vocabulary Engine, CEFR A1–C2, IT Taxonomy, Balanced Board, Volcard UI)  
+**Giai đoạn:** P3 (RPG Progression, XP, Coins, Level Up, Persistent Game Sessions & Player Profile)  
+
+---
+
+## [P3-A & P3-B & P3-C & P3-D & P3-E & P3-F & P3-G] — 23/11/2026: Phase P3 Master Delivery
+
+### 1. RPG Progression Engine & Level Mathematics (P3-A & P3-B)
+- **`src/main/java/org/example/service/RpgProgressionService.java` & `RpgProgressionServiceImpl.java`:**
+  - Xây dựng đường cong cấp độ bậc hai chuẩn $O(1)$: $L = \max(1, \lfloor (1 + \sqrt{1 + X / 12.5}) / 2 \rfloor)$. Cấp 1 tại 0 XP; ngưỡng L1: 0-99 XP, L2: 100-299 XP, L3: 300-599 XP, L5: 1000-1499 XP, L10: 4500+ XP.
+  - Công thức tính thưởng Lex Raid (WON/LOST, có trần chống lạm phát) và Quiz.
+  - Phương thức `applyReward(User user, int xpEarned, int coinsEarned)` cập nhật `User` (`xp_total`, `level_current`, `coins`) và phát hiện chính xác thăng cấp đơn hoặc nhảy cóc nhiều cấp độ.
+- **DTOs:**
+  - `LevelProgressDto.java`: Cung cấp chi tiết level, xpBase, xpNext, xpCurrentInLevel, xpNeededForNextLevel, progressPercent.
+  - `UserRewardResultDto.java`: oldLevel, newLevel, levelUpOccurred, levelsGained, xpEarned, coinsEarned, newXpTotal, newCoins.
+  - `PlayerProfileDto.java`: Toàn bộ chỉ số thực tế của người chơi từ DB.
+
+### 2. Idempotency & Anti-Double Reward (P3-C & P3-D)
+- **`src/main/java/org/example/service/LexRaidServiceImpl.java`:**
+  - Khắc phục triệt để lỗi người chơi không bao giờ được cộng thưởng vào thực thể `User`.
+  - Triệt tiêu lỗi nhận thưởng nhiều lần (Double Reward) do reload trang hoặc gọi lặp lại `/finish`: Bổ sung guard check `if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) return;`.
+  - Tách riêng `updateStageWordProgress` (cập nhật từ tìm thấy khi chơi) và `updateStageProgressOnCompletion` (chỉ cập nhật kết quả ải khi session kết thúc).
+  - Bảo toàn số sao kỷ lục: Sử dụng `Math.max(existingStars, newStars)`, ngăn chặn việc hạ sao khi chơi lại ải với điểm thấp hơn.
+- **`src/main/java/org/example/service/QuizServiceImpl.java`:**
+  - Tính toán và trao thưởng thực tế XP/Coins vào `User` khi kết thúc câu hỏi cuối cùng của quiz.
+  - Từ chối việc nộp câu hỏi vào session đã `COMPLETED`.
+
+### 3. Player Profile API & Backend Integration (P3-E)
+- **`src/main/java/org/example/controller/AccountController.java` & `AccountServiceImpl.java`:**
+  - Thêm endpoint `GET /api/v1/account/profile?userId={userId}`.
+  - Tổng hợp số ải đã vượt qua (`stagesCleared`), tổng trận đấu (`totalBattles`), điểm cao nhất (`bestScore`), loadout và thanh tiến độ EXP.
+  - Tự động phục hồi / đồng bộ (self-healing) `level_current` trong bảng `users` nếu phát hiện lệch so với công thức toán học.
+
+### 4. Pixel RPG Frontend Polish & Real Data Sync (P3-F)
+- **`minigame.html`, `minigame.css`, `minigame.js`:**
+  - Nâng cấp Modal Kết thúc Trận đấu (`#finishOverlay`) thành Pixel RPG Battle Result Modal hoàn chỉnh: Cờ Victory/Defeat, đánh giá số sao (★★★), EXP nhận được, Gold Coins nhận được, điểm số, và banner LEVEL UP có hiệu ứng chuyển động ăn mừng khi thăng cấp.
+  - Tự động cập nhật `auth` local và Navigation bar ngay khi kết thúc trận đấu.
+- **`account.html`, `account.css`, `account.js`:**
+  - Tích hợp thẻ thông tin người chơi: Huy hiệu cấp độ, thanh EXP Progress Bar (`.pixel-bar`) kèm % tiến độ, số dư Gold, chuỗi ngày học Streak, và lưới RPG Metrics (Stages Cleared, Total Battles, Best Score).
+- **`home.js`, `api.js`, `games-lite.js`:**
+  - Bổ sung `window.appApi.getAccountProfile(userId)`.
+  - Quiz completion hiển thị phần thưởng EXP & Gold, kèm thông báo thăng cấp.
+
+### 5. Automated Tests & Quality Assurance (P3-G)
+- **14/14 Unit & Integration Tests PASS trên Java 21 LTS:**
+  - `RpgProgressionServiceTest` (7/7 tests PASS).
+  - `AccountProfileServiceTest` (2/2 tests PASS).
+  - `LexRaidProgressionTest` (3/3 tests PASS).
+  - `QuizProgressionTest` (2/2 tests PASS).
+- **`docs/P3_PROGRESSION_DESIGN.md` & `docs/P3_REWARD_TEST_REPORT.md`:** Xuất bản tài liệu thiết kế và báo cáo kiểm thử chi tiết.
 
 ---
 

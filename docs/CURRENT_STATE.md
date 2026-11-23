@@ -3,8 +3,8 @@
 **Thời điểm cập nhật:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát triển:** `feature/p2-vocabulary-cefr-it`  
-**Trạng thái hiện tại:** **PHASE P2 COMPLETE (VOCABULARY ENGINE, CEFR & IT TAXONOMY, BALANCED BOARD, VOLCARD UI POLISHED)**  
+**Nhánh phát triển:** `feature/p3-rpg-progression`  
+**Trạng thái hiện tại:** **PHASE P3 COMPLETE (RPG PROGRESSION, LEVEL FORMULAS, COINS, XP, PERSISTENT SESSIONS & PLAYER PROFILE)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -68,22 +68,53 @@ Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG 
 
 ---
 
-## 3. PHÂN LOẠI KẾT QUẢ KIỂM THỬ THỰC TẾ (QA STATUS)
+## 3. KẾT QUẢ THỰC HIỆN PHASE P3 (RPG PROGRESSION, LEVEL, XP, COINS & SESSIONS)
 
-| Cấp độ kiểm thử | Tên bài test / Script | Kết quả | Chi tiết |
-| :--- | :--- | :---: | :--- |
-| **SECURITY SCAN** | `git_security_scanner.py` | **PASS** | Working tree sạch 0 lỗi; 1 commit lịch sử `ecf1f782` được mask an toàn. |
-| **SECURITY UNIT** | `test_security_scanner.py` | **PASS** | 13/13 tests pass (URI, JSON, YAML, Cloud Keys, False Positive checks). |
-| **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |
-| **IMPORTER DRY RUN** | `vocabulary_importer.py` | **PASS** | 26 items processed, 22 board-eligible, 4 flashcard-only, 0 rejected. |
-| **DATABASE AUDIT** | `audit_vocabulary_db.py` | **PASS** | 2.098 words, 17 sets, 9 topics, 6 stages parsed từ file UTF-16 LE. |
-| **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
-| **PREVIEW SERVER** | `preview-server.js` | **PASS** | Khởi chạy thành công trên Node.js v24.15.0, route đúng `/app/volcard` & `/app/quiz`. |
+### A. Kiến trúc Tiến trình RPG & Cấp độ $O(1)$ (P3-A & P3-B)
+- **Công thức cấp độ chuẩn:** $L = \max(1, \lfloor (1 + \sqrt{1 + X / 12.5}) / 2 \rfloor)$. Cấp 1 xuất phát từ 0 XP; ngưỡng L1: 0-99 XP, L2: 100-299 XP, L3: 300-599 XP, L5: 1000-1499 XP, L10: 4500+ XP.
+- **Dịch vụ `RpgProgressionService` & `RpgProgressionServiceImpl`:**
+  - Tính toán XP và Coins cho Lex Raid (thắng/thua, có giới hạn trần chống lạm phát) và Quiz.
+  - Xử lý cộng thưởng vào `User` (`xp_total`, `level_current`, `coins`) và phát hiện chính xác thăng cấp (Level Up) hoặc nhảy cóc nhiều cấp độ (Multi-level jump).
+  - Tự động đồng bộ / tự phục hồi (self-healing) cấp độ nếu `level_current` trong DB lệch khỏi công thức toán học.
+
+### B. Chống Nhận Thưởng Lặp & Idempotency Tuyệt Đối (P3-C & P3-D)
+- **Lex Raid Service:**
+  - Chốt trạng thái session sang `COMPLETED` nguyên tử.
+  - Kiểm tra nghiêm ngặt `if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) return;` đảm bảo chỉ trao thưởng XP/Coin và tăng `clear_count`/`fail_count` đúng 1 lần duy nhất cho mỗi phiên chơi.
+  - Ngăn chặn triệt để tình trạng reload trang hoặc gọi lặp lại `/finish` để farm thưởng.
+  - Bảo toàn kỷ lục số sao: `Math.max(existingStars, newStars)`, không bao giờ bị giảm điểm đánh giá ải.
+- **Quiz Service:**
+  - Trao thưởng XP và Coins vào User khi hoàn thành toàn bộ câu hỏi.
+  - Ngăn chặn nộp thêm câu hỏi sau khi session đã `COMPLETED`.
+
+### C. Player Profile API & Đồng bộ Frontend (P3-E & P3-F)
+- **API `GET /api/v1/account/profile?userId={userId}`:** Trả về đầy đủ profile: Level, XP tổng, XP trong level, XP tới level kế, % tiến độ, Coins, Streak, Loadout, Stages Cleared, Total Battles, Best Score.
+- **Pixel RPG UI Polish:**
+  - **Account Profile Card:** Tích hợp thanh EXP Progress Bar (`.pixel-bar`), huy hiệu cấp độ, lưới RPG metrics 3 cột.
+  - **Battle Result Modal:** Thiết kế lại hoàn toàn bảng tổng kết trận đấu pixel art: cờ Victory/Defeat, số sao đạt được (★★★), EXP & Gold nhận được, điểm số, và banner ăn mừng LEVEL UP khi thăng cấp.
+  - **Đồng bộ thời gian thực:** Tự động cập nhật `auth` local và thanh điều hướng (Navigation Bar) ngay khi trận đấu hoặc quiz kết thúc.
 
 ---
 
-## 4. CÔNG VIỆC TIẾP THEO
+## 4. PHÂN LOẠI KẾT QUẢ KIỂM THỬ THỰC TẾ (QA STATUS)
 
-1. Commit các thay đổi Phase P2 lên nhánh `feature/p2-vocabulary-cefr-it`.
+| Cấp độ kiểm thử | Tên bài test / Script | Kết quả | Chi tiết |
+| :--- | :--- | :---: | :--- |
+| **RPG PROGRESSION UNIT** | `RpgProgressionServiceTest` | **PASS** | 7/7 tests pass (ngưỡng cấp độ, công thức thưởng, single level-up, multi-level jump). |
+| **ACCOUNT PROFILE UNIT** | `AccountProfileServiceTest` | **PASS** | 2/2 tests pass (profile calculation, self-healing level synchronization). |
+| **LEX RAID PROGRESSION** | `LexRaidProgressionTest` | **PASS** | 3/3 tests pass (thưởng trận đấu, chống nhận thưởng 2 lần idempotency, sao không suy giảm). |
+| **QUIZ PROGRESSION** | `QuizProgressionTest` | **PASS** | 2/2 tests pass (thưởng quiz completion, từ chối nộp sau khi hoàn thành). |
+| **SECURITY SCAN** | `git_security_scanner.py` | **PASS** | Working tree sạch 0 lỗi; 1 commit lịch sử `ecf1f782` được mask an toàn. |
+| **SECURITY UNIT** | `test_security_scanner.py` | **PASS** | 13/13 tests pass (URI, JSON, YAML, Cloud Keys, False Positive checks). |
+| **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |
+| **DATABASE AUDIT** | `audit_vocabulary_db.py` | **PASS** | 2.098 words, 17 sets, 9 topics, 6 stages parsed từ file UTF-16 LE. |
+| **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
+| **PREVIEW SERVER** | `preview-server.js` | **PASS** | Node.js route đúng `/app/volcard`, `/app/quiz`, `/app/account`. |
+
+---
+
+## 5. CÔNG VIỆC TIẾP THEO
+
+1. Commit các thay đổi Phase P3 lên nhánh `feature/p3-rpg-progression`.
 2. Push lên repository GitHub `Mky0611/GamifiedLearningPlatform`.
-3. Chuẩn bị báo cáo bàn giao chi tiết cho người dùng và ChatGPT để tiếp tục QA và phát triển giai đoạn tiếp theo.
+3. Bàn giao báo cáo nghiệm thu Phase P3 cho người dùng và ChatGPT.

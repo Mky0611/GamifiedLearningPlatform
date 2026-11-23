@@ -1,10 +1,10 @@
 # BÁO CÁO KIỂM THỬ CHẤT LƯỢNG — QA REPORT
-## GIAI ĐOẠN P0, P1, P2 & SECURITY AUDIT — LEX RAID PIXEL RPG
+## GIAI ĐOẠN P0, P1, P2, P3 & SECURITY AUDIT — LEX RAID PIXEL RPG
 
 **Thời điểm lập:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh kiểm thử:** `feature/p2-vocabulary-cefr-it`  
+**Nhánh kiểm thử:** `feature/p3-rpg-progression`  
 **Đơn vị thực hiện:** Antigravity QA Engineering Team  
 
 ---
@@ -13,6 +13,10 @@
 
 | Hạng mục kiểm thử | Cấp độ | Kết quả | Chi tiết & Ghi chú |
 | :--- | :---: | :---: | :--- |
+| **RPG Level & Reward Engine (`RpgProgressionServiceTest`)** | UNIT | **PASS** | 7/7 tests pass: ngưỡng cấp độ L1..L10, XP bậc 2 $O(1)$, thưởng Lex Raid, single level-up, multi-level jump. |
+| **Player Profile Calculation (`AccountProfileServiceTest`)** | UNIT | **PASS** | 2/2 tests pass: tổng hợp profile, exp bar, loadout, stages cleared, best score, self-healing cấp độ lệch trong DB. |
+| **Lex Raid Session Progression (`LexRaidProgressionTest`)** | UNIT | **PASS** | 3/3 tests pass: thưởng trận đấu, chống nhận thưởng 2 lần (idempotency), sao kỷ lục không suy giảm. |
+| **Quiz Session Progression (`QuizProgressionTest`)** | UNIT | **PASS** | 2/2 tests pass: thưởng hoàn thành quiz, từ chối nộp sau khi COMPLETED. |
 | **Kiểm thử Security Scanner (`test_security_scanner.py`)** | UNIT | **PASS** | 13/13 unit tests pass: phát hiện hardcoded password, ${VAR:default}, URI credentials, Cloud keys, JSON, YAML. |
 | **Quét An toàn Mã nguồn (`git_security_scanner.py`)** | STATIC | **PASS** | Working tree sạch 0 secrets; Git history khớp đúng commit cũ `ecf1f782` (đã mask). |
 | **Kiểm toán DB Seed (`audit_vocabulary_db.py`)** | DB STATIC | **PASS** | Đọc trực tiếp `script_GPL_v2.sql` (UTF-16 LE): 2.098 từ, 17 sets, 9 topics, 6 stages. |
@@ -29,7 +33,36 @@
 
 ---
 
-## 2. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P2 (VOCABULARY & IT TAXONOMY)
+## 2. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P3 (RPG PROGRESSION & IDEMPOTENCY)
+
+- **Chi tiết báo cáo:** Tham chiếu tài liệu độc lập `docs/P3_REWARD_TEST_REPORT.md`.
+- **Bộ kiểm thử tự động (Maven Surefire + JDK 21 LTS):** Đạt **14/14 tests PASS** (0 failures, 0 errors, 0 skipped).
+  1. **`RpgProgressionServiceTest` (7 tests PASS):**
+     - `testLevelCalculationExactBoundaries`: Ngưỡng L1 (0-99), L2 (100-299), L3 (300-599), L4 (600-999), L5 (1000-1499), L10 (4500).
+     - `testNegativeOrZeroXpAlwaysLevelOne`: Luôn đảm bảo level tối thiểu là 1.
+     - `testXpRequiredForLevel`: Đảo ngược công thức chính xác.
+     - `testGetLevelProgressDetails`: Tính toán chi tiết `xpCurrentInLevel`, `xpNeededForNextLevel`, `progressPercent`.
+     - `testRewardCalculationLexRaid`: Thưởng Lex Raid thắng/thua có cap.
+     - `testApplyRewardSingleLevelUp`: Cập nhật user và phát hiện thăng cấp đơn.
+     - `testApplyRewardMultiLevelJump`: Hỗ trợ nhảy nhiều cấp độ khi cộng lượng lớn XP (50 -> 1250 XP = L1 -> L5).
+  2. **`AccountProfileServiceTest` (2 tests PASS):**
+     - `testGetProfileSuccess`: Tính toán profile đầy đủ, EXP bar, stages cleared, best score, total battles.
+     - `testGetProfileSelfHealsLevelIfOutOfSync`: Tự phục hồi `level_current` trong DB khi out-of-sync.
+  3. **`LexRaidProgressionTest` (3 tests PASS):**
+     - `testFinishSessionAwardsRewardsOnce`: Cộng thưởng trận đấu và cập nhật tiến trình ải lần đầu.
+     - `testFinishSessionStrictIdempotencyNoDoubleReward`: Chống nhận thưởng lặp khi gọi lại `/finish` trên session `COMPLETED`.
+     - `testStageProgressStarsNonDecreasing`: Bảo toàn kỷ lục số sao cao nhất, không suy giảm khi chơi lại ít điểm hơn.
+  4. **`QuizProgressionTest` (2 tests PASS):**
+     - `testQuizCompletionAwardsXpAndCoins`: Trao thưởng XP/Coins khi hoàn thành câu hỏi cuối.
+     - `testSubmittingAnswerToCompletedSessionThrowsException`: Từ chối nộp câu hỏi vào session đã kết thúc.
+- **Frontend & Static Checks:**
+  - `smoke_check.py`: 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng.
+  - `git_security_scanner.py`: 0 secrets trong working tree.
+  - `preview-server.js`: Node.js syntax PASS, route `/app/account` hoạt động chuẩn.
+
+---
+
+## 3. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P2 (VOCABULARY & IT TAXONOMY)
 
 ### A. Kiểm toán Cơ sở Dữ liệu Từ vựng Seed (P2-A Audit)
 - **Tập tin công cụ:** `src/main/resources/tools/audit_vocabulary_db.py`
