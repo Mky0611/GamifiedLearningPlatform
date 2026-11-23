@@ -4,7 +4,7 @@
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
 **Nhánh phát triển:** `feature/p1-pixel-rpg-java21`  
-**Trạng thái hiện tại:** **P1 COMPLETED (Java 21 + Spring Boot 4.2.0 + Pixel RPG Design System) | READY FOR REVIEW**  
+**Trạng thái hiện tại:** **P1 IN PROGRESS (CODE COMPLETE, CHỜ RUNTIME QA TRÌNH DUYỆT & TEST TÍCH HỢP TRÊN HOST)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -71,21 +71,22 @@ Toàn bộ các mục tiêu cốt lõi của P0 về sửa lỗi nhân vật, ho
 | **SECURITY SCAN** | `git_security_scanner.py` | **VERIFIED** | Working tree sạch 0 lỗi; phát hiện đúng 1 commit lịch sử `ecf1f782` (masked). |
 | **BACKEND INTEGRATION** | `MainTests.java` (Spring Boot + SQL Server) | **PASS** | HikariCP kết nối thành công 57 bảng qua `SPRING_DATASOURCE_PASSWORD`. |
 | **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
-| **SIMULATION PASS** | `test_mobile_viewports_simulation` | **PASS** | 7 viewports (320px đến 1920px) vừa vặn khung nhìn. |
-| **BROWSER TEST** | `playwright_p0_acceptance.js` | **PENDING HOST RUN** | Cần chạy trên host machine hoặc ngoài sandbox để hoàn tất nghiệm thu P0. |
+| **SIMULATION PASS** | `test_mobile_viewports_simulation` | **PASS** | 8 viewports (320px đến 1920px, bao gồm 1440×900) vừa vặn khung nhìn. |
+| **BROWSER TEST** | `playwright_p0_acceptance.js` | **PENDING HOST RUN** | Đã nâng cấp 8 viewports và assertions nghiêm ngặt; chờ chạy trên host machine. |
 
 ---
 
 ## 5. ĐIỀU KIỆN CHƯA HOÀN THÀNH & RỦI RO CÒN TỒN TẠI
 
-1. **Nghiệm thu Trình duyệt thật (P0 Acceptance):** Chưa chạy trực tiếp trên browser thật do môi trường sandbox giới hạn port socket ngoại vi.
-2. **Commit cũ trong Git History:** Commit `ecf1f782` vẫn lưu chuỗi cũ trong lịch sử Git. Cần sự phê duyệt của người dùng trước khi thực hiện viết lại lịch sử (nếu muốn).
-3. **Mật khẩu SQL Server Local:** Người dùng cần thực hiện rotation mật khẩu `sa` trên SSMS theo hướng dẫn an toàn.
+1. **Nghiệm thu Trình duyệt thật (P1 Runtime QA):** Kịch bản Playwright 8 viewports đã sẵn sàng với assertions nghiêm ngặt (không false pass). Cần chạy ngoài sandbox để lưu report JSON và screenshots thực tế.
+2. **Kiểm thử Tích hợp API Tự động:** Cần chạy test suite HTTP MockMvc / API tự động trên host để nghiệm thu các endpoint.
+3. **Commit cũ trong Git History:** Commit `ecf1f782` vẫn lưu chuỗi cũ trong lịch sử Git. Cần sự phê duyệt của người dùng trước khi thực hiện viết lại lịch sử (nếu muốn).
+4. **Mật khẩu SQL Server Local:** Người dùng cần thực hiện rotation mật khẩu `sa` trên SSMS theo hướng dẫn an toàn.
 
 ---
 
 ## 6. CÔNG VIỆC TIẾP THEO
 
-1. Người dùng thực hiện rotation mật khẩu SQL Server local và thiết lập `.env`.
-2. Chạy kịch bản Playwright nghiệm thu P0 trên host browser.
-3. Bước vào **Phase P1: Pixel RPG Design System** (Bảng màu, Khung viền gỗ/vàng kim, Typography Pixel, UI Components đồng nhất).
+1. Chạy kịch bản Playwright 8 viewports nghiệm thu trên host browser ngoài sandbox.
+2. Người dùng thực hiện rotation mật khẩu SQL Server local và thiết lập `.env`.
+3. Hoàn tất bằng chứng runtime QA P1 trước khi nghiệm thu chuyển sang Phase P2 (Vocabulary Engine & CEFR/IT Taxonomy).

@@ -22,7 +22,7 @@
 | **Căn chỉnh chân Hero (Warrior, Archer, Lancer)** | UNIT | **PASS** | Độ lệch baseline tiếp đất < 0.007px so với Y=350. |
 | **Căn chỉnh chân 9 Boss Quái Vật** | UNIT | **PASS** | Căn chỉnh chính xác baseline chân chạm đất Y=350. |
 | **Khắc phục 9 kịch bản hồi quy (Race Conditions)** | INTEGRATION | **PASS** | Đã khắc phục toàn bộ trong mã nguồn (`clearAttackTimers`, `isBossDying`, `killTweensOf`, `isSubmitting`). |
-| **Mô phỏng hình học CSS 7 Viewports** | SIMULATION | **PASS** | 320×568 chiếm 79.3% chiều cao, no-scroll fit. |
+| **Mô phỏng hình học CSS 8 Viewports** | SIMULATION | **PASS** | 320×568 chiếm 79.3% chiều cao, no-scroll fit; đã bổ sung 1440×900. |
 | **Chạy kiểm thử tự động Playwright** | BROWSER | **PENDING HOST RUN** | Giới hạn Sandbox Windows `WinError 10013`, chờ chạy trên host browser. |
 
 ---
@@ -70,7 +70,7 @@ Start-Process node -ArgumentList "preview-server.js"
 npm install -D playwright
 node "Agent & Skill/scripts/playwright_p0_acceptance.js"
 ```
-Kịch bản sẽ tự động mở 7 viewports (320px đến 1920px), đo kích thước hộp phần tử DOM, thực hiện thao tác bấm chữ, Clear, Attack và chụp ảnh màn hình lưu vào `test_output/playwright/`.
+Kịch bản sẽ tự động mở 8 viewports (320px đến 1920px, bao gồm 1440x900), đo kích thước hộp phần tử DOM, thực hiện thao tác bấm chữ, Clear, Attack và chụp ảnh màn hình lưu vào `test_output/playwright/`.
 
 ---
 

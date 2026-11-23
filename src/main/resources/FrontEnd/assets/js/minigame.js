@@ -1214,6 +1214,18 @@
         }
       };
     }
+
+    if (typeof window !== 'undefined') {
+      window.__LEX_RAID_TEST_HOOKS__ = {
+        getActiveCoreWord: () => getActiveCoreWord(),
+        getValidWords: () => allRuntimeWords(),
+        getScore: () => state.score,
+        getBossHp: () => state.bossHp,
+        getBossShield: () => state.bossShield,
+        isSubmitting: () => state.isSubmitting,
+        isFallback: () => !state.raidSessionId
+      };
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);

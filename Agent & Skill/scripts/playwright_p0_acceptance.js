@@ -51,231 +51,278 @@ async function runSuite() {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  const browser = await playwright.chromium.launch({ headless: true });
-  const report = [];
-  let suitePassed = true;
+  let browser;
+  try {
+    browser = await playwright.chromium.launch({ headless: true });
+    const report = [];
+    let suitePassed = true;
 
-  console.log(`Starting Lex Raid P0 Playwright Acceptance Suite against ${BASE_URL}...`);
+    console.log(`Starting Lex Raid P0 Playwright Acceptance Suite against ${BASE_URL}...`);
 
-  for (const vp of VIEWPORTS) {
-    console.log(`\n======================================================`);
-    console.log(`TESTING VIEWPORT: ${vp.name} (${vp.width}x${vp.height})`);
-    console.log(`======================================================`);
+    for (const vp of VIEWPORTS) {
+      console.log(`\n======================================================`);
+      console.log(`TESTING VIEWPORT: ${vp.name} (${vp.width}x${vp.height})`);
+      console.log(`======================================================`);
 
-    const context = await browser.newContext({
-      viewport: { width: vp.width, height: vp.height },
-      deviceScaleFactor: 2,
-      isMobile: vp.isMobile,
-      hasTouch: vp.isMobile
-    });
+      const context = await browser.newContext({
+        viewport: { width: vp.width, height: vp.height },
+        deviceScaleFactor: 2,
+        isMobile: vp.isMobile,
+        hasTouch: vp.isMobile
+      });
 
-    const page = await context.newPage();
-    const consoleLogs = [];
-    const consoleErrors = [];
+      let page;
+      try {
+        page = await context.newPage();
+        const consoleLogs = [];
+        const consoleErrors = [];
 
-    page.on('console', msg => {
-      const type = msg.type();
-      const text = msg.text();
-      consoleLogs.push({ type, text });
-      if (type === 'error') consoleErrors.push(text);
-    });
+        page.on('console', msg => {
+          const type = msg.type();
+          const text = msg.text();
+          consoleLogs.push({ type, text });
+          if (type === 'error') consoleErrors.push(text);
+        });
 
-    page.on('pageerror', err => {
-      consoleErrors.push(err.message);
-    });
+        page.on('pageerror', err => {
+          consoleErrors.push(err.message);
+        });
 
-    // 1. Navigate to game
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 15000 });
-    await page.waitForTimeout(1000); // Allow Phaser & DOM to mount
+        // 1. Navigate to game
+        await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 15000 });
+        await page.waitForTimeout(1000); // Allow Phaser & DOM to mount
 
-    // 2. Measure view metrics
-    const metrics = await page.evaluate(() => {
-      const de = document.documentElement;
-      const arena = document.querySelector('.battle-stage')?.getBoundingClientRect();
-      const dock = document.querySelector('.attack-dock')?.getBoundingClientRect();
-      const board = document.querySelector('#boardGrid')?.getBoundingClientRect();
-      const clearBtn = document.querySelector('#clearPathBtn')?.getBoundingClientRect();
-      const attackBtn = document.querySelector('#submitWordBtn')?.getBoundingClientRect();
-      const hud = document.querySelector('.arena-hud-overlay')?.getBoundingClientRect();
+        // Capture initial screenshot
+        const screenshotBefore = path.join(OUTPUT_DIR, `lexraid_${vp.name}_init.png`);
+        await page.screenshot({ path: screenshotBefore, fullPage: false });
 
-      return {
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
-        visualViewportHeight: window.visualViewport ? window.visualViewport.height : window.innerHeight,
-        scrollHeight: de.scrollHeight,
-        scrollWidth: de.scrollWidth,
-        arena: arena ? { top: arena.top, bottom: arena.bottom, height: arena.height, width: arena.width } : null,
-        dock: dock ? { top: dock.top, bottom: dock.bottom, height: dock.height } : null,
-        board: board ? { top: board.top, bottom: board.bottom, height: board.height } : null,
-        clearBtn: clearBtn ? { top: clearBtn.top, bottom: clearBtn.bottom, width: clearBtn.width, height: clearBtn.height } : null,
-        attackBtn: attackBtn ? { top: attackBtn.top, bottom: attackBtn.bottom, width: attackBtn.width, height: attackBtn.height } : null,
-        hud: hud ? { top: hud.top, bottom: hud.bottom, width: hud.width, height: hud.height } : null
-      };
-    });
+        // 2. Measure view metrics
+        const metrics = await page.evaluate(() => {
+          const de = document.documentElement;
+          const arena = document.querySelector('.battle-stage')?.getBoundingClientRect();
+          const dock = document.querySelector('.attack-dock')?.getBoundingClientRect();
+          const board = document.querySelector('#boardGrid')?.getBoundingClientRect();
+          const clearBtn = document.querySelector('#clearPathBtn')?.getBoundingClientRect();
+          const attackBtn = document.querySelector('#submitWordBtn')?.getBoundingClientRect();
+          const hud = document.querySelector('.arena-hud-overlay')?.getBoundingClientRect();
 
-    // Evaluate element visibility and overflow assertions
-    const noHorizontalOverflow = metrics.scrollWidth <= metrics.windowWidth + 2;
-    const stageVisible = Boolean(metrics.arena && metrics.arena.width > 0 && metrics.arena.height > 0);
-    const dockVisible = Boolean(metrics.dock && metrics.dock.width > 0 && metrics.dock.height > 0);
-    const boardVisible = Boolean(metrics.board && metrics.board.width > 0 && metrics.board.height > 0);
-    const combatBottom = metrics.board ? metrics.board.bottom : (metrics.dock ? metrics.dock.bottom : 0);
-    const fitsWithoutScroll = combatBottom <= vp.height + 25; // 25px tolerance for subpixel/padding
-    const buttonTargetOk = !vp.isMobile || (
-      metrics.clearBtn && metrics.clearBtn.height >= 38 &&
-      metrics.attackBtn && metrics.attackBtn.height >= 38
-    );
+          return {
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
+            visualViewportHeight: window.visualViewport ? window.visualViewport.height : window.innerHeight,
+            scrollHeight: de.scrollHeight,
+            scrollWidth: de.scrollWidth,
+            arena: arena ? { top: arena.top, bottom: arena.bottom, height: arena.height, width: arena.width } : null,
+            dock: dock ? { top: dock.top, bottom: dock.bottom, height: dock.height } : null,
+            board: board ? { top: board.top, bottom: board.bottom, height: board.height } : null,
+            clearBtn: clearBtn ? { top: clearBtn.top, bottom: clearBtn.bottom, width: clearBtn.width, height: clearBtn.height } : null,
+            attackBtn: attackBtn ? { top: attackBtn.top, bottom: attackBtn.bottom, width: attackBtn.width, height: attackBtn.height } : null,
+            hud: hud ? { top: hud.top, bottom: hud.bottom, width: hud.width, height: hud.height } : null
+          };
+        });
 
-    const assertions = {
-      noHorizontalOverflow,
-      stageVisible,
-      dockVisible,
-      boardVisible,
-      fitsWithoutScroll,
-      buttonTargetOk,
-      clearFunctional: false,
-      attackFunctional: false,
-      zeroConsoleErrors: consoleErrors.length === 0
-    };
+        // Evaluate element visibility and overflow assertions
+        const noHorizontalOverflow = metrics.scrollWidth <= metrics.windowWidth + 1;
+        const stageVisible = Boolean(metrics.arena && metrics.arena.width > 0 && metrics.arena.height > 0);
+        const dockVisible = Boolean(metrics.dock && metrics.dock.width > 0 && metrics.dock.height > 0);
+        const boardVisible = Boolean(metrics.board && metrics.board.width > 0 && metrics.board.height > 0);
+        const combatBottom = metrics.board ? metrics.board.bottom : (metrics.dock ? metrics.dock.bottom : 0);
+        
+        // Strict no-scroll condition: combat area must completely fit within the viewport height
+        const fitsWithoutScroll = combatBottom <= vp.height + 1;
 
-    console.log(`- Metrics: Viewport=${vp.width}x${vp.height} | ScrollW=${metrics.scrollWidth}px | ScrollH=${metrics.scrollHeight}px | Combat Bottom=${combatBottom.toFixed(1)}px`);
-    console.log(`- Assertions: NoOverflow=${noHorizontalOverflow} | Stage=${stageVisible} | Dock=${dockVisible} | Board=${boardVisible} | Fit=${fitsWithoutScroll} | TapTarget=${buttonTargetOk}`);
-    console.log(`- Console Errors: ${consoleErrors.length}`);
+        // Button tap target threshold must strictly meet 40px
+        const buttonTargetOk = !vp.isMobile || (
+          metrics.clearBtn && metrics.clearBtn.height >= 39.5 &&
+          metrics.attackBtn && metrics.attackBtn.height >= 39.5
+        );
 
-    // 3. Live gameplay interaction: Select word -> Clear -> Select valid word -> Attack
-    console.log(`- Executing live touch/click interactions...`);
-    const tiles = page.locator('.board-tile');
-    const tileCount = await tiles.count();
-    let wordSelected = '';
+        const assertions = {
+          noHorizontalOverflow,
+          stageVisible,
+          dockVisible,
+          boardVisible,
+          fitsWithoutScroll,
+          buttonTargetOk,
+          clearFunctional: false,
+          attackFunctional: false,
+          zeroConsoleErrors: consoleErrors.length === 0
+        };
 
-    if (tileCount >= 3) {
-      // Tap first 3 tiles to test selection
-      await tiles.nth(0).click();
-      await page.waitForTimeout(100);
-      await tiles.nth(1).click();
-      await page.waitForTimeout(100);
-      await tiles.nth(2).click();
-      await page.waitForTimeout(150);
+        console.log(`- Metrics: Viewport=${vp.width}x${vp.height} | ScrollW=${metrics.scrollWidth}px | ScrollH=${metrics.scrollHeight}px | Combat Bottom=${combatBottom.toFixed(1)}px`);
+        console.log(`- Assertions: NoOverflow=${noHorizontalOverflow} | Stage=${stageVisible} | Dock=${dockVisible} | Board=${boardVisible} | Fit=${fitsWithoutScroll} | TapTarget40px=${buttonTargetOk}`);
+        console.log(`- Console Errors: ${consoleErrors.length}`);
 
-      wordSelected = await page.locator('#currentWordValue').innerText();
-      console.log(`  * Selected word: "${wordSelected}"`);
+        // 3. Live gameplay interaction: Select word -> Clear -> Select valid word -> Attack
+        console.log(`- Executing live touch/click interactions...`);
+        const tiles = page.locator('.board-tile');
+        const tileCount = await tiles.count();
 
-      // Test Clear button
-      await page.locator('#clearPathBtn').click();
-      await page.waitForTimeout(150);
-      const afterClear = await page.locator('#currentWordValue').innerText();
-      assertions.clearFunctional = (afterClear.trim() === '—' || afterClear.trim() === '');
-      console.log(`  * After Clear: "${afterClear}" (Pass: ${assertions.clearFunctional})`);
+        if (tileCount >= 3) {
+          // Tap first 2 tiles to test selection & Clear
+          await tiles.nth(0).click();
+          await page.waitForTimeout(100);
+          await tiles.nth(1).click();
+          await page.waitForTimeout(150);
 
-      // Find tiles that spell a valid runtime/core word
-      const validMove = await page.evaluate(() => {
-        const tileEls = Array.from(document.querySelectorAll('.board-tile'));
-        const coreWord = (window.appState && window.appState.runtime && window.appState.runtime.coreWord) || 'LEARN';
-        const targetLetters = coreWord.toUpperCase().split('');
-        const matched = [];
-        const used = new Set();
-        for (const char of targetLetters) {
-          const idx = tileEls.findIndex((el, i) => !used.has(i) && el.querySelector('.board-tile__letter')?.textContent.trim().toUpperCase() === char);
-          if (idx !== -1) {
-            used.add(idx);
-            matched.push(idx);
+          const wordSelected = await page.locator('#currentWordValue').innerText();
+          console.log(`  * Selected word before clear: "${wordSelected}"`);
+
+          // Test Clear button
+          await page.locator('#clearPathBtn').click();
+          await page.waitForTimeout(150);
+          const afterClear = await page.locator('#currentWordValue').innerText();
+          assertions.clearFunctional = (afterClear.trim() === '—' || afterClear.trim() === '');
+          console.log(`  * After Clear: "${afterClear}" (Pass: ${assertions.clearFunctional})`);
+
+          // Deterministic gameplay test: Find a valid word from candidate words that exists on the current board
+          const movePlan = await page.evaluate(() => {
+            const tileEls = Array.from(document.querySelectorAll('.board-tile'));
+            const boardLetters = tileEls.map((el, idx) => ({
+              idx,
+              row: Number(el.dataset.row),
+              col: Number(el.dataset.col),
+              letter: (el.dataset.letter || el.querySelector('.board-tile__letter')?.textContent || '').trim().toUpperCase()
+            }));
+
+            const hookWords = window.__LEX_RAID_TEST_HOOKS__ ? [
+              window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord(),
+              ...window.__LEX_RAID_TEST_HOOKS__.getValidWords()
+            ] : [];
+
+            const candidates = [...new Set(hookWords.filter(Boolean).map(w => w.toUpperCase()))];
+
+            for (const word of candidates) {
+              if (word.length < 3) continue;
+              const chars = word.split('');
+              const matched = [];
+              const used = new Set();
+              let matchSuccess = true;
+              for (const ch of chars) {
+                const found = boardLetters.find(t => !used.has(t.idx) && t.letter === ch);
+                if (found) {
+                  used.add(found.idx);
+                  matched.push(found.idx);
+                } else {
+                  matchSuccess = false;
+                  break;
+                }
+              }
+              if (matchSuccess && matched.length === chars.length) {
+                return { word, tileIndices: matched };
+              }
+            }
+
+            return { word: null, tileIndices: [] };
+          });
+
+          if (movePlan.word && movePlan.tileIndices.length >= 3) {
+            console.log(`  * Deterministic test forming valid word "${movePlan.word}" with tile indices: [${movePlan.tileIndices.join(', ')}]`);
+            for (const idx of movePlan.tileIndices) {
+              await tiles.nth(idx).click();
+              await page.waitForTimeout(80);
+            }
+
+            // Read state before attack directly from DOM
+            const beforeAttack = await page.evaluate(() => {
+              const parseNum = (str, def = 0) => {
+                const m = String(str || '').match(/\d+/);
+                return m ? parseInt(m[0], 10) : def;
+              };
+              return {
+                score: parseNum(document.getElementById('scoreValue')?.textContent, 0),
+                bossHp: parseNum(document.getElementById('bossHpValue')?.textContent, 100),
+                bossShield: parseNum(document.getElementById('bossShieldValue')?.textContent, 30),
+                recentWordsCount: document.querySelectorAll('#recentWords .recent-word-chip').length
+              };
+            });
+
+            // Tap Attack
+            console.log(`  * Tapping Attack button...`);
+            await page.locator('#submitWordBtn').click();
+            await page.waitForTimeout(900); // Wait for attack tween and hit flash
+
+            // Read state after attack directly from DOM
+            const afterAttack = await page.evaluate(() => {
+              const parseNum = (str, def = 0) => {
+                const m = String(str || '').match(/\d+/);
+                return m ? parseInt(m[0], 10) : def;
+              };
+              const recentChips = Array.from(document.querySelectorAll('#recentWords .recent-word-chip')).map(el => el.textContent.trim().toUpperCase());
+              return {
+                score: parseNum(document.getElementById('scoreValue')?.textContent, 0),
+                bossHp: parseNum(document.getElementById('bossHpValue')?.textContent, 100),
+                bossShield: parseNum(document.getElementById('bossShieldValue')?.textContent, 30),
+                recentChips,
+                recentWordsCount: recentChips.length
+              };
+            });
+
+            assertions.attackFunctional = Boolean(
+              afterAttack.score > beforeAttack.score ||
+              afterAttack.bossHp < beforeAttack.bossHp ||
+              afterAttack.bossShield < beforeAttack.bossShield ||
+              afterAttack.recentWordsCount > beforeAttack.recentWordsCount ||
+              afterAttack.recentChips.includes(movePlan.word)
+            );
+            console.log(`  * Attack response verified via DOM: Score=${beforeAttack.score}->${afterAttack.score}, BossHP=${beforeAttack.bossHp}->${afterAttack.bossHp}, RecentCount=${beforeAttack.recentWordsCount}->${afterAttack.recentWordsCount} (Pass: ${assertions.attackFunctional})`);
+          } else {
+            console.warn(`  ! Could not form a valid runtime word on current board layout. Attack test cannot pass falsely.`);
+            assertions.attackFunctional = false;
           }
         }
-        return { coreWord, matched };
-      });
 
-      if (validMove.matched.length >= 3) {
-        console.log(`  * Forming valid word "${validMove.coreWord}" with tiles: [${validMove.matched.join(', ')}]`);
-        for (const idx of validMove.matched) {
-          await tiles.nth(idx).click();
-          await page.waitForTimeout(80);
+        // 4. Capture screenshot
+        const screenshotPath = path.join(OUTPUT_DIR, `lexraid_${vp.name}.png`);
+        await page.screenshot({ path: screenshotPath, fullPage: false });
+        console.log(`- Screenshot saved to: ${screenshotPath}`);
+
+        // All assertions are strictly required for a viewport to pass
+        const viewportPass = Boolean(
+          assertions.noHorizontalOverflow &&
+          assertions.stageVisible &&
+          assertions.dockVisible &&
+          assertions.boardVisible &&
+          assertions.fitsWithoutScroll &&
+          assertions.buttonTargetOk &&
+          assertions.clearFunctional &&
+          assertions.attackFunctional &&
+          assertions.zeroConsoleErrors
+        );
+
+        if (!viewportPass) {
+          suitePassed = false;
         }
-      } else {
-        // Fallback: click 3 tiles
-        await tiles.nth(0).click();
-        await page.waitForTimeout(80);
-        await tiles.nth(1).click();
-        await page.waitForTimeout(80);
-        await tiles.nth(2).click();
+
+        report.push({
+          viewport: vp.name,
+          dimensions: `${vp.width}x${vp.height}`,
+          status: viewportPass ? 'PASS' : 'FAIL',
+          assertions,
+          metrics,
+          consoleErrors,
+          screenshot: screenshotPath
+        });
+      } finally {
+        await context.close();
       }
-
-      // Record state before attack
-      const beforeAttackState = await page.evaluate(() => {
-        return {
-          bossHp: window.appState?.bossHp ?? 100,
-          bossShield: window.appState?.bossShield ?? 30,
-          score: window.appState?.score ?? 0,
-          heroMode: window.appState?.heroMode ?? 'idle'
-        };
-      });
-
-      // Tap Attack
-      console.log(`  * Tapping Attack button...`);
-      await page.locator('#submitWordBtn').click();
-      await page.waitForTimeout(900); // Wait for attack tween and hit flash
-
-      // Record state after attack
-      const afterAttackState = await page.evaluate(() => {
-        return {
-          bossHp: window.appState?.bossHp ?? 100,
-          bossShield: window.appState?.bossShield ?? 30,
-          score: window.appState?.score ?? 0,
-          heroMode: window.appState?.heroMode ?? 'idle',
-          recentWords: window.appState?.recentWords ?? []
-        };
-      });
-
-      assertions.attackFunctional = Boolean(
-        afterAttackState.score > beforeAttackState.score ||
-        afterAttackState.bossHp < beforeAttackState.bossHp ||
-        afterAttackState.bossShield < beforeAttackState.bossShield ||
-        afterAttackState.recentWords.length > 0 ||
-        afterAttackState.heroMode === 'attack'
-      );
-      console.log(`  * Attack gameplay response: ${assertions.attackFunctional ? 'CONFIRMED' : 'FALLBACK_OK'}`);
     }
 
-    // 4. Capture screenshot
-    const screenshotPath = path.join(OUTPUT_DIR, `lexraid_${vp.name}.png`);
-    await page.screenshot({ path: screenshotPath, fullPage: false });
-    console.log(`- Screenshot saved to: ${screenshotPath}`);
+    const reportPath = path.join(OUTPUT_DIR, 'playwright_report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf-8');
+    console.log(`\n======================================================`);
+    console.log(`PLAYWRIGHT ACCEPTANCE SUITE FINISHED!`);
+    console.log(`Overall Suite Result: ${suitePassed ? 'ALL PASS' : 'SOME TESTS FAILED'}`);
+    console.log(`Full JSON report saved to: ${reportPath}`);
+    console.log(`======================================================`);
 
-    const viewportPass = assertions.noHorizontalOverflow &&
-                         assertions.stageVisible &&
-                         assertions.dockVisible &&
-                         assertions.boardVisible &&
-                         assertions.fitsWithoutScroll &&
-                         assertions.buttonTargetOk &&
-                         assertions.clearFunctional;
-
-    if (!viewportPass) {
-      suitePassed = false;
+    if (!suitePassed) {
+      process.exitCode = 1;
     }
-
-    report.push({
-      viewport: vp.name,
-      dimensions: `${vp.width}x${vp.height}`,
-      status: viewportPass ? 'PASS' : 'FAIL',
-      assertions,
-      metrics,
-      consoleErrors,
-      screenshot: screenshotPath
-    });
-
-    await context.close();
-  }
-
-  await browser.close();
-
-  const reportPath = path.join(OUTPUT_DIR, 'playwright_report.json');
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf-8');
-  console.log(`\n======================================================`);
-  console.log(`PLAYWRIGHT ACCEPTANCE SUITE FINISHED!`);
-  console.log(`Overall Suite Result: ${suitePassed ? 'ALL PASS' : 'SOME TESTS FAILED'}`);
-  console.log(`Full JSON report saved to: ${reportPath}`);
-  console.log(`======================================================`);
-
-  if (!suitePassed) {
-    process.exitCode = 1;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
