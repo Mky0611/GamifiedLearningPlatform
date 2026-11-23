@@ -91,9 +91,14 @@ public class RpgProgressionServiceImpl implements RpgProgressionService {
             throw new IllegalArgumentException("User khong duoc null khi apply reward");
         }
 
-        int oldLevel = user.getLevelCurrent() != null && user.getLevelCurrent() > 0 ? user.getLevelCurrent() : 1;
-        int oldXp = user.getXpTotal() != null ? user.getXpTotal() : 0;
-        int oldCoins = user.getCoins() != null ? user.getCoins() : 0;
+        User targetUser = user;
+        if (user.getUserId() != null) {
+            targetUser = userRepository.findByIdForUpdate(user.getUserId()).orElse(user);
+        }
+
+        int oldLevel = targetUser.getLevelCurrent() != null && targetUser.getLevelCurrent() > 0 ? targetUser.getLevelCurrent() : 1;
+        int oldXp = targetUser.getXpTotal() != null ? targetUser.getXpTotal() : 0;
+        int oldCoins = targetUser.getCoins() != null ? targetUser.getCoins() : 0;
 
         int newXp = oldXp + Math.max(0, xpEarned);
         int newCoins = oldCoins + Math.max(0, coinsEarned);
@@ -102,10 +107,16 @@ public class RpgProgressionServiceImpl implements RpgProgressionService {
         boolean levelUpOccurred = newLevel > oldLevel;
         int levelsGained = Math.max(0, newLevel - oldLevel);
 
-        user.setXpTotal(newXp);
-        user.setCoins(newCoins);
-        user.setLevelCurrent(newLevel);
-        userRepository.save(user);
+        targetUser.setXpTotal(newXp);
+        targetUser.setCoins(newCoins);
+        targetUser.setLevelCurrent(newLevel);
+        userRepository.save(targetUser);
+
+        if (user != targetUser) {
+            user.setXpTotal(newXp);
+            user.setCoins(newCoins);
+            user.setLevelCurrent(newLevel);
+        }
 
         return UserRewardResultDto.builder()
                 .oldLevel(oldLevel)

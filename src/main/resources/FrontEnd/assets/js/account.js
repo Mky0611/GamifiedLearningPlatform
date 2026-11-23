@@ -57,22 +57,25 @@
     const coins = liveProfile?.coins !== undefined ? liveProfile.coins : Number(auth.coins || 0);
     const streak = liveProfile?.streakDays !== undefined ? liveProfile.streakDays : Number(auth.streakDays || 0);
     
-    const xpInLevel = liveProfile?.xpCurrentInLevel || 0;
-    const xpNeeded = liveProfile?.xpNeededForNextLevel || 100;
-    const progressPercent = liveProfile?.levelProgressPercent || 0;
+    const xpInLevel = liveProfile?.xpCurrentInLevel !== undefined ? liveProfile.xpCurrentInLevel : 0;
+    const xpNeeded = liveProfile?.xpNeededForNextLevel !== undefined ? liveProfile.xpNeededForNextLevel : 100;
+    const levelSpan = xpInLevel + xpNeeded;
+    const progressPercent = liveProfile?.levelProgressPercent !== undefined
+      ? liveProfile.levelProgressPercent
+      : (levelSpan > 0 ? (xpInLevel / levelSpan) * 100 : 0);
 
     document.getElementById('accountDisplayName').textContent = name;
     const levelBadge = document.getElementById('accountLevelText');
     if(levelBadge) levelBadge.textContent = `Level ${level}`;
 
     const xpRatio = document.getElementById('accountXpRatio');
-    if(xpRatio) xpRatio.textContent = `${xpInLevel} / ${xpNeeded} XP (${xpTotal.toLocaleString('vi-VN')} tổng)`;
+    if(xpRatio) xpRatio.textContent = `${xpInLevel}/${levelSpan} XP (${xpTotal.toLocaleString('vi-VN')} tổng)`;
 
     const xpBar = document.getElementById('accountXpBar');
     if(xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
 
     const xpNeededText = document.getElementById('accountXpNeededText');
-    if(xpNeededText) xpNeededText.textContent = `${xpNeeded - xpInLevel} XP tới cấp tiếp theo (${progressPercent.toFixed(1)}%)`;
+    if(xpNeededText) xpNeededText.textContent = `Còn ${xpNeeded.toLocaleString('vi-VN')} XP tới cấp tiếp theo (${progressPercent.toFixed(1)}%)`;
 
     const coinsEl = document.getElementById('accountCoins');
     if(coinsEl) coinsEl.textContent = coins.toLocaleString('vi-VN');

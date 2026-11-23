@@ -186,9 +186,13 @@ public class LexRaidServiceImpl implements LexRaidService {
     @Transactional
     public LexRaidSessionDto finishSession(Long raidSessionId, LexRaidSessionSyncRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
+        GameSession gameSession = raidSession.getGameSession();
+        if (gameSession != null && COMPLETED.equalsIgnoreCase(gameSession.getStatus())) {
+            return toSessionDto(raidSession);
+        }
         applySync(raidSession, request, true);
         saveSnapshotIfPresent(raidSession, request, DEFAULT_BOARD_REASON);
-        finalizeGameSessionAndAward(raidSession, request.getResultCode(), request.getDurationSec());
+        finalizeGameSessionAndAward(raidSession, request != null ? request.getResultCode() : null, request != null ? request.getDurationSec() : null);
         return toSessionDto(raidSessionRepository.save(raidSession));
     }
 
@@ -424,57 +428,88 @@ public class LexRaidServiceImpl implements LexRaidService {
             return;
         }
 
-        // STRICT IDEMPOTENCY: If session is already COMPLETED, rewards were already awarded. Skip duplicate!
-        if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) {
+        // PESSIMISTIC LOCK: Lock game session row to serialize concurrent completion calls
+        GameSession lockedGameSession = gameSession;
+        if (gameSession.getGameSessionId() != null) {
+            lockedGameSession = gameSessionRepository.findByIdForUpdate(gameSession.getGameSessionId())
+                    .orElse(gameSession);
+        }
+
+        // STRICT IDEMPOTENCY: If session is already COMPLETED, skip duplicate
+        if (COMPLETED.equalsIgnoreCase(lockedGameSession.getStatus())) {
             return;
         }
 
-        String resultCode = blankToNull(incomingResultCode);
-        if (resultCode == null) {
-            resultCode = WON.equalsIgnoreCase(raidSession.getStatus()) ? WON : LOST;
+        // Calculate verified score from saved backend events
+        int wordScore = wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSession.getRaidSessionId())
+                .stream()
+                .mapToInt(e -> defaultIfNull(e.getBaseScore(), 0))
+                .sum();
+
+        int guessScore = coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(raidSession.getRaidSessionId())
+                .stream()
+                .mapToInt(e -> defaultIfNull(e.getRewardDamage(), 0) + (e.getStageCoreWord() != null ? defaultIfNull(e.getStageCoreWord().getBonusXp(), 0) : 0))
+                .sum();
+
+        int verifiedScore = wordScore + guessScore;
+        // Keep raidSession.totalScore synchronized with verified backend events
+        raidSession.setTotalScore(verifiedScore);
+
+        // Verify win condition from backend state: only WON if boss was defeated on backend
+        boolean verifiedWon = WON.equalsIgnoreCase(raidSession.getStatus())
+                || (defaultIfNull(raidSession.getBossHpRemaining(), 1) <= 0);
+
+        String resultCode = verifiedWon ? WON : LOST;
+
+        lockedGameSession.setStatus(COMPLETED);
+        lockedGameSession.setResultCode(resultCode);
+        lockedGameSession.setEndedAt(LocalDateTime.now());
+        lockedGameSession.setDurationSec(resolveDurationSec(lockedGameSession.getStartedAt(), incomingDurationSec));
+        lockedGameSession.setScoreTotal(verifiedScore);
+
+        // Only award rewards if there was verified gameplay activity (verifiedScore > 0 or verifiedWon)
+        int xpReward = 0;
+        int coinReward = 0;
+        if (verifiedScore > 0 || verifiedWon) {
+            xpReward = rpgProgressionService.calculateLexRaidXp(verifiedWon, verifiedScore);
+            coinReward = rpgProgressionService.calculateLexRaidCoins(verifiedWon, verifiedScore);
         }
-        boolean won = WON.equalsIgnoreCase(resultCode);
 
-        gameSession.setStatus(COMPLETED);
-        gameSession.setResultCode(resultCode);
-        gameSession.setEndedAt(LocalDateTime.now());
-        gameSession.setDurationSec(resolveDurationSec(gameSession.getStartedAt(), incomingDurationSec));
-        gameSession.setScoreTotal(defaultIfNull(raidSession.getTotalScore(), 0));
+        lockedGameSession.setXpEarned(xpReward);
+        lockedGameSession.setCoinsEarned(coinReward);
+        gameSessionRepository.save(lockedGameSession);
 
-        // Calculate verified rewards on backend
-        int xpReward = rpgProgressionService.calculateLexRaidXp(won, defaultIfNull(raidSession.getTotalScore(), 0));
-        int coinReward = rpgProgressionService.calculateLexRaidCoins(won, defaultIfNull(raidSession.getTotalScore(), 0));
+        if (gameSession != lockedGameSession) {
+            gameSession.setStatus(COMPLETED);
+            gameSession.setResultCode(resultCode);
+            gameSession.setScoreTotal(verifiedScore);
+            gameSession.setXpEarned(xpReward);
+            gameSession.setCoinsEarned(coinReward);
+        }
 
-        gameSession.setXpEarned(xpReward);
-        gameSession.setCoinsEarned(coinReward);
-        gameSessionRepository.save(gameSession);
-
-        // Update User stats
-        User user = gameSession.getUser();
-        if (user != null) {
+        // Update User stats with atomic locking inside applyReward
+        User user = lockedGameSession.getUser();
+        if (user != null && (xpReward > 0 || coinReward > 0)) {
             rpgProgressionService.applyReward(user, xpReward, coinReward);
         }
 
         // Increment clearCount or failCount exactly once on completion
-        updateStageProgressOnCompletion(raidSession, won);
+        updateStageProgressOnCompletion(raidSession, verifiedWon);
     }
 
     private void applySync(RaidSession raidSession, LexRaidSessionSyncRequest request, boolean markFinished) {
-        raidSession.setCurrentRound(defaultIfNull(request.getCurrentRound(), raidSession.getCurrentRound()));
-        raidSession.setBossHpRemaining(defaultIfNull(request.getBossHpRemaining(), raidSession.getBossHpRemaining()));
-        raidSession.setBossShieldRemaining(defaultIfNull(request.getBossShieldRemaining(), raidSession.getBossShieldRemaining()));
-        raidSession.setRageValue(defaultIfNull(request.getRageValue(), raidSession.getRageValue()));
-        raidSession.setComboCount(defaultIfNull(request.getComboCount(), raidSession.getComboCount()));
-        raidSession.setManaValue(defaultIfNull(request.getManaValue(), raidSession.getManaValue()));
-        raidSession.setTotalScore(defaultIfNull(request.getTotalScore(), raidSession.getTotalScore()));
+        if (request == null) return;
+        if (request.getCurrentRound() != null && request.getCurrentRound() > defaultIfNull(raidSession.getCurrentRound(), 1)) {
+            raidSession.setCurrentRound(request.getCurrentRound());
+        }
         if (isCoreProgressPayload(request.getClueProgressJson())) {
             raidSession.setClueProgressJson(request.getClueProgressJson());
         }
         if (markFinished) {
-            raidSession.setStatus(blankToNull(request.getStatus()) != null ? request.getStatus() : defaultIfNull(raidSession.getBossHpRemaining(), 0) <= 0 ? WON : LOST);
+            boolean verifiedWon = WON.equalsIgnoreCase(raidSession.getStatus())
+                    || (defaultIfNull(raidSession.getBossHpRemaining(), 1) <= 0);
+            raidSession.setStatus(verifiedWon ? WON : LOST);
             raidSession.setEndedAt(LocalDateTime.now());
-        } else if (blankToNull(request.getStatus()) != null) {
-            raidSession.setStatus(request.getStatus());
         }
     }
 

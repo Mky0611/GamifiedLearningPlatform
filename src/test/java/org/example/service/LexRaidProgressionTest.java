@@ -58,6 +58,8 @@ class LexRaidProgressionTest {
                 rpgProgressionService
         );
         lenient().when(raidSessionRepository.save(any(RaidSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(gameSessionRepository.save(any(GameSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(gameSessionRepository.findByIdForUpdate(anyLong())).thenAnswer(inv -> gameSessionRepository.findById(inv.getArgument(0)));
     }
 
     @Test
@@ -86,7 +88,19 @@ class LexRaidProgressionTest {
         raidSession.setTotalScore(400);
         raidSession.setBossHpRemaining(0);
 
+        WordSubmitEvent wordEvent = new WordSubmitEvent();
+        wordEvent.setBaseScore(300);
+        wordEvent.setIsValid(true);
+
+        CoreWordGuessEvent guessEvent = new CoreWordGuessEvent();
+        guessEvent.setRewardDamage(100);
+        guessEvent.setIsCorrect(true);
+
         when(raidSessionRepository.findById(raidSessionId)).thenReturn(Optional.of(raidSession));
+        when(gameSessionRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(gameSession));
+        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSessionId)).thenReturn(java.util.List.of(wordEvent));
+        when(coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(raidSessionId)).thenReturn(java.util.List.of(guessEvent));
+
         when(rpgProgressionService.calculateLexRaidXp(true, 400)).thenReturn(90);
         when(rpgProgressionService.calculateLexRaidCoins(true, 400)).thenReturn(20);
         when(rpgProgressionService.applyReward(eq(user), eq(90), eq(20))).thenReturn(
@@ -114,6 +128,55 @@ class LexRaidProgressionTest {
         verify(rpgProgressionService, times(1)).applyReward(user, 90, 20);
         verify(gameSessionRepository, times(1)).save(gameSession);
         verify(userStageProgressRepository, times(1)).save(any(UserStageProgress.class));
+    }
+
+    @Test
+    void testCannotSendFakeScoreOrResultToGetRewards() {
+        Long raidSessionId = 400L;
+        User user = new User();
+        user.setUserId(4L);
+        user.setXpTotal(0);
+        user.setLevelCurrent(1);
+        user.setCoins(0);
+
+        Stage stage = new Stage();
+        stage.setStageId(1L);
+
+        GameSession gameSession = new GameSession();
+        gameSession.setGameSessionId(70L);
+        gameSession.setStatus("IN_PROGRESS");
+        gameSession.setUser(user);
+
+        RaidSession raidSession = new RaidSession();
+        raidSession.setRaidSessionId(raidSessionId);
+        raidSession.setGameSession(gameSession);
+        raidSession.setStage(stage);
+        raidSession.setStatus("IN_PROGRESS");
+        raidSession.setBossHpRemaining(250); // Boss NOT defeated!
+
+        // Backend event logs have 0 valid events (client played nothing)
+        when(raidSessionRepository.findById(raidSessionId)).thenReturn(Optional.of(raidSession));
+        when(gameSessionRepository.findByIdForUpdate(70L)).thenReturn(Optional.of(gameSession));
+        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSessionId)).thenReturn(java.util.List.of());
+        when(coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(raidSessionId)).thenReturn(java.util.List.of());
+
+        // Malicious client tries to claim 999,999 score and WON
+        LexRaidSessionSyncRequest fakeRequest = new LexRaidSessionSyncRequest();
+        fakeRequest.setResultCode("WON");
+        fakeRequest.setStatus("WON");
+        fakeRequest.setTotalScore(999999);
+        fakeRequest.setBossHpRemaining(0);
+
+        LexRaidSessionDto dto = lexRaidService.finishSession(raidSessionId, fakeRequest);
+
+        assertNotNull(dto);
+        // Verified score must be 0, verified result must be LOST
+        assertEquals("LOST", gameSession.getResultCode());
+        assertEquals(0, gameSession.getScoreTotal());
+        assertEquals(0, gameSession.getXpEarned());
+        assertEquals(0, gameSession.getCoinsEarned());
+        // applyReward must NEVER be called for fake gameplay
+        verify(rpgProgressionService, never()).applyReward(any(), anyInt(), anyInt());
     }
 
     @Test
@@ -184,7 +247,13 @@ class LexRaidProgressionTest {
         existingProgress.setClearCount(1);
         existingProgress.setBestScore(1200);
 
+        WordSubmitEvent wordEvent = new WordSubmitEvent();
+        wordEvent.setBaseScore(200);
+        wordEvent.setIsValid(true);
+
         when(raidSessionRepository.findById(raidSessionId)).thenReturn(Optional.of(raidSession));
+        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSessionId)).thenReturn(java.util.List.of(wordEvent));
+        when(coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(raidSessionId)).thenReturn(java.util.List.of());
         when(userStageProgressRepository.findByUserUserIdAndStageStageId(3L, 2L)).thenReturn(Optional.of(existingProgress));
 
         LexRaidSessionSyncRequest finishRequest = new LexRaidSessionSyncRequest();

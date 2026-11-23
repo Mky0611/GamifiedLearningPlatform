@@ -768,34 +768,64 @@
     syncSession();
   }
 
-  function updateFinishOverlay(data, win){
-    const stars = data?.starsEarned !== undefined ? data.starsEarned : (win ? 3 : 1);
+  function renderBattleResultOverlay(stateType, data, win){
     const star1 = document.getElementById('finishStar1');
     const star2 = document.getElementById('finishStar2');
     const star3 = document.getElementById('finishStar3');
-    if(star1) star1.className = `pixel-star ${stars >= 1 ? 'is-active' : ''}`;
-    if(star2) star2.className = `pixel-star ${stars >= 2 ? 'is-active' : ''}`;
-    if(star3) star3.className = `pixel-star ${stars >= 3 ? 'is-active' : ''}`;
-
-    const xpEarned = data?.xpEarned !== undefined ? data.xpEarned : state.score;
-    const coinsEarned = data?.coinsEarned !== undefined ? data.coinsEarned : Math.floor(state.score / 5);
     const xpEl = document.getElementById('finishXpVal');
     const coinsEl = document.getElementById('finishCoinsVal');
     const scoreEl = document.getElementById('finishScoreVal');
+    const levelUpBanner = document.getElementById('finishLevelUpBanner');
+    const finishText = document.getElementById('finishText');
 
-    if(xpEl) xpEl.textContent = `+${xpEarned.toLocaleString('vi-VN')} XP`;
-    if(coinsEl) coinsEl.textContent = `+${coinsEarned.toLocaleString('vi-VN')} Gold`;
     if(scoreEl) scoreEl.textContent = state.score.toLocaleString('vi-VN');
 
-    const levelUpBanner = document.getElementById('finishLevelUpBanner');
-    if(levelUpBanner){
-      if(data?.levelUpOccurred){
-        levelUpBanner.style.display = 'flex';
-        const sub = document.getElementById('finishLevelUpSub');
-        if(sub) sub.textContent = `Bạn đã thăng cấp lên Level ${data.userLevelCurrent || ''}!`;
-      } else {
-        levelUpBanner.style.display = 'none';
+    if(stateType === 'PENDING'){
+      if(star1) star1.className = 'pixel-star';
+      if(star2) star2.className = 'pixel-star';
+      if(star3) star3.className = 'pixel-star';
+      if(xpEl) xpEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem"><i class="bi bi-hourglass-split"></i> Đang xác nhận...</span>';
+      if(coinsEl) coinsEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem"><i class="bi bi-hourglass-split"></i> Đang xác nhận...</span>';
+      if(levelUpBanner) levelUpBanner.style.display = 'none';
+      if(finishText) finishText.textContent = `Score ${state.score} · Topic words ${state.topicCount} · Core guesses ${state.coreGuess} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'} (Đang xác nhận kết quả với máy chủ...)`;
+    } else if(stateType === 'CONFIRMED'){
+      const stars = Number(data?.starsEarned || (win ? 3 : 1));
+      if(star1) star1.className = `pixel-star ${stars >= 1 ? 'is-active' : ''}`;
+      if(star2) star2.className = `pixel-star ${stars >= 2 ? 'is-active' : ''}`;
+      if(star3) star3.className = `pixel-star ${stars >= 3 ? 'is-active' : ''}`;
+      
+      const xpEarned = Number(data?.xpEarned || 0);
+      const coinsEarned = Number(data?.coinsEarned || 0);
+      if(xpEl) xpEl.textContent = `+${xpEarned.toLocaleString('vi-VN')} XP`;
+      if(coinsEl) coinsEl.textContent = `+${coinsEarned.toLocaleString('vi-VN')} Gold`;
+
+      if(levelUpBanner){
+        if(data?.levelUpOccurred){
+          levelUpBanner.style.display = 'flex';
+          const sub = document.getElementById('finishLevelUpSub');
+          if(sub) sub.textContent = `Bạn đã thăng cấp lên Level ${data.userLevelCurrent || ''}!`;
+        } else {
+          levelUpBanner.style.display = 'none';
+        }
       }
+      if(finishText) finishText.textContent = `Score ${state.score} · Topic words ${state.topicCount} · Core guesses ${state.coreGuess} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'}`;
+    } else if(stateType === 'ERROR'){
+      if(star1) star1.className = 'pixel-star';
+      if(star2) star2.className = 'pixel-star';
+      if(star3) star3.className = 'pixel-star';
+      if(xpEl) xpEl.innerHTML = '<span class="text-danger small-muted" style="font-size:0.8rem"><i class="bi bi-exclamation-triangle"></i> Chưa lưu (Lỗi mạng)</span>';
+      if(coinsEl) coinsEl.innerHTML = '<span class="text-danger small-muted" style="font-size:0.8rem"><i class="bi bi-exclamation-triangle"></i> Chưa lưu (Lỗi mạng)</span>';
+      if(levelUpBanner) levelUpBanner.style.display = 'none';
+      if(finishText) finishText.textContent = `Không thể kết nối máy chủ để ghi nhận phần thưởng. Điểm lượt chơi: ${state.score}. Vui lòng kiểm tra kết nối mạng.`;
+    } else if(stateType === 'PREVIEW'){
+      const stars = win ? 3 : 1;
+      if(star1) star1.className = `pixel-star ${stars >= 1 ? 'is-active' : ''}`;
+      if(star2) star2.className = `pixel-star ${stars >= 2 ? 'is-active' : ''}`;
+      if(star3) star3.className = `pixel-star ${stars >= 3 ? 'is-active' : ''}`;
+      if(xpEl) xpEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chế độ xem trước</span>';
+      if(coinsEl) coinsEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chế độ xem trước</span>';
+      if(levelUpBanner) levelUpBanner.style.display = 'none';
+      if(finishText) finishText.textContent = `Score ${state.score} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'} (Trận đấu xem trước, không tích lũy phần thưởng)`;
     }
   }
 
@@ -805,30 +835,36 @@
     document.getElementById('finishOverlay').classList.add('is-open');
     document.getElementById('finishTitle').textContent = win ? 'Victory' : 'Battle ended';
     document.getElementById('finishHeading').textContent = win ? 'Boss Defeated!' : 'Trận đấu kết thúc';
-    document.getElementById('finishText').textContent = `Score ${state.score} · Topic words ${state.topicCount} · Core guesses ${state.coreGuess} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'}`;
-    
-    updateFinishOverlay(null, win);
 
-    if(state.raidSessionId){
-      window.appApi.finishRaidSession(state.raidSessionId, {
-        resultCode: win ? 'WON' : 'LOST',
-        scoreTotal: state.score,
-        xpEarned: state.score,
-        coinsEarned: Math.floor(state.score / 5)
-      }).then(res => {
-        if(res){
-          updateFinishOverlay(res, win);
-          const auth = window.appApi.getAuth();
-          if(auth && res.userLevelCurrent){
-            auth.levelCurrent = res.userLevelCurrent;
-            auth.xpTotal = res.userXpTotal;
-            auth.coins = res.userCoins;
-            window.appApi.saveAuth(auth);
-            window.appApi.renderNavUser();
-          }
-        }
-      }).catch(()=>{});
+    if(!state.raidSessionId){
+      renderBattleResultOverlay('PREVIEW', null, win);
+      return;
     }
+
+    renderBattleResultOverlay('PENDING', null, win);
+
+    window.appApi.finishRaidSession(state.raidSessionId, {
+      resultCode: win ? 'WON' : 'LOST',
+      scoreTotal: state.score,
+      xpEarned: state.score,
+      coinsEarned: Math.floor(state.score / 5)
+    }).then(res => {
+      if(res){
+        renderBattleResultOverlay('CONFIRMED', res, win);
+        const auth = window.appApi.getAuth();
+        if(auth && res.userLevelCurrent){
+          auth.levelCurrent = res.userLevelCurrent;
+          auth.xpTotal = res.userXpTotal;
+          auth.coins = res.userCoins;
+          window.appApi.saveAuth(auth);
+          window.appApi.renderNavUser();
+        }
+      } else {
+        renderBattleResultOverlay('ERROR', null, win);
+      }
+    }).catch(() => {
+      renderBattleResultOverlay('ERROR', null, win);
+    });
   }
 
   async function syncSession(){

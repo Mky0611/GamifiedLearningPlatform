@@ -100,8 +100,9 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request) {
-        GameSession session = gameSessionRepository.findById(gameSessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay game session voi id = " + gameSessionId));
+        GameSession session = gameSessionRepository.findByIdForUpdate(gameSessionId)
+                .orElseGet(() -> gameSessionRepository.findById(gameSessionId)
+                        .orElseThrow(() -> new IllegalArgumentException("Khong tim thay game session voi id = " + gameSessionId)));
         if (COMPLETED.equalsIgnoreCase(session.getStatus())) {
             throw new IllegalArgumentException("Game session da ket thuc");
         }
@@ -111,6 +112,12 @@ public class QuizServiceImpl implements QuizService {
 
         Question question = questionRepository.findById(request.getQuestionId())
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay question voi id = " + request.getQuestionId()));
+
+        Long expectedSetId = extractQuestionSetId(session.getMetadataJson());
+        if (expectedSetId != null && (question.getQuestionSet() == null || !expectedSetId.equals(question.getQuestionSet().getQuestionSetId()))) {
+            throw new IllegalArgumentException("Cau hoi khong thuoc ve QuestionSet cua phien quiz hien tai");
+        }
+
         Answer correctAnswer = answerRepository.findFirstByQuestionQuestionIdAndIsCorrectTrue(question.getQuestionId())
                 .orElseThrow(() -> new IllegalArgumentException("Question chua co dap an dung"));
 
@@ -119,6 +126,9 @@ public class QuizServiceImpl implements QuizService {
         if (request.getSelectedAnswerId() != null) {
             selected = answerRepository.findById(request.getSelectedAnswerId())
                     .orElseThrow(() -> new IllegalArgumentException("Khong tim thay answer voi id = " + request.getSelectedAnswerId()));
+            if (selected.getQuestion() == null || !question.getQuestionId().equals(selected.getQuestion().getQuestionId())) {
+                throw new IllegalArgumentException("Dap an duoc chon khong thuoc ve cau hoi nay");
+            }
             correct = Boolean.TRUE.equals(selected.getIsCorrect());
         } else if (request.getAnswerTextRaw() != null) {
             correct = request.getAnswerTextRaw().trim().equalsIgnoreCase(correctAnswer.getAnswerText().trim());
@@ -232,5 +242,16 @@ public class QuizServiceImpl implements QuizService {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private Long extractQuestionSetId(String metadataJson) {
+        if (metadataJson == null || metadataJson.isBlank()) {
+            return null;
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"questionSetId\"\\s*:\\s*(\\d+)").matcher(metadataJson);
+        if (m.find()) {
+            return Long.parseLong(m.group(1));
+        }
+        return null;
     }
 }

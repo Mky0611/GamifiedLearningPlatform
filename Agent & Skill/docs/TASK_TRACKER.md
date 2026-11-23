@@ -3,7 +3,7 @@
 **Trạng thái cập nhật:** 23/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh hiện tại:** `feature/p2-vocabulary-cefr-it`  
+**Nhánh hiện tại:** `feature/p3-rpg-progression`  
 
 ---
 
@@ -15,13 +15,27 @@
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **CODE COMPLETE** | Sửa dứt điểm 9 lỗi animation/battle; mobile 320px no-scroll; script Playwright sẵn sàng. |
 | **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **CODE COMPLETE** | Java 21 LTS & Spring Boot 4.2.0; Design system tokens; minigame & home pixel hóa. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | **COMPLETE** | Audit DB UTF-16; 2 trục độc lập; Pipeline importer DRY RUN; Thuật toán sinh bàn cờ cân bằng; Volcard & Quiz UI polish. |
-| **P3** | **Backend, XP/Coin, Progression, Security** | `TODO` | Sửa entity JPA, lưu trữ session, tích lũy XP/Coin, JWT Auth Filter. |
+| **P3** | **RPG Progression, XP, Coins, Level, Sessions & Profile** | **POST-AUDIT ACCEPTANCE READY** | Động cơ cấp độ O(1); Toàn vẹn dữ liệu thưởng (Verified Score); Chống hack điểm/thắng giả; Khóa bi quan chống double reward & mất XP; Chống tráo đề/đáp án Quiz; Sửa toán học thanh EXP; UI 4 trạng thái (Pending/Confirmed/Error/Preview); 20/20 Unit Tests PASS. |
 | **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
 | **P5** | **Microservices Evaluation** | `TODO` | Đánh giá kiến trúc mở rộng và tối ưu hóa hệ thống. |
 
 ---
 
-## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P2 (VOCABULARY ENGINE & IT ENGLISH)
+## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P3 (RPG PROGRESSION & INTEGRITY FIXES)
+
+| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
+| :--- | :--- | :---: | :--- | :--- |
+| **P3-A** | Kiểm toán Entities & Luồng Dữ liệu Tiến trình | **DONE (PASS)** | `docs/P3_PROGRESSION_DESIGN.md` | Phát hiện 4 nguyên nhân gốc: user chưa từng được cộng thưởng, double reward khi gọi /finish, clear_count tăng liên tục, hạ sao kỷ lục cũ. |
+| **P3-B** | Động cơ Cấp độ $O(1)$ & Phần thưởng Cân bằng | **DONE (PASS)** | `RpgProgressionService.java`, `RpgProgressionServiceImpl.java`, `RpgProgressionServiceTest.java` | Công thức bậc 2: $L = \max(1, \lfloor (1 + \sqrt{1 + X / 12.5}) / 2 \rfloor)$. Bắt đầu L1 tại 0 XP. Ngưỡng L1..L10 chuẩn xác. Hỗ trợ multi-level jump. Test 9/9 PASS. |
+| **P3-C** | Toàn vẹn Dữ liệu Thưởng & Chống Hack Điểm | **DONE (PASS)** | `LexRaidServiceImpl.java`, `CoreWordGuessEventRepository.java`, `LexRaidProgressionTest.java` | Backend tính `verifiedScore` từ event log thật (`WordSubmitEvent` + `CoreWordGuessEvent`); kiểm tra thắng chỉ khi boss bị hạ gục thật; từ chối mọi điểm số hoặc kết quả WON giả mạo từ client. Test 4/4 PASS. |
+| **P3-D** | Khóa Bi quan & Idempotency Tuyệt đối | **DONE (PASS)** | `GameSessionRepository.java`, `UserRepository.java`, `RpgProgressionServiceImpl.java` | Bổ sung `findByIdForUpdate` với `PESSIMISTIC_WRITE` trên GameSession và User; session `COMPLETED` là bất biến; tuần tự hóa cộng thưởng không mất cập nhật XP giữa các session đồng thời. |
+| **P3-E** | Kiểm tra Tính hợp lệ Đề & Đáp án Quiz | **DONE (PASS)** | `QuizServiceImpl.java`, `QuizProgressionTest.java` | Ngăn chặn tráo đáp án từ câu hỏi khác (`selected.question == question`), từ chối câu hỏi không thuộc bộ đề session, chặn nộp trùng câu hỏi, chặn nộp vào session đã kết thúc. Test 5/5 PASS. |
+| **P3-F** | Sửa Toán học Thanh EXP & Player Profile | **DONE (PASS)** | `account.js`, `account.html`, `AccountProfileServiceTest.java`, `RpgProgressionServiceTest.java` | Tính `levelSpan = xpInLevel + xpNeeded`; hiển thị `${xpInLevel}/${levelSpan} XP` và `Còn ${xpNeeded} XP (${progressPercent}%)`; test tại 150 XP chuẩn xác 50/200 XP (25.0%). Test 2/2 PASS. |
+| **P3-G** | Hoàn thiện Giao diện Kết quả Trận đấu (Battle Result UI) | **DONE (PASS)** | `minigame.js`, `minigame.html` | Không hiển thị số XP/Coins ảo trước khi server xác nhận; phân tách 4 trạng thái rõ ràng: PENDING ("Đang xác nhận..."), CONFIRMED (+XP, +Gold xác thực từ server), ERROR ("Chưa lưu (Lỗi mạng)", 0 fake reward), PREVIEW ("Chế độ xem trước"). |
+
+---
+
+## 3. CHI TIẾT CÁC TASKS GIAI ĐOẠN P2 (VOCABULARY ENGINE & IT ENGLISH)
 
 | Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
 | :--- | :--- | :---: | :--- | :--- |

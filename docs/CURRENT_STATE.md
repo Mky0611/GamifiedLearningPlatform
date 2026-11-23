@@ -77,22 +77,33 @@ Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG 
   - Xử lý cộng thưởng vào `User` (`xp_total`, `level_current`, `coins`) và phát hiện chính xác thăng cấp (Level Up) hoặc nhảy cóc nhiều cấp độ (Multi-level jump).
   - Tự động đồng bộ / tự phục hồi (self-healing) cấp độ nếu `level_current` trong DB lệch khỏi công thức toán học.
 
-### B. Chống Nhận Thưởng Lặp & Idempotency Tuyệt Đối (P3-C & P3-D)
+### B. Chống Nhận Thưởng Lặp, Toàn vẹn Dữ liệu & Idempotency Tuyệt Đối (P3-C & P3-D)
 - **Lex Raid Service:**
   - Chốt trạng thái session sang `COMPLETED` nguyên tử.
-  - Kiểm tra nghiêm ngặt `if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) return;` đảm bảo chỉ trao thưởng XP/Coin và tăng `clear_count`/`fail_count` đúng 1 lần duy nhất cho mỗi phiên chơi.
-  - Ngăn chặn triệt để tình trạng reload trang hoặc gọi lặp lại `/finish` để farm thưởng.
+  - Khóa bi quan (`findByIdForUpdate` với `PESSIMISTIC_WRITE`) trên GameSession và User để tránh race condition khi nhiều request hoàn thành đến cùng lúc hoặc hai session của cùng 1 user kết thúc đồng thời.
+  - Kiểm tra nghiêm ngặt `if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) return;` đảm bảo chỉ trao thưởng XP/Coin và tăng `clear_count`/`fail_count` đúng 1 lần duy nhất cho mỗi phiên chơi. Session đã kết thúc là bất biến (immutable).
+  - Backend tự tính toán điểm tin cậy (`verifiedScore`) từ các event log hợp lệ (`WordSubmitEvent` và `CoreWordGuessEvent`), xác minh kết quả thắng/thua trực tiếp từ trạng thái Boss HP còn lại; từ chối mọi giá trị `totalScore` hoặc `resultCode: WON` giả mạo gửi lên từ client.
   - Bảo toàn kỷ lục số sao: `Math.max(existingStars, newStars)`, không bao giờ bị giảm điểm đánh giá ải.
 - **Quiz Service:**
   - Trao thưởng XP và Coins vào User khi hoàn thành toàn bộ câu hỏi.
+  - Ngăn chặn tráo đổi đáp án từ câu hỏi khác (`selected.getQuestion().getQuestionId().equals(question.getQuestionId())`).
+  - Ngăn chặn nộp câu hỏi từ bộ đề khác vào session hiện tại (`expectedSetId.equals(question.getQuestionSet().getQuestionSetId())`).
+  - Ngăn chặn nộp lại câu hỏi đã trả lời trong session.
   - Ngăn chặn nộp thêm câu hỏi sau khi session đã `COMPLETED`.
 
 ### C. Player Profile API & Đồng bộ Frontend (P3-E & P3-F)
 - **API `GET /api/v1/account/profile?userId={userId}`:** Trả về đầy đủ profile: Level, XP tổng, XP trong level, XP tới level kế, % tiến độ, Coins, Streak, Loadout, Stages Cleared, Total Battles, Best Score.
-- **Pixel RPG UI Polish:**
-  - **Account Profile Card:** Tích hợp thanh EXP Progress Bar (`.pixel-bar`), huy hiệu cấp độ, lưới RPG metrics 3 cột.
-  - **Battle Result Modal:** Thiết kế lại hoàn toàn bảng tổng kết trận đấu pixel art: cờ Victory/Defeat, số sao đạt được (★★★), EXP & Gold nhận được, điểm số, và banner ăn mừng LEVEL UP khi thăng cấp.
-  - **Đồng bộ thời gian thực:** Tự động cập nhật `auth` local và thanh điều hướng (Navigation Bar) ngay khi trận đấu hoặc quiz kết thúc.
+- **Sửa Toán học Thanh EXP Tài khoản (`account.js`):**
+  - Tính chính xác khoảng cấp độ: `levelSpan = xpInLevel + xpNeeded`.
+  - Hiển thị rõ ràng định dạng: `${xpInLevel}/${levelSpan} XP (${xpTotal} tổng)` và `Còn ${xpNeeded} XP tới cấp tiếp theo (${progressPercent}%)`.
+  - Đã xác minh toán học tại mốc 150 XP: Level 2, 50/200 XP, Còn 150 XP (25.0%).
+- **Pixel RPG UI Polish (`minigame.js`):**
+  - **Battle Result Overlay 4 Trạng thái:** Loại bỏ hoàn toàn việc hiển thị số XP/Coins ảo trước khi server xác nhận.
+  - `PENDING`: Hiển thị "Đang xác nhận..." trong khi chờ backend phản hồi.
+  - `CONFIRMED`: Cập nhật số XP, Gold và sao chính thức được backend xác thực và trả về.
+  - `ERROR`: Hiển thị "Chưa lưu (Lỗi mạng)" và thông báo không kết nối được máy chủ, không hiển thị số thưởng ảo.
+  - `PREVIEW`: Chế độ xem trước (không có session id), hiển thị rõ ràng không tích lũy phần thưởng.
+  - **Đồng bộ thời gian thực:** Tự động cập nhật `auth` local và thanh điều hướng (Navigation Bar) ngay khi nhận kết quả xác thực từ server.
 
 ---
 
@@ -100,10 +111,12 @@ Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG 
 
 | Cấp độ kiểm thử | Tên bài test / Script | Kết quả | Chi tiết |
 | :--- | :--- | :---: | :--- |
-| **RPG PROGRESSION UNIT** | `RpgProgressionServiceTest` | **PASS** | 7/7 tests pass (ngưỡng cấp độ, công thức thưởng, single level-up, multi-level jump). |
+| **RPG PROGRESSION UNIT** | `RpgProgressionServiceTest` | **PASS** | 9/9 tests pass (ngưỡng cấp độ, công thức thưởng, single level-up, multi-level jump, toán học thanh EXP tại 150 XP, khóa bi quan User). |
 | **ACCOUNT PROFILE UNIT** | `AccountProfileServiceTest` | **PASS** | 2/2 tests pass (profile calculation, self-healing level synchronization). |
-| **LEX RAID PROGRESSION** | `LexRaidProgressionTest` | **PASS** | 3/3 tests pass (thưởng trận đấu, chống nhận thưởng 2 lần idempotency, sao không suy giảm). |
-| **QUIZ PROGRESSION** | `QuizProgressionTest` | **PASS** | 2/2 tests pass (thưởng quiz completion, từ chối nộp sau khi hoàn thành). |
+| **LEX RAID PROGRESSION** | `LexRaidProgressionTest` | **PASS** | 4/4 tests pass (thưởng trận đấu từ verified events, chống hack điểm/thắng giả, chống nhận thưởng 2 lần idempotency, sao không suy giảm). |
+| **QUIZ PROGRESSION** | `QuizProgressionTest` | **PASS** | 5/5 tests pass (thưởng quiz completion, từ chối nộp sau khi hoàn thành, từ chối tráo đáp án khác câu hỏi, từ chối câu hỏi khác đề, từ chối nộp trùng). |
+| **LIVE DB CONCURRENCY** | `SQL Server Lock Test` | **NOT TESTED** | Cần môi trường có instance SQL Server thật đang chạy dịch vụ; logic khóa bi quan `findByIdForUpdate` đã kiểm thử đơn vị. |
+| **SPRING CONTEXT DB** | `MainTests.java` | **NOT TESTED** | Tạm thời không kết nối được `localhost:1433` trên máy sandbox cục bộ do DB service chưa bật. |
 | **SECURITY SCAN** | `git_security_scanner.py` | **PASS** | Working tree sạch 0 lỗi; 1 commit lịch sử `ecf1f782` được mask an toàn. |
 | **SECURITY UNIT** | `test_security_scanner.py` | **PASS** | 13/13 tests pass (URI, JSON, YAML, Cloud Keys, False Positive checks). |
 | **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |

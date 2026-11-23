@@ -10,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +26,7 @@ class RpgProgressionServiceTest {
     @BeforeEach
     void setUp() {
         progressionService = new RpgProgressionServiceImpl(userRepository);
+        lenient().when(userRepository.findByIdForUpdate(anyLong())).thenAnswer(inv -> userRepository.findById(inv.getArgument(0)));
     }
 
     @Test
@@ -141,5 +144,50 @@ class RpgProgressionServiceTest {
         assertEquals(3, result.getLevelsGained());
         assertEquals(650, result.getNewXpTotal());
         assertEquals(50, result.getNewCoins());
+    }
+
+    @Test
+    void testAccountXpBarExactSpanAndProgressFor150Xp() {
+        // At 150 XP: Level 2 (range 100..300 XP, level span = 200 XP, xpCurrentInLevel = 50 XP, needed = 150 XP, 25.0%)
+        LevelProgressDto progress = progressionService.getLevelProgress(150);
+        assertEquals(2, progress.getLevel());
+        assertEquals(150, progress.getXpTotal());
+        assertEquals(100, progress.getXpBase());
+        assertEquals(300, progress.getXpNext());
+        assertEquals(50, progress.getXpCurrentInLevel());
+        assertEquals(150, progress.getXpNeededForNextLevel());
+        int levelSpan = progress.getXpCurrentInLevel() + progress.getXpNeededForNextLevel();
+        assertEquals(200, levelSpan);
+        assertEquals(25.0, progress.getProgressPercent(), 0.001);
+    }
+
+    @Test
+    void testTwoConsecutiveRewardsPessimisticLockingNoLostUpdate() {
+        Long userId = 99L;
+        User user = new User();
+        user.setUserId(userId);
+        user.setXpTotal(50);
+        user.setLevelCurrent(1);
+        user.setCoins(20);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Session 1 finishes: +60 XP, +10 Coins
+        UserRewardResultDto reward1 = progressionService.applyReward(user, 60, 10);
+        assertEquals(110, reward1.getNewXpTotal());
+        assertEquals(30, reward1.getNewCoins());
+        assertEquals(2, reward1.getNewLevel());
+
+        // Session 2 finishes concurrently/sequentially for the same user: +50 XP, +15 Coins
+        UserRewardResultDto reward2 = progressionService.applyReward(user, 50, 15);
+        assertEquals(160, reward2.getNewXpTotal());
+        assertEquals(45, reward2.getNewCoins());
+        assertEquals(2, reward2.getNewLevel());
+
+        // Verify user row was locked with findByIdForUpdate on each reward
+        verify(userRepository, times(2)).findByIdForUpdate(userId);
+        assertEquals(160, user.getXpTotal());
+        assertEquals(45, user.getCoins());
     }
 }
