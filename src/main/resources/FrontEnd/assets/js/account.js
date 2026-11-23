@@ -12,6 +12,7 @@
   ];
 
   const state = { unitCode:'warrior', avatarCode:'avatar1' };
+  let liveProfile = null;
 
   function normalizeAvatarCode(input){
     const value = String(input || '').trim().toLowerCase();
@@ -50,8 +51,47 @@
 
   function renderProfile(){
     const auth = window.appApi.getAuth() || {};
-    document.getElementById('accountDisplayName').textContent = auth.displayName || auth.username || 'Knight Learner';
-    document.getElementById('accountMeta').textContent = `Lv ${Number(auth.levelCurrent || 1)} · ${Number(auth.xpTotal || 0).toLocaleString('vi-VN')} XP`;
+    const name = liveProfile?.displayName || auth.displayName || auth.username || 'Knight Learner';
+    const level = liveProfile?.levelCurrent || Number(auth.levelCurrent || 1);
+    const xpTotal = liveProfile?.xpTotal !== undefined ? liveProfile.xpTotal : Number(auth.xpTotal || 0);
+    const coins = liveProfile?.coins !== undefined ? liveProfile.coins : Number(auth.coins || 0);
+    const streak = liveProfile?.streakDays !== undefined ? liveProfile.streakDays : Number(auth.streakDays || 0);
+    
+    const xpInLevel = liveProfile?.xpCurrentInLevel || 0;
+    const xpNeeded = liveProfile?.xpNeededForNextLevel || 100;
+    const progressPercent = liveProfile?.levelProgressPercent || 0;
+
+    document.getElementById('accountDisplayName').textContent = name;
+    const levelBadge = document.getElementById('accountLevelText');
+    if(levelBadge) levelBadge.textContent = `Level ${level}`;
+
+    const xpRatio = document.getElementById('accountXpRatio');
+    if(xpRatio) xpRatio.textContent = `${xpInLevel} / ${xpNeeded} XP (${xpTotal.toLocaleString('vi-VN')} tổng)`;
+
+    const xpBar = document.getElementById('accountXpBar');
+    if(xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
+
+    const xpNeededText = document.getElementById('accountXpNeededText');
+    if(xpNeededText) xpNeededText.textContent = `${xpNeeded - xpInLevel} XP tới cấp tiếp theo (${progressPercent.toFixed(1)}%)`;
+
+    const coinsEl = document.getElementById('accountCoins');
+    if(coinsEl) coinsEl.textContent = coins.toLocaleString('vi-VN');
+
+    const streakEl = document.getElementById('accountStreak');
+    if(streakEl) streakEl.textContent = streak;
+
+    const stagesEl = document.getElementById('accountStagesCleared');
+    if(stagesEl) stagesEl.textContent = liveProfile?.stagesCleared || 0;
+
+    const battlesEl = document.getElementById('accountTotalBattles');
+    if(battlesEl) battlesEl.textContent = liveProfile?.totalBattles || 0;
+
+    const bestScoreEl = document.getElementById('accountBestScore');
+    if(bestScoreEl) bestScoreEl.textContent = (liveProfile?.bestScore || 0).toLocaleString('vi-VN');
+
+    const legacyMeta = document.getElementById('accountMeta');
+    if(legacyMeta) legacyMeta.textContent = `Lv ${level} · ${xpTotal.toLocaleString('vi-VN')} XP`;
+
     document.getElementById('accountProfileAvatar').src = selectedAvatar().url;
     document.getElementById('accountSummary').textContent = `Đang dùng ${selectedUnit().name} · ${selectedAvatar().name}.`;
   }
@@ -127,7 +167,25 @@
     const userId = window.appApi.getCurrentUserId();
     try{
       if(userId){
-        Object.assign(state, normalizeIncoming(await window.appApi.getAccountLoadout(userId)));
+        const [loadoutRes, profileRes] = await Promise.allSettled([
+          window.appApi.getAccountLoadout(userId),
+          window.appApi.getAccountProfile(userId)
+        ]);
+        if(loadoutRes.status === 'fulfilled' && loadoutRes.value){
+          Object.assign(state, normalizeIncoming(loadoutRes.value));
+        }
+        if(profileRes.status === 'fulfilled' && profileRes.value){
+          liveProfile = profileRes.value;
+          const auth = window.appApi.getAuth();
+          if(auth){
+            auth.levelCurrent = liveProfile.levelCurrent;
+            auth.xpTotal = liveProfile.xpTotal;
+            auth.coins = liveProfile.coins;
+            auth.streakDays = liveProfile.streakDays;
+            window.appApi.saveAuth(auth);
+            window.appApi.renderNavUser();
+          }
+        }
       }
     }catch(e){}
 

@@ -143,6 +143,18 @@
     const auth = window.appApi.getAuth();
     if(auth){
       document.getElementById('heroGreeting').textContent = `Chào ${auth.displayName || auth.username}, hôm nay học tiếp nào`;
+      if(auth.userId){
+        window.appApi.getAccountProfile(auth.userId).then(profile => {
+          if(profile){
+            auth.levelCurrent = profile.levelCurrent;
+            auth.xpTotal = profile.xpTotal;
+            auth.coins = profile.coins;
+            auth.streakDays = profile.streakDays;
+            window.appApi.saveAuth(auth);
+            window.appApi.renderNavUser();
+          }
+        }).catch(()=>{});
+      }
     }
     try{
       const overview = await window.appApi.getHomeOverview();

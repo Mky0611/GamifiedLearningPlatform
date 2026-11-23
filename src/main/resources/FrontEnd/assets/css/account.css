@@ -4,4 +4,11 @@
 .unit-stage{height:160px;border-radius:20px;background:radial-gradient(circle at top,#d6f6ff,#6bb1b9 55%,#4f9fa7 100%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;position:relative;isolation:isolate}.unit-stage::after{content:'';position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:90px;height:22px;background:radial-gradient(circle,rgba(0,0,0,.3),transparent 70%)}
 .unit-stage .pixel-unit{position:relative;z-index:1;transform:scale(1.08)}.unit-stage .pixel-unit--lancer{transform:scale(1.02) translateY(6px)}.avatar-option{display:grid;justify-items:center;text-align:center;gap:12px}.avatar-option__frame{width:140px;height:140px;border-radius:24px;background:linear-gradient(180deg,#fff8ea,#efe0b6);padding:10px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}.avatar-option__frame img{width:100%;height:100%;object-fit:contain;border-radius:16px;image-rendering:pixelated}
 .account-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.account-actions{display:flex;gap:12px;flex-wrap:wrap}.field-note{padding:14px 16px;border-radius:16px;background:#edf4ff;color:#38538b}
+.profile-level-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:linear-gradient(180deg,#fff8ea,#f3e1b7);border:1px solid rgba(180,130,60,.3);font-weight:800;font-size:.9rem;color:#78350f;box-shadow:0 2px 6px rgba(120,53,15,.08)}
+.account-stats-row{display:flex;gap:8px;width:100%;justify-content:center}
+.stat-pill{background:rgba(255,255,255,.75);border:1px solid rgba(100,75,45,.14);border-radius:12px;padding:6px 12px;font-size:.85rem;display:flex;align-items:center;gap:6px}
+.account-rpg-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;margin:4px 0}
+.metric-item{background:rgba(255,248,234,.85);border:1px solid rgba(100,75,45,.12);border-radius:12px;padding:8px 4px;display:grid;justify-items:center;text-align:center}
+.metric-val{font-weight:900;font-size:1.15rem;color:#3a2612}
+.metric-label{font-size:.68rem;color:var(--muted);margin-top:2px}
 @media (max-width:980px){.account-layout{grid-template-columns:1fr}}

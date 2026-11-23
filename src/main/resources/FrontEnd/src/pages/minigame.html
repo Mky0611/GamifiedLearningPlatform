@@ -166,13 +166,54 @@
 </div>
 
 <div class="finish-overlay" id="finishOverlay">
-  <div class="finish-card">
-    <div class="pixel-banner" id="finishTitle">Battle complete</div>
-    <h2 id="finishHeading">Kết thúc trận đấu</h2>
-    <p id="finishText">Tổng kết stage sẽ hiện ở đây.</p>
-    <div class="hero-actions">
-      <a class="btn-soft btn-primary-soft" href="/app/minigame">Chơi lại</a>
-      <a class="btn-soft btn-secondary-soft" href="/app/home">Về Home</a>
+  <div class="finish-card pixel-result-card">
+    <div class="pixel-result-header">
+      <div class="pixel-banner" id="finishTitle">Battle complete</div>
+      <div class="pixel-stars-row" id="finishStars">
+        <span class="pixel-star is-active" id="finishStar1">★</span>
+        <span class="pixel-star is-active" id="finishStar2">★</span>
+        <span class="pixel-star" id="finishStar3">★</span>
+      </div>
+      <h2 id="finishHeading" class="pixel-result-heading">Boss defeated</h2>
+      <p id="finishText" class="pixel-result-text">Tổng kết stage sẽ hiện ở đây.</p>
+    </div>
+
+    <div class="pixel-levelup-banner" id="finishLevelUpBanner" style="display:none">
+      <i class="bi bi-arrow-up-circle-fill"></i>
+      <div class="levelup-text">
+        <strong id="finishLevelUpTitle">LEVEL UP!</strong>
+        <span id="finishLevelUpSub">Cấp độ của bạn đã tăng lên!</span>
+      </div>
+    </div>
+
+    <div class="pixel-rewards-grid" id="finishRewardsGrid">
+      <div class="pixel-reward-pill">
+        <span class="reward-icon"><i class="bi bi-star-fill" style="color:#f59e0b"></i></span>
+        <div class="reward-meta">
+          <span class="reward-label">EXP nhận được</span>
+          <strong class="reward-val" id="finishXpVal">+0 XP</strong>
+        </div>
+      </div>
+      <div class="pixel-reward-pill">
+        <span class="reward-icon"><i class="bi bi-coin" style="color:#f59e0b"></i></span>
+        <div class="reward-meta">
+          <span class="reward-label">Gold Coins</span>
+          <strong class="reward-val" id="finishCoinsVal">+0 Gold</strong>
+        </div>
+      </div>
+      <div class="pixel-reward-pill">
+        <span class="reward-icon"><i class="bi bi-trophy-fill" style="color:#3b82f6"></i></span>
+        <div class="reward-meta">
+          <span class="reward-label">Điểm số</span>
+          <strong class="reward-val" id="finishScoreVal">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-actions finish-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a class="btn-soft btn-primary-soft" href="/app/minigame"><i class="bi bi-arrow-repeat"></i> Chơi lại</a>
+      <a class="btn-soft btn-secondary-soft" href="/app/account"><i class="bi bi-person-badge"></i> Tài khoản</a>
+      <a class="btn-soft btn-ghost-soft" href="/app/home"><i class="bi bi-house"></i> Về Home</a>
     </div>
   </div>
 </div>

@@ -768,19 +768,65 @@
     syncSession();
   }
 
+  function updateFinishOverlay(data, win){
+    const stars = data?.starsEarned !== undefined ? data.starsEarned : (win ? 3 : 1);
+    const star1 = document.getElementById('finishStar1');
+    const star2 = document.getElementById('finishStar2');
+    const star3 = document.getElementById('finishStar3');
+    if(star1) star1.className = `pixel-star ${stars >= 1 ? 'is-active' : ''}`;
+    if(star2) star2.className = `pixel-star ${stars >= 2 ? 'is-active' : ''}`;
+    if(star3) star3.className = `pixel-star ${stars >= 3 ? 'is-active' : ''}`;
+
+    const xpEarned = data?.xpEarned !== undefined ? data.xpEarned : state.score;
+    const coinsEarned = data?.coinsEarned !== undefined ? data.coinsEarned : Math.floor(state.score / 5);
+    const xpEl = document.getElementById('finishXpVal');
+    const coinsEl = document.getElementById('finishCoinsVal');
+    const scoreEl = document.getElementById('finishScoreVal');
+
+    if(xpEl) xpEl.textContent = `+${xpEarned.toLocaleString('vi-VN')} XP`;
+    if(coinsEl) coinsEl.textContent = `+${coinsEarned.toLocaleString('vi-VN')} Gold`;
+    if(scoreEl) scoreEl.textContent = state.score.toLocaleString('vi-VN');
+
+    const levelUpBanner = document.getElementById('finishLevelUpBanner');
+    if(levelUpBanner){
+      if(data?.levelUpOccurred){
+        levelUpBanner.style.display = 'flex';
+        const sub = document.getElementById('finishLevelUpSub');
+        if(sub) sub.textContent = `Bạn đã thăng cấp lên Level ${data.userLevelCurrent || ''}!`;
+      } else {
+        levelUpBanner.style.display = 'none';
+      }
+    }
+  }
+
   function finishBattle(win){
     if (state.transitioning && !win) return;
     clearInterval(state.timer);
     document.getElementById('finishOverlay').classList.add('is-open');
     document.getElementById('finishTitle').textContent = win ? 'Victory' : 'Battle ended';
-    document.getElementById('finishHeading').textContent = win ? 'Boss defeated' : 'Bạn đã dừng trận';
-    document.getElementById('finishText').textContent = `Score ${state.score} · Topic words ${state.topicCount} · Core guesses ${state.coreGuess} · Monster ${themeLabel[state.bossTheme] || 'Boss'}`;
+    document.getElementById('finishHeading').textContent = win ? 'Boss Defeated!' : 'Trận đấu kết thúc';
+    document.getElementById('finishText').textContent = `Score ${state.score} · Topic words ${state.topicCount} · Core guesses ${state.coreGuess} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'}`;
+    
+    updateFinishOverlay(null, win);
+
     if(state.raidSessionId){
       window.appApi.finishRaidSession(state.raidSessionId, {
         resultCode: win ? 'WON' : 'LOST',
         scoreTotal: state.score,
         xpEarned: state.score,
         coinsEarned: Math.floor(state.score / 5)
+      }).then(res => {
+        if(res){
+          updateFinishOverlay(res, win);
+          const auth = window.appApi.getAuth();
+          if(auth && res.userLevelCurrent){
+            auth.levelCurrent = res.userLevelCurrent;
+            auth.xpTotal = res.userXpTotal;
+            auth.coins = res.userCoins;
+            window.appApi.saveAuth(auth);
+            window.appApi.renderNavUser();
+          }
+        }
       }).catch(()=>{});
     }
   }

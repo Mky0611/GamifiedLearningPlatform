@@ -104,8 +104,17 @@
               }
               syncMeta();
               if(result.sessionStatus === 'COMPLETED'){
+                const auth = window.appApi.getAuth();
+                if(auth && result.newLevel){
+                  auth.levelCurrent = result.newLevel;
+                  auth.xpTotal = result.newXpTotal;
+                  auth.coins = result.newCoins;
+                  window.appApi.saveAuth(auth);
+                  window.appApi.renderNavUser();
+                }
+                const levelUpMsg = result.levelUpOccurred ? `<div style="margin:8px 0;padding:8px 12px;background:linear-gradient(90deg,#f59e0b,#fbbf24);color:#451a03;border-radius:10px;font-weight:800">⭐ LEVEL UP! Lên Level ${result.newLevel} ⭐</div>` : '';
                 window.setTimeout(()=>{
-                  mount.innerHTML = `<div class="quiz-question-card"><div class="module-pill">Quiz completed</div><h3>Hoàn thành quiz session</h3><p class="small-muted">Điểm cuối: ${score}. Refresh trang để mở lượt mới hoặc chuyển sang mode khác.</p></div>`;
+                  mount.innerHTML = `<div class="quiz-question-card"><div class="module-pill">Quiz completed</div><h3>Hoàn thành quiz session</h3>${levelUpMsg}<p class="small-muted">Điểm cuối: ${score} · EXP: +${result.xpEarned || 0} XP · Gold: +${result.coinsEarned || 0} Gold.</p><div style="margin-top:14px;display:flex;gap:10px;justify-content:center"><a class="btn-soft btn-primary-soft" href="/app/quiz">Lượt mới</a><a class="btn-soft btn-secondary-soft" href="/app/account">Tài khoản</a><a class="btn-soft btn-ghost-soft" href="/app/home">Về Home</a></div></div>`;
                 }, 900);
                 return;
               }
