@@ -29,6 +29,7 @@ public class QuizServiceImpl implements QuizService {
     private final GameModeRepository gameModeRepository;
     private final GameSessionRepository gameSessionRepository;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final RpgProgressionService rpgProgressionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -101,6 +102,9 @@ public class QuizServiceImpl implements QuizService {
     public QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request) {
         GameSession session = gameSessionRepository.findById(gameSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay game session voi id = " + gameSessionId));
+        if (COMPLETED.equalsIgnoreCase(session.getStatus())) {
+            throw new IllegalArgumentException("Game session da ket thuc");
+        }
         if (quizAttemptRepository.existsByGameSessionGameSessionIdAndQuestionQuestionId(gameSessionId, request.getQuestionId())) {
             throw new IllegalArgumentException("Cau hoi nay da duoc tra loi trong session hien tai");
         }
@@ -135,9 +139,15 @@ public class QuizServiceImpl implements QuizService {
         int answeredCount = (int) quizAttemptRepository.countByGameSessionGameSessionId(gameSessionId);
         int updatedScore = defaultInt(session.getScoreTotal(), 0) + points;
         session.setScoreTotal(updatedScore);
-        session.setXpEarned(defaultInt(session.getXpEarned(), 0) + Math.max(1, points / 2));
 
         QuestionSet questionSet = question.getQuestionSet();
+        int finalXp = 0;
+        int finalCoins = 0;
+        boolean levelUpOccurred = false;
+        int newLevel = 1;
+        int newXpTotal = 0;
+        int newCoins = 0;
+
         if (answeredCount >= defaultInt(questionSet.getTotalQuestions(), 0)) {
             session.setStatus(COMPLETED);
             session.setResultCode("WON");
@@ -145,6 +155,23 @@ public class QuizServiceImpl implements QuizService {
             if (session.getStartedAt() != null) {
                 session.setDurationSec((int) Math.max(0, Duration.between(session.getStartedAt(), LocalDateTime.now()).getSeconds()));
             }
+
+            finalXp = rpgProgressionService.calculateQuizXp(updatedScore);
+            finalCoins = rpgProgressionService.calculateQuizCoins(updatedScore);
+            session.setXpEarned(finalXp);
+            session.setCoinsEarned(finalCoins);
+
+            User user = session.getUser();
+            if (user != null) {
+                UserRewardResultDto rewardResult = rpgProgressionService.applyReward(user, finalXp, finalCoins);
+                levelUpOccurred = rewardResult.isLevelUpOccurred();
+                newLevel = rewardResult.getNewLevel();
+                newXpTotal = rewardResult.getNewXpTotal();
+                newCoins = rewardResult.getNewCoins();
+            }
+        } else {
+            session.setXpEarned(rpgProgressionService.calculateQuizXp(updatedScore));
+            session.setCoinsEarned(rpgProgressionService.calculateQuizCoins(updatedScore));
         }
         gameSessionRepository.save(session);
 
@@ -158,6 +185,12 @@ public class QuizServiceImpl implements QuizService {
                 .answeredCount(answeredCount)
                 .totalQuestions(questionSet.getTotalQuestions())
                 .sessionStatus(session.getStatus())
+                .xpEarned(finalXp)
+                .coinsEarned(finalCoins)
+                .levelUpOccurred(levelUpOccurred)
+                .newLevel(newLevel)
+                .newXpTotal(newXpTotal)
+                .newCoins(newCoins)
                 .build();
     }
 

@@ -5,10 +5,15 @@ import org.example.dto.AccountCatalogDto;
 import org.example.dto.AccountLoadoutDto;
 import org.example.dto.AccountLoadoutRequest;
 import org.example.dto.AccountOptionDto;
+import org.example.dto.LevelProgressDto;
+import org.example.dto.PlayerProfileDto;
 import org.example.entity.User;
 import org.example.entity.UserLoadout;
+import org.example.entity.UserStageProgress;
+import org.example.repository.GameSessionRepository;
 import org.example.repository.UserLoadoutRepository;
 import org.example.repository.UserRepository;
+import org.example.repository.UserStageProgressRepository;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -28,7 +33,56 @@ public class AccountServiceImpl implements AccountService {
 
     private final UserRepository userRepository;
     private final UserLoadoutRepository userLoadoutRepository;
+    private final UserStageProgressRepository userStageProgressRepository;
+    private final GameSessionRepository gameSessionRepository;
+    private final RpgProgressionService rpgProgressionService;
     private final JdbcTemplate jdbcTemplate;
+
+    @Override
+    @Transactional
+    public PlayerProfileDto getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay user voi id = " + userId));
+
+        int xpTotal = user.getXpTotal() != null ? user.getXpTotal() : 0;
+        LevelProgressDto levelProgress = rpgProgressionService.getLevelProgress(xpTotal);
+
+        if (user.getLevelCurrent() == null || !user.getLevelCurrent().equals(levelProgress.getLevel())) {
+            user.setLevelCurrent(levelProgress.getLevel());
+            userRepository.save(user);
+        }
+
+        AccountLoadoutDto loadout = getLoadout(userId);
+
+        long stagesCleared = userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(userId, 0);
+
+        List<UserStageProgress> userStages = userStageProgressRepository.findByUserUserId(userId);
+        int bestScore = userStages.stream()
+                .map(s -> s.getBestScore() != null ? s.getBestScore() : 0)
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        long totalBattles = gameSessionRepository.countByUserUserId(userId);
+
+        return PlayerProfileDto.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .displayName(user.getDisplayName())
+                .avatarUrl(user.getAvatarUrl())
+                .unitCode(loadout != null ? loadout.getUnitCode() : "warrior")
+                .avatarKey(loadout != null ? loadout.getAvatarCode() : "avatar1")
+                .levelCurrent(levelProgress.getLevel())
+                .xpTotal(xpTotal)
+                .xpCurrentInLevel(levelProgress.getXpCurrentInLevel())
+                .xpNeededForNextLevel(levelProgress.getXpNeededForNextLevel())
+                .levelProgressPercent(levelProgress.getProgressPercent())
+                .coins(user.getCoins() != null ? user.getCoins() : 0)
+                .streakDays(user.getStreakDays() != null ? user.getStreakDays() : 0)
+                .stagesCleared((int) stagesCleared)
+                .totalBattles((int) totalBattles)
+                .bestScore(bestScore)
+                .build();
+    }
 
     @Override
     @Transactional(readOnly = true)

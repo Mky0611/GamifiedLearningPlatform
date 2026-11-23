@@ -6,6 +6,7 @@ import org.example.dto.AccountCatalogDto;
 import org.example.dto.AccountLoadoutDto;
 import org.example.dto.AccountLoadoutRequest;
 import org.example.dto.ApiResponse;
+import org.example.dto.PlayerProfileDto;
 import org.example.service.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,11 @@ public class AccountController {
     @GetMapping("/loadout")
     public ApiResponse<AccountLoadoutDto> getLoadout(@RequestParam Long userId) {
         return ApiResponse.success(accountService.getLoadout(userId));
+    }
+
+    @GetMapping("/profile")
+    public ApiResponse<PlayerProfileDto> getProfile(@RequestParam Long userId) {
+        return ApiResponse.success(accountService.getProfile(userId));
     }
 
     @PutMapping("/loadout")

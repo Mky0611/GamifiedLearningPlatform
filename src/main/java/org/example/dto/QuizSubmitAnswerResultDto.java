@@ -19,4 +19,10 @@ public class QuizSubmitAnswerResultDto {
     private Integer answeredCount;
     private Integer totalQuestions;
     private String sessionStatus;
+    private Integer xpEarned;
+    private Integer coinsEarned;
+    private Boolean levelUpOccurred;
+    private Integer newLevel;
+    private Integer newXpTotal;
+    private Integer newCoins;
 }
