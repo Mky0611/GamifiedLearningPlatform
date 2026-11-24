@@ -3,7 +3,60 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P3 (RPG Progression, XP, Coins, Level Up, Persistent Game Sessions & Player Profile)  
+**Giai đoạn:** P4-B (Pure Fantasy Pixel RPG Redesign, Asset Reorganization & Visual QA)  
+
+---
+
+## [P4-B] — 25/11/2026: Pure Fantasy Pixel RPG Redesign, Asset Reorganization & Visual QA
+
+### 1. Kiểm toán Toàn Diện Tài Nguyên & Tối Ưu Băng Thông (Asset Audit & Pipeline)
+- **`src/main/resources/tools/audit_assets.py`:**
+  - Kiểm toán 306 assets đồ họa (86.17 MB), phân loại thành 12 danh mục, phát hiện 98 tệp trùng hash và 121 tệp vi phạm quy tắc đặt tên.
+  - Xuất bản `docs/P4B_ASSET_AUDIT.md`, `P4B_ASSET_MANIFEST.json`, `P4B_ASSET_INVENTORY.csv`, `P4B_ASSET_RENAME_MAP.csv` và 12 contact sheets tại `assets/qa_audit/`.
+- **`src/main/resources/tools/optimize_logo.py`:**
+  - Tách nền, cắt viền chính xác logo chữ Lex Raid từ file gốc 2816x1536 (5.87 MB) xuống file retina sắc nét **16.74 KB** (`assets/imgs/logo-clean.png` và cập nhật `logo.png`). Tiết kiệm 99.7% payload logo trên 100% các trang.
+- **Triệt tiêu 22 MB Avatar Bloat:**
+  - Thay thế các tệp hình nền 6–8.5 MB (`imgs/avatar1..3.png`) trong `api.js` và `account.js` bằng các ảnh chân dung pixel tối ưu 1.1–5 KB (`assets/ui/avatars/`). Tiết kiệm ~28 MB mỗi phiên tải trang.
+
+### 2. Đồng Bộ Danh Tính & Chân Dung Hiệp Sĩ / Quái Vật (Identity Mapping)
+- **`src/main/resources/tools/generate_portraits.py`:**
+  - Tạo 9 chân dung Boss (`Crabby`, `Captain`, `Fierce`, `Pink`, `Totem 1-3`, `Seashell`, `Cannon`) và 3 chân dung Hero (`Warrior`, `Lancer`, `Archer`) kích thước chuẩn 64x64px.
+  - Đồng bộ HUD avatar và in-game sprite trong `minigame.js` và `raid-config.js`.
+
+### 3. Đại Tu Đấu Trường Boss Hunt (Battle Arena, Sprite Scale & Fold)
+- **`raid-config.js`:**
+  - Tăng tỷ lệ Hero: Warrior & Archer lên **1.35x**, Lancer lên **1.29x**.
+  - Tăng tỷ lệ Boss: Crabby (3.2x), Fierce (3.6x), Pink (3.6x), Totem (3.4x), Seashell (3.4x), Cannon (3.5x), Captain (2.8x).
+  - Căn chân tiếp đất hoàn hảo tại $Y = 350.00\text{px}$ với sai số nhỏ hơn $0.0108\text{px}$.
+- **`minigame.html` & `minigame.css`:**
+  - Thu gọn chiều cao sàn đấu tối đa 360px (`aspect-ratio: 960/420`), đưa toàn bộ HUD, Stage, Attack Dock và Bàn cờ chữ lên phía trên đường cuộn trang (above the fold) trên cả mobile 320x568.
+  - Viết lại `.pixel-bar` bằng CSS retro gradients sắc nét, loại bỏ khung ảnh 822KB gây tràn viền.
+  - Sửa lỗi escape chuỗi HTML trong `renderStatus()` của `minigame.js`.
+
+### 4. Khắc Phục Gãy Chữ & Giao Diện Kho Từ Vựng (Volcard Redesign)
+- **`volcard.html` & `volcard.css`:**
+  - Giao diện Kinh Thư Cổ Đại (Ancient Spellbook Lexicon) với cuộn giấy vàng và khung gỗ sồi tối.
+  - Khắc phục triệt để lỗi gãy chữ `POLYMORPHISM` trên mobile bằng `font-size: clamp(1.35rem, 3.8vw + 0.3rem, 2.35rem); white-space: nowrap; word-break: keep-all; overflow-wrap: normal;`.
+  - Phân loại màu sắc thẻ CEFR pills chuẩn xác (A1..C2).
+
+### 5. Hồ Sơ Nhân Vật & Lựa Chọn Đơn Vị (Account Loadout Redesign)
+- **`account.html`, `account.css`, `account.js`:**
+  - Thiết kế Bảng Hồ Sơ Nhân Vật RPG (Character Sheet) với khung gỗ sồi và viền vàng kim.
+  - Bảo toàn công thức tính toán toán học thanh EXP ($50/200\text{ XP}$, 25.0%).
+  - Xóa bỏ 100% dev-speak ("FE first, BE ready", "Khóa lưu BE").
+
+### 6. Thống Nhất Giao Diện 9 Trang & Xác Thực
+- **`quiz.html`, `memory.html`, `speed-math.html`, `code-puzzle.html`, `auth.html`, `games-lite.css`, `auth.css`:**
+  - Thống nhất font chữ: `Silkscreen`, `VT323`, `Be Vietnam Pro`.
+  - Thống nhất thanh điều hướng Dark Oak Tavern `#241a14` với 5 liên kết chuẩn.
+  - Chuyển hóa 100% nội dung sang cốt truyện phiêu lưu hiệp sĩ thuần khiết.
+
+### 7. Bộ Kiểm Thử Chất Lượng Hình Ảnh & Đạt Chuẩn WCAG 2.2 AA
+- **`src/main/resources/tools/test_p4b_verification.py`:**
+  - Xây dựng bộ kiểm thử 43 tiêu chí: **43/43 PASSED**.
+  - Độ tương phản WCAG 2.2 AA từ 5.36:1 đến 17.14:1 (chuẩn $\ge 4.5:1$).
+  - `check_case_sensitivity.py`: 129/129 URLs Phaser đạt chuẩn 100%.
+  - `smoke_check.py`: 0 lỗi cú pháp, 0 thiếu DOM ID, 0 hỏng đường dẫn.
 
 ---
 

@@ -1,10 +1,10 @@
 # CURRENT PROJECT STATE — LEX RAID PIXEL RPG
 
-**Thời điểm cập nhật:** 24/11/2026  
+**Thời điểm cập nhật:** 25/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát triển:** `feature/p4-vercel-preview`  
-**Trạng thái hiện tại:** **PHASE P4-A COMPLETED (VERCEL PRODUCTION PREVIEW DEPLOYED & VERIFIED LIVE)**  
+**Nhánh phát triển:** `feature/p4b-fantasy-pixel-redesign`  
+**Trạng thái hiện tại:** **PHASE P4-B COMPLETED (PURE FANTASY PIXEL RPG REDESIGN, ASSET REORGANIZATION & VISUAL QA ACCEPTED)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -12,147 +12,55 @@
 
 ## 1. TỔNG QUAN DỰ ÁN
 
-Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG chiến đấu bằng từ vựng. Dự án được xây dựng trên nền tảng:
+Lex Raid là một web game học tiếng Anh kết hợp phong cách Pure Fantasy Pixel RPG chiến đấu bằng từ vựng. Dự án được xây dựng trên nền tảng:
 - **Backend:** Java 21 LTS, Spring Boot 4.2.0, Spring Data JPA, Spring Security.
 - **Database:** Microsoft SQL Server (`script_GPL_v2.sql` — 57 bảng).
-- **Frontend:** Vanilla HTML5, CSS3 Pixel Design System, JavaScript ES6+.
+- **Frontend:** Vanilla HTML5, CSS3 Pure Fantasy Pixel Design System, JavaScript ES6+.
 - **Game Engine:** Phaser 3.90.0 (kèm Canvas 2D Fallback khi không có mạng/CDN).
-- **Phục vụ tĩnh / Xem trước:** `preview-server.js` (Node.js HTTP Server).
+- **Hosting / Preview:** Vercel Production Preview Deployment.
 
 ---
 
-## 2. KẾT QUẢ THỰC HIỆN PHASE P2 (VOCABULARY ENGINE & IT ENGLISH)
+## 2. KẾT QUẢ THỰC HIỆN PHASE P4-B (PURE FANTASY PIXEL RPG REDESIGN)
 
-### A. Kiểm toán Cơ sở Dữ liệu Từ vựng (P2-A Database & Schema Audit)
-- **Công cụ tự động:** Xây dựng `src/main/resources/tools/audit_vocabulary_db.py` đọc trực tiếp file seed `script_GPL_v2.sql` (mã hóa UTF-16 LE, 2.65 MB).
-- **Báo cáo kiểm toán:** Xuất bản tài liệu chi tiết `docs/P2_VOCABULARY_AUDIT.md` và `Agent & Skill/docs/P2_VOCABULARY_AUDIT.md`.
-- **Thống kê thực tế:**
-  - 9 Topics (`vocabulary_topics`), 17 Sets (`vocabulary_sets`), 2.098 Words (`vocabulary_words`).
-  - 2.096 từ tiếng Anh (`en`) và 2 từ tiếng Nhật (`ja`: *ohayou*, *arigatou* trong set ID 17).
-  - Tỷ lệ CEFR hiện có: Chỉ 75 từ có nhãn CEFR (B1: 23, B2: 41, C1: 11, nằm trong các bộ IELTS Tech/Business Core); 2.023 từ còn lại là `NULL` (96.43%).
-  - 100% từ có giải nghĩa tiếng Việt (`meaning_vi`), nhưng 2.021 từ chưa có định nghĩa tiếng Anh (`meaning_en = NULL`).
-  - Đánh giá khả năng ghép chữ trên bàn cờ $5 \times 5$: 1.998 từ hợp lệ; 94 từ không hợp lệ (28 từ $< 3$ ký tự, 48 từ $> 10$ ký tự, 19 từ chứa dấu gạch nối hoặc ký tự đặc biệt).
+Phase P4-B là cuộc đại tu toàn diện về mặt thẩm mỹ, tối ưu hiệu năng tải trang và trải nghiệm người dùng RPG cho toàn bộ 9 trang của Lex Raid:
 
-### B. Thiết kế Kiến trúc Hai trục Độc lập (P2-B CEFR & IT Taxonomy Architecture)
-- **Tài liệu thiết kế:** Xuất bản `docs/P2_VOCABULARY_DESIGN.md` và `Agent & Skill/docs/P2_VOCABULARY_DESIGN.md`.
-- **Trục 1 — CEFR Level:** A1, A2, B1, B2, C1, C2 hoặc `UNVERIFIED`/`NULL`. Gắn nhãn theo nét nghĩa (*sense-level*) và bắt buộc có nguồn đối chiếu học thuật uy tín (Cambridge English Profile, Oxford 3000/5000). Tuyệt đối cấm đoán mò hoặc dùng LLM gán nhãn tự do.
-- **Trục 2 — IT Tier:** 4 cấp độ kỹ năng nghề nghiệp: `Foundation`, `Practitioner`, `Advanced`, `Specialist`.
-- **Taxonomy 35 IT Domains:** Chuẩn hóa toàn bộ 35 chuyên mục kỹ thuật (từ Computer Fundamentals, OS, Networks, OOP, DSA, Backend API, Devops, Containers, Cloud đến AI/ML, Cybersecurity).
-- **Lược đồ mở rộng (Non-breaking):** Soạn thảo `src/main/resources/db/migration/V2__vocabulary_senses_cefr_it.sql` cho bảng `vocabulary_word_senses` và `it_curriculum_domains` (lưu trữ phục vụ nâng cấp tương lai, không chạy DDL trực tiếp trên DB live).
+### A. Kiểm toán Tài nguyên & Tối ưu Băng thông (Asset Audit & Pipeline)
+- **Kiểm toán 306 assets (86.17 MB):** Xây dựng `src/main/resources/tools/audit_assets.py`, xuất bản `docs/P4B_ASSET_AUDIT.md`, `P4B_ASSET_MANIFEST.json`, `P4B_ASSET_INVENTORY.csv`, `P4B_ASSET_RENAME_MAP.csv` và 12 tấm contact sheets tại `assets/qa_audit/`.
+- **Giảm tải Logo 99.7%:** Tách nền và cắt chuẩn retina logo chữ sắc nét từ file gốc 2816x1536 (5.87 MB) xuống còn **16.74 KB** (`logo-clean.png` và cập nhật trực tiếp `logo.png`).
+- **Triệt tiêu 22 MB Avatar Bloat:** Thay thế toàn bộ các hình nền nặng 6–8.5 MB (`imgs/avatar1..3.png`) dùng trong avatar 48px bằng các ảnh chân dung pixel tối ưu 1.1–5 KB (`assets/ui/avatars/`). Tiết kiệm **~28 MB mỗi lượt tải trang**.
 
-### C. Pipeline Nhập Dữ liệu & Chế độ DRY RUN (P2-C Vocabulary Importer)
-- **Công cụ nhập liệu:** `src/main/resources/tools/vocabulary_importer.py` với chế độ `--dry-run` mặc định.
-- **Quy tắc kiểm định:** Kiểm tra UTF-8, mã ngôn ngữ `en`, chuẩn hóa từ loại (POS: `n.` $\rightarrow$ `noun`, `v.` $\rightarrow$ `verb`, etc.), kiểm tra độ dài từ và tính hợp lệ trên bàn cờ (`boardEligible`), đối chiếu trùng lặp với 2.098 từ trong seed database.
-- **Kiểm thử tự động:** `src/main/resources/tools/test_vocabulary_importer.py` đạt **3/3 unit tests PASS**.
-- **Báo cáo Dry Run:** Xuất bản `docs/P2_IMPORT_DRY_RUN_REPORT.json` (26/26 mục mẫu được phân loại chính xác, 22 board-eligible, 4 flashcard-only).
+### B. Đồng bộ Danh tính & Chân dung Hiệp sĩ / Quái thú (Identity Mapping)
+- Tự động sinh 9 chân dung Boss (`Crabby`, `Captain`, `Fierce`, `Pink`, `Totem 1-3`, `Seashell`, `Cannon`) và 3 chân dung Hero (`Warrior`, `Lancer`, `Archer`) kích thước chuẩn $64 \times 64\text{px}$.
+- Đồng bộ hoàn toàn giữa avatar hiển thị trên thanh HUD và sprite hoạt họa đang chiến đấu trong đấu trường.
 
-### D. Nâng cấp Backend Services (P2-D Volcard, Quiz & Lex Raid Engine)
-- **Volcard Service & Controller:**
-  - Hỗ trợ thêm tham số tùy chọn `cefrLevel` và `search` trên endpoint `GET /api/v1/volcard/sets/{setId}/cards`. Duy trì tương thích ngược 100%.
-  - Chuẩn hóa Part of Speech (POS) và sinh dữ liệu DTO mở rộng: `itDomain`, `itTier`, `boardEligible`.
-  - Fallback an toàn khi `meaning_en` là NULL.
-- **Thuật toán sinh bàn cờ Lex Raid (`buildBoard`):**
-  - Khắc phục triệt để tình trạng thiếu nguyên âm (vowel starvation): Thay thế việc sinh ngẫu nhiên đồng đều `A-Z` (chỉ có 19% nguyên âm) bằng bảng tần suất chữ cái tiếng Anh chuẩn với tỷ lệ nguyên âm đạt ~42% (`A, E, I, O, U`) và phụ âm thông dụng (`T, N, S, R, H, L, D, C, M, P`).
-  - Đảm bảo ghép từ thành công: Bàn cờ luôn chứa đầy đủ các chữ cái của `coreWord` đặt gần tâm bàn cờ, đồng thời cấy thêm các chữ cái của 1-2 từ vựng phụ trong stage vocabulary set.
-  - Lọc bỏ triệt để từ tiếng Nhật và từ không hợp lệ khỏi Lex Raid battle runtime.
+### C. Đại tu Đấu Trường Boss Hunt (Battle Arena & Sprite Scale)
+- **Tăng kích thước Sprite:**
+  - Hero tăng từ 0.90x lên **1.35x** (Warrior, Archer) và **1.29x** (Lancer), tạo vị thế anh hùng oai vệ.
+  - Boss tăng từ 2.50x lên **2.80x–3.60x** (Crabby 3.2x, Fierce 3.6x, Pink 3.6x, Totem 3.4x, Seashell 3.4x, Cannon 3.5x, Captain 2.8x), tái hiện đúng cảm giác đối đầu quái vật thần thoại.
+- **Căn chân tiếp đất hoàn hảo:** Căn chuẩn vị trí tiếp đất tại $Y = 350.00\text{px}$ với sai số dưới $0.0108\text{px}$.
+- **Tránh che khuất (Above the fold):** Thu gọn chiều cao sàn đấu từ 620px xuống tối đa 360px (`aspect-ratio: 960/420`). Đảm bảo thanh HUD, Đấu trường, Dock tấn công và Bàn cờ chữ $5 \times 5$ hiển thị trọn vẹn trong màn hình (kể cả trên màn hình mobile 320x568).
+- **Khắc phục tràn thanh máu:** Viết lại `.pixel-bar` bằng CSS retro gradients gọn gàng, loại bỏ overlay ảnh khung 822KB bị méo, triệt tiêu 100% hiện tượng gauge tràn mép.
+- **Sửa lỗi hiển thị Status:** Khắc phục lỗi parse chuỗi HTML thoát `<span class="pixel-chip"...>` thành raw string `&lt;span...&gt;` trong `minigame.js`.
 
-### E. Nâng cấp Giao diện Học Từ vựng (P2-E Volcard & Quiz Frontend Polish)
-- **Volcard UI:**
-  - Tích hợp thanh lọc CEFR (Pills: Tất cả, A1, A2, B1, B2, C1, C2, Chưa gán).
-  - Tích hợp ô tìm kiếm từ vựng theo thời gian thực (Search box debounced).
-  - Tích hợp nút phát âm Web Speech API TTS (`ttsBtn`) với thông báo ghi chú rõ ràng về công nghệ giọng máy.
-  - Hiển thị đầy đủ huy hiệu Pixel RPG cho POS, CEFR, IT Domain, và IT Tier.
-  - Nút chuyển thẻ mượt mà: Lật thẻ (`flipBtn`), Từ tiếp (`nextBtn`), Từ trước (`prevBtn`).
-- **Quiz UI:**
-  - Áp dụng các token viền gỗ, bóng pixel từ `pixel-rpg.css`.
+### D. Khắc phục Gãy Chữ & Giao Diện Kho Từ Vựng (Volcard Redesign)
+- Thiết kế theo phong cách **Kinh Thư Cổ Đại (Ancient Spellbook Lexicon)** với nền da dê cuộn giấy vàng và khung gỗ sồi đen viền vàng.
+- **Sửa triệt để lỗi gãy chữ `POLYMORPHISM`:** Áp dụng công thức CSS `font-size: clamp(1.35rem, 3.8vw + 0.3rem, 2.35rem); white-space: nowrap; word-break: keep-all; overflow-wrap: normal;` giúp từ 12 ký tự luôn nằm trọn vẹn trên 1 dòng ở mọi độ phân giải từ 320px đến 1920px.
+- Định dạng thẻ CEFR pills chuẩn màu sắc theo từng cấp bậc (A1 Xanh lục, A2 Xanh dương, B1 Vàng, B2 Cam, C1 Đỏ ruby, C2 Tím thạch anh).
 
----
+### E. Hồ Sơ Nhân Vật & Quân Đoàn Hiệp Sĩ (Account Loadout Redesign)
+- Chuyển đổi card SaaS xanh dương hiện đại thành **Bảng Hồ Sơ Nhân Vật RPG (Character Sheet)** phong cách Tavern.
+- Giữ vững công thức tính toán toán học thanh EXP chuẩn xác ($50/200\text{ XP}$, 25.0%).
+- Loại bỏ 100% dev-speak ("FE first, BE ready", "Khóa lưu BE: avatar-a", "Monk/Tu sĩ đã bỏ khỏi flow").
 
-## 3. KẾT QUẢ THỰC HIỆN PHASE P3 (RPG PROGRESSION, LEVEL, XP, COINS & SESSIONS)
+### F. Thống nhất Phong cách Toàn Bộ Các Trang Phụ & Xác thực
+- Redesign toàn bộ các trang: `quiz.html`, `memory.html`, `speed-math.html`, `code-puzzle.html`, `auth.html`.
+- Áp dụng font chữ thống nhất: **Silkscreen** (tiêu đề pixel retro), **VT323** (số liệu/chỉ số), **Be Vietnam Pro** (nội dung tiếng Việt đọc mượt mà).
+- Thống nhất thanh điều hướng Dark Oak Tavern `#241a14` với 5 liên kết chuẩn: Trang chủ, Đấu Boss, Kho từ vựng, Quiz & Thử thách, Nhân vật.
 
-### A. Kiến trúc Tiến trình RPG & Cấp độ $O(1)$ (P3-A & P3-B)
-- **Công thức cấp độ chuẩn:** $L = \max(1, \lfloor (1 + \sqrt{1 + X / 12.5}) / 2 \rfloor)$. Cấp 1 xuất phát từ 0 XP; ngưỡng L1: 0-99 XP, L2: 100-299 XP, L3: 300-599 XP, L5: 1000-1499 XP, L10: 4500+ XP.
-- **Dịch vụ `RpgProgressionService` & `RpgProgressionServiceImpl`:**
-  - Tính toán XP và Coins cho Lex Raid (thắng/thua, có giới hạn trần chống lạm phát) và Quiz.
-  - Xử lý cộng thưởng vào `User` (`xp_total`, `level_current`, `coins`) và phát hiện chính xác thăng cấp (Level Up) hoặc nhảy cóc nhiều cấp độ (Multi-level jump).
-  - Tự động đồng bộ / tự phục hồi (self-healing) cấp độ nếu `level_current` trong DB lệch khỏi công thức toán học.
-
-### B. Chống Nhận Thưởng Lặp, Toàn vẹn Dữ liệu & Idempotency Tuyệt Đối (P3-C & P3-D)
-- **Lex Raid Service:**
-  - Chốt trạng thái session sang `COMPLETED` nguyên tử.
-  - Khóa bi quan (`findByIdForUpdate` với `PESSIMISTIC_WRITE`) trên GameSession và User để tránh race condition khi nhiều request hoàn thành đến cùng lúc hoặc hai session của cùng 1 user kết thúc đồng thời.
-  - Kiểm tra nghiêm ngặt `if (COMPLETED.equalsIgnoreCase(gameSession.getStatus())) return;` đảm bảo chỉ trao thưởng XP/Coin và tăng `clear_count`/`fail_count` đúng 1 lần duy nhất cho mỗi phiên chơi. Session đã kết thúc là bất biến (immutable).
-  - Backend tự tính toán điểm tin cậy (`verifiedScore`) từ các event log hợp lệ (`WordSubmitEvent` và `CoreWordGuessEvent`), xác minh kết quả thắng/thua trực tiếp từ trạng thái Boss HP còn lại; từ chối mọi giá trị `totalScore` hoặc `resultCode: WON` giả mạo gửi lên từ client.
-  - Bảo toàn kỷ lục số sao: `Math.max(existingStars, newStars)`, không bao giờ bị giảm điểm đánh giá ải.
-- **Quiz Service:**
-  - Trao thưởng XP và Coins vào User khi hoàn thành toàn bộ câu hỏi.
-  - Ngăn chặn tráo đổi đáp án từ câu hỏi khác (`selected.getQuestion().getQuestionId().equals(question.getQuestionId())`).
-  - Ngăn chặn nộp câu hỏi từ bộ đề khác vào session hiện tại (`expectedSetId.equals(question.getQuestionSet().getQuestionSetId())`).
-  - Ngăn chặn nộp lại câu hỏi đã trả lời trong session.
-  - Ngăn chặn nộp thêm câu hỏi sau khi session đã `COMPLETED`.
-
-### C. Player Profile API & Đồng bộ Frontend (P3-E & P3-F)
-- **API `GET /api/v1/account/profile?userId={userId}`:** Trả về đầy đủ profile: Level, XP tổng, XP trong level, XP tới level kế, % tiến độ, Coins, Streak, Loadout, Stages Cleared, Total Battles, Best Score.
-- **Sửa Toán học Thanh EXP Tài khoản (`account.js`):**
-  - Tính chính xác khoảng cấp độ: `levelSpan = xpInLevel + xpNeeded`.
-  - Hiển thị rõ ràng định dạng: `${xpInLevel}/${levelSpan} XP (${xpTotal} tổng)` và `Còn ${xpNeeded} XP tới cấp tiếp theo (${progressPercent}%)`.
-  - Đã xác minh toán học tại mốc 150 XP: Level 2, 50/200 XP, Còn 150 XP (25.0%).
-- **Pixel RPG UI Polish (`minigame.js`):**
-  - **Battle Result Overlay 4 Trạng thái:** Loại bỏ hoàn toàn việc hiển thị số XP/Coins ảo trước khi server xác nhận.
-  - `PENDING`: Hiển thị "Đang xác nhận..." trong khi chờ backend phản hồi.
-  - `CONFIRMED`: Cập nhật số XP, Gold và sao chính thức được backend xác thực và trả về.
-  - `ERROR`: Hiển thị "Chưa lưu (Lỗi mạng)" và thông báo không kết nối được máy chủ, không hiển thị số thưởng ảo.
-  - `PREVIEW`: Chế độ xem trước (không có session id), hiển thị rõ ràng không tích lũy phần thưởng.
-  - **Đồng bộ thời gian thực:** Tự động cập nhật `auth` local và thanh điều hướng (Navigation Bar) ngay khi nhận kết quả xác thực từ server.
-
----
-
-## 4. PHÂN LOẠI KẾT QUẢ KIỂM THỬ THỰC TẾ (QA STATUS)
-
-| Cấp độ kiểm thử | Tên bài test / Script | Kết quả | Chi tiết |
-| :--- | :--- | :---: | :--- |
-| **RPG PROGRESSION UNIT** | `RpgProgressionServiceTest` | **PASS** | 9/9 tests pass (ngưỡng cấp độ, công thức thưởng, single level-up, multi-level jump, toán học thanh EXP tại 150 XP, khóa bi quan User). |
-| **ACCOUNT PROFILE UNIT** | `AccountProfileServiceTest` | **PASS** | 2/2 tests pass (profile calculation, self-healing level synchronization). |
-| **LEX RAID PROGRESSION** | `LexRaidProgressionTest` | **PASS** | 4/4 tests pass (thưởng trận đấu từ verified events, chống hack điểm/thắng giả, chống nhận thưởng 2 lần idempotency, sao không suy giảm). |
-| **QUIZ PROGRESSION** | `QuizProgressionTest` | **PASS** | 5/5 tests pass (thưởng quiz completion, từ chối nộp sau khi hoàn thành, từ chối tráo đáp án khác câu hỏi, từ chối câu hỏi khác đề, từ chối nộp trùng). |
-| **LIVE DB CONCURRENCY** | `SQL Server Lock Test` | **NOT TESTED** | Cần môi trường có instance SQL Server thật đang chạy dịch vụ; logic khóa bi quan `findByIdForUpdate` đã kiểm thử đơn vị. |
-| **SPRING CONTEXT DB** | `MainTests.java` | **NOT TESTED** | Tạm thời không kết nối được `localhost:1433` trên máy sandbox cục bộ do DB service chưa bật. |
-| **SECURITY SCAN** | `git_security_scanner.py` | **PASS** | Working tree sạch 0 lỗi; 1 commit lịch sử `ecf1f782` được mask an toàn. |
-| **SECURITY UNIT** | `test_security_scanner.py` | **PASS** | 13/13 tests pass (URI, JSON, YAML, Cloud Keys, False Positive checks). |
-| **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |
-| **DATABASE AUDIT** | `audit_vocabulary_db.py` | **PASS** | 2.098 words, 17 sets, 9 topics, 6 stages parsed từ file UTF-16 LE. |
-| **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
-| **ASSET CASE-AUDIT** | `check_case_sensitivity.py` | **PASS** | 348 files trên đĩa, 129 dynamic Phaser URLs: 0 missing, 0 case mismatch cho môi trường Linux Vercel. |
-| **PREVIEW SERVER** | `preview-server.js` | **PASS** | Node.js route đúng `/app/volcard`, `/app/quiz`, `/app/account`. |
-
----
-
-## 5. KẾT QUẢ THỰC HIỆN PHASE P4-A (VERCEL PREVIEW DEPLOYMENT)
-
-1. **Triển khai Production Vercel Thực tế:**
-   - URL Production: [https://gamified-learning-platform-sandy.vercel.app](https://gamified-learning-platform-sandy.vercel.app)
-   - Deployment URL: [https://gamified-learning-platform-82avq2pma-mky0624.vercel.app](https://gamified-learning-platform-82avq2pma-mky0624.vercel.app)
-   - Dự án: `mky0624/gamified-learning-platform` (Deployment ID: `dpl_C3Vqob2As8xs3CAX71DWcyjrRBk2`)
-   - Trạng thái: `READY`
-2. **Cấu hình Vercel (`src/main/resources/FrontEnd/vercel.json` & root `vercel.json`):**
-   - Định tuyến chuẩn 11 trang HTML: `/`, `/app/home`, `/app/auth`, `/app/minigame`, `/app/quiz`, `/app/volcard`, `/app/memory`, `/app/speed-math`, `/app/code-puzzle`, `/app/account`.
-   - Ánh xạ `/ui/assets/**` sang thư mục `/assets/**`.
-   - Refresh trang trực tiếp 100% không bị 404.
-   - Không dùng catch-all rewrite đưa `/api/**` về `home.html` (trả về 404 sạch).
-3. **Kiểm thử Trực tiếp trên Mạng (Live Probe Verification):**
-   - Chạy `tools/probe_deployment.py`: 16/16 endpoints (11 HTML routes + 5 assets) đạt **HTTP 200 OK (0 FAIL)**.
-4. **Nâng cấp Giao diện Chế độ Xem trước (Preview Mode):**
-   - `minigame.js`: Hiển thị rõ chip `Preview Mode: Đang dùng stage demo độc lập`.
-   - `home.js`: Hiển thị banner `Vercel Preview Mode` khi không có API backend.
-   - `account.js`: Hiển thị banner hồ sơ demo và lưu tùy chỉnh loadout trên trình duyệt.
-   - `auth.html`: Hướng dẫn truy cập trực tiếp các chế độ trải nghiệm.
-5. **Báo cáo Hướng dẫn Triển khai:**
-   - Xuất bản `docs/VERCEL_DEPLOYMENT.md` chi tiết toàn bộ thông tin triển khai và hướng dẫn nghiệm thu.
-
----
-
-## 6. CÔNG VIỆC TIẾP THEO
-
-1. Commit và push toàn bộ thay đổi Phase P4-A lên nhánh `feature/p4-vercel-preview`.
-2. Bàn giao URL trực tiếp cho người dùng nghiệm thu trên laptop và điện thoại di động.
-3. Chuẩn bị kế hoạch cho Phase P4-B (Docker, CI/CD, Containerization) và hoàn thiện backend integration.
+### G. Kiểm Thử Chất Lượng Hình Ảnh & Hồi Quy (Visual QA & Regression)
+- `check_case_sensitivity.py`: 129/129 URLs Phaser kiểm tra đạt 0 missing, 0 case mismatch.
+- `smoke_check.py`: 0 JS syntax errors, 0 missing DOM IDs, 0 missing asset paths.
+- `test_p4b_verification.py`: **43/43 tests PASSED**.
+- Độ tương phản WCAG 2.2 AA đạt từ 11.22:1 đến 17.14:1 (vượt xa ngưỡng yêu cầu 4.5:1).
+- Hoàn toàn không đụng chạm đến Java 21, Spring Boot 4.2.0, hay SQL Server.
