@@ -6,8 +6,9 @@
   <title>Lex Raid · Boss Hunt</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
   <link rel="stylesheet" href="/ui/assets/css/minigame.css">
 </head>
@@ -29,15 +30,15 @@
   </header>
 
   <main class="page-container raid-shell">
-    <section class="soft-card raid-header">
+    <section class="soft-card raid-header" style="padding: 10px 18px; margin-bottom: 10px;">
       <div class="raid-header__grid">
         <div>
-          <span class="section-kicker"><i class="bi bi-joystick"></i> Flagship mode · Word Boss Battle</span>
-          <div class="raid-title" id="stageTitle">Đang tải stage...</div>
-          <p class="raid-sub" id="stageSubtitle">Board chữ nằm giữa battle scene, Core Word nằm dưới fighter và Objectives nằm dưới boss để combat flow gọn hơn.</p>
+          <span class="section-kicker"><i class="bi bi-shield-shaded"></i> Đấu Trường Từ Vựng · Boss Hunt</span>
+          <div class="raid-title" id="stageTitle">Đang tải ải...</div>
+          <p class="raid-sub" id="stageSubtitle" style="margin: 4px 0 0;">Ghép từ vựng tiếng Anh trên bảng ma trận để tung chiêu thức, hóa giải khiên chắn và đánh bại quái vật cổ đại!</p>
         </div>
         <div class="raid-header__brand">
-          <img src="/ui/assets/imgs/logo.png" alt="logo">
+          <img src="/ui/assets/imgs/logo.png" alt="logo" style="height: 38px; width: auto; object-fit: contain;">
           <div class="raid-chip-row" id="stageChipRow"></div>
         </div>
       </div>
@@ -47,10 +48,9 @@
 
     <section class="raid-layout">
       <aside class="soft-card fighter-panel raid-cell raid-cell--fighter">
-        <div class="panel-banner">Knight Learner</div>
-        <div class="avatar-hero"><img id="heroAvatarImg" src="/ui/assets/imgs/avatar1.png" alt="hero avatar"></div>
-        <div class="sprite-stage"><div class="pixel-unit pixel-unit--warrior is-idle" id="heroSprite"></div></div>
-        <div class="fighter-meta"><strong id="playerName">Knight Learner</strong><span class="small-muted" id="heroRoleText">Warrior · Chọn chữ bất kỳ để ghép thành từ rồi tung đòn.</span></div>
+        <div class="panel-banner">Hiệp Sĩ</div>
+        <div class="avatar-hero"><img id="heroAvatarImg" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt="hero avatar"></div>
+        <div class="fighter-meta"><strong id="playerName">Hiệp Sĩ Lexia</strong><span class="small-muted" id="heroRoleText">Chiến binh · Chọn ô chữ bất kỳ để tạo từ tấn công.</span></div>
         <div class="bar-stack bar-stack--player">
           <div><div class="pixel-bar__label"><span><i class="bi bi-heart-fill me-1" style="color: #ef4444; font-size: 1.2rem; vertical-align: middle;"></i> HP</span><strong id="playerHpValue">100 / 100</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--player" id="playerHpBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--player" id="playerHpBar"></div></div></div>
         </div>
@@ -90,20 +90,20 @@
 
         <div class="attack-dock">
           <div class="attack-dock__content">
-            <span class="section-kicker"><i class="bi bi-lightning-charge-fill"></i> Attack word</span>
+            <span class="section-kicker" style="font-size: 0.72rem; padding: 2px 8px;"><i class="bi bi-lightning-charge-fill"></i> Từ Đang Ghép</span>
             <div class="attack-dock__word" id="currentWordValue">—</div>
-            <div class="attack-dock__meta" id="currentWordMeta">Chọn các ô chữ bất kỳ để ghép từ</div>
+            <div class="attack-dock__meta" id="currentWordMeta">Bấm các ô chữ bất kỳ trên bàn cờ để tạo từ</div>
           </div>
           <div class="attack-dock__actions">
-            <button class="btn-soft btn-secondary-soft" id="clearPathBtn" type="button"><i class="bi bi-x-lg"></i> Clear</button>
-            <button class="btn-soft btn-primary-soft" id="submitWordBtn" type="button"><i class="bi bi-send"></i> Attack</button>
+            <button class="pixel-btn pixel-btn--wood" id="clearPathBtn" type="button" style="min-width: 100px; min-height: 44px;"><i class="bi bi-x-lg"></i> Xóa</button>
+            <button class="pixel-btn pixel-btn--primary" id="submitWordBtn" type="button" style="min-width: 130px; min-height: 44px; font-size: 0.95rem;"><i class="bi bi-lightning-fill"></i> Tấn Công</button>
           </div>
         </div>
       </section>
 
       <aside class="soft-card boss-panel raid-cell raid-cell--boss">
-        <div class="panel-banner">Boss Panel</div>
-        <div class="avatar-boss"><img src="/ui/assets/ui/tiny/avatar-c.png" alt="boss avatar"></div>
+        <div class="panel-banner">Quái Vật</div>
+        <div class="avatar-boss"><img src="/ui/assets/ui/avatars/portrait-boss-crabby.png" alt="boss avatar"></div>
         <div class="boss-meta">
           <div class="boss-title-row">
             <strong id="bossName">Boss</strong>
@@ -126,20 +126,20 @@
       </aside>
 
       <article class="paper-card raid-cell raid-cell--core">
-        <h3>Core Word</h3>
+        <h3 style="font-size: 0.95rem; min-height: 40px; padding: 6px 14px;">Từ Khóa Cốt Lõi</h3>
         <div class="core-mask" id="coreMask"></div>
-        <p class="muted" id="clueText">Tạo topic words để mở clue rồi đoán core word ngay trên UI.</p>
-        <div class="raid-side-card__actions"><button class="btn-soft btn-primary-soft" id="guessCoreBtn" type="button"><i class="bi bi-lightbulb"></i> Guess core word</button></div>
+        <p class="muted" id="clueText" style="font-size: 0.85rem; line-height: 1.4;">Tạo các từ vựng chủ đề để mở manh mối, sau đó đoán từ khóa để gây sát thương chí mạng.</p>
+        <div class="raid-side-card__actions"><button class="pixel-btn pixel-btn--mana" id="guessCoreBtn" type="button" style="width: 100%; min-height: 42px;"><i class="bi bi-lightbulb-fill"></i> Đoán Từ Khóa</button></div>
       </article>
 
       <article class="board-shell raid-cell raid-cell--board">
         <div class="board-horizontal-container">
           <!-- Left Section: Title & Instructions -->
           <div class="board-info-section">
-            <span class="board-banner-wood">Word Board</span>
-            <p class="board-instructions">Chọn các ô chữ bất kỳ để ghép thành từ. Không cần đi liền kề.</p>
-            <div class="board-actions" style="margin-top: 12px;">
-              <button class="btn-soft btn-ghost-soft" id="finishBattleBtn" type="button" style="min-width: 0; width: 100%; padding: 6px 12px; font-size: 0.8rem; border-width: 4px;"><i class="bi bi-flag"></i> Finish</button>
+            <span class="board-banner-wood">Bàn Cờ Chữ</span>
+            <p class="board-instructions">Chọn các ô chữ bất kỳ trên bảng để ghép thành từ. Không cần liền kề.</p>
+            <div class="board-actions" style="margin-top: 10px;">
+              <button class="pixel-btn pixel-btn--wood" id="finishBattleBtn" type="button" style="width: 100%; min-height: 38px; font-size: 0.78rem;"><i class="bi bi-flag"></i> Kết Thúc</button>
             </div>
           </div>
           
@@ -236,7 +236,7 @@
     </div>
     <div class="pixel-modal__body">
       <div class="modal-boss-avatar-wrap">
-        <img id="modalBossAvatar" src="/ui/assets/ui/tiny/avatar-c.png" alt="avatar">
+        <img id="modalBossAvatar" src="/ui/assets/ui/avatars/portrait-boss-crabby.png" alt="avatar">
       </div>
       <div class="modal-boss-details">
         <p><strong>Thuộc tính:</strong> <span id="modalBossElement">SHADOW</span></p>

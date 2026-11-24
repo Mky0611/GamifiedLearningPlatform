@@ -367,7 +367,12 @@
 
   function renderStatus(message, tone = 'danger'){
     const el = document.getElementById('raidStatus');
-    if(el) el.innerHTML = `<div class="inline-message" data-tone="${tone}">${window.appApi.escapeHtml(message)}</div>`;
+    if(!el) return;
+    if(typeof message === 'string' && message.trim().startsWith('<')){
+      el.innerHTML = message;
+    } else {
+      el.innerHTML = `<div class="inline-message" data-tone="${tone}">${window.appApi.escapeHtml(message)}</div>`;
+    }
   }
 
   function currentWord(){
@@ -536,17 +541,20 @@
     const bossAvatarImg = document.querySelector('.avatar-boss img');
     if (bossAvatarImg) {
       const theme = state.bossTheme || 'crabby';
-      let avatarPath = '/ui/assets/ui/tiny/avatar-c.png';
-      if (theme === 'captain') avatarPath = '/ui/assets/ui/tiny/avatar-a.png';
-      else if (theme === 'pink') avatarPath = '/ui/assets/ui/tiny/avatar-b.png';
-      else if (theme === 'crabby') avatarPath = '/ui/assets/ui/tiny/avatar-c.png';
-      else {
-        if (theme.startsWith('totem')) avatarPath = '/ui/assets/ui/tiny/avatar-c.png';
-        else if (theme === 'fierce') avatarPath = '/ui/assets/ui/tiny/avatar-c.png';
-        else if (theme === 'seashell') avatarPath = '/ui/assets/ui/tiny/avatar-b.png';
-        else if (theme === 'cannon') avatarPath = '/ui/assets/ui/tiny/avatar-a.png';
-      }
-      bossAvatarImg.src = avatarPath;
+      bossAvatarImg.src = `/ui/assets/ui/avatars/portrait-boss-${theme}.png`;
+      bossAvatarImg.alt = themeLabel[theme] || 'Boss';
+    }
+    const heroAvatarImg = document.getElementById('heroAvatarImg');
+    if (heroAvatarImg) {
+      const unit = state.unitCode || 'warrior';
+      heroAvatarImg.src = `/ui/assets/ui/avatars/portrait-hero-${unit}.png`;
+    }
+    const bossNameEl = document.getElementById('bossName');
+    if (bossNameEl) {
+      const theme = state.bossTheme || 'crabby';
+      const cfg = window.RaidPhaserConfig;
+      const bossMeta = cfg?.bosses?.[theme];
+      bossNameEl.textContent = bossMeta?.label || state.stage?.boss?.name || 'Raincap Warden';
     }
     document.getElementById('comboValue').textContent = `x${state.combo}`;
     document.getElementById('scoreValue').textContent = String(state.score);
