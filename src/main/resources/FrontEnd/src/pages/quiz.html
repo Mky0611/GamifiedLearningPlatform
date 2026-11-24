@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lex Raid · Quiz</title>
+  <title>Đấu Trường Trí Tuệ · Quiz Challenge · Lex Raid</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
   <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
@@ -22,33 +22,30 @@
         </a>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home">Home</a>
-          <a class="nav-link-soft" href="/app/minigame">Boss Hunt</a>
+          <a class="nav-link-soft" href="/app/home">Trang chủ</a>
+          <a class="nav-link-soft" href="/app/minigame">Đấu Boss</a>
+          <a class="nav-link-soft" href="/app/volcard">Kho từ vựng</a>
           <a class="nav-link-soft is-active" href="/app/quiz">Quiz</a>
-          <a class="nav-link-soft" href="/app/memory">Memory</a>
-          <a class="nav-link-soft" href="/app/speed-math">Speed Math</a>
-          <a class="nav-link-soft" href="/app/code-puzzle">Code Puzzle</a>
-          <a class="nav-link-soft" href="/app/volcard">Volcard</a>
-          <a class="nav-link-soft" href="/app/account">Tài khoản</a>
+          <a class="nav-link-soft" href="/app/account">Nhân vật</a>
           <div id="navUserArea"></div>
         </nav>
       </div>
     </header>
 
     <main class="page-container game-lite-shell">
-      <section class="soft-card game-lite-hero">
+      <section class="soft-card game-lite-hero pixel-panel-wood">
         <div class="game-lite-hero__copy">
-          <span class="section-kicker"><i class="bi bi-patch-question"></i> Quiz Challenge</span>
-          <h1 class="section-title">Quiz page đã được làm lại để không còn cảm giác mock-lite rời rạc</h1>
-          <p class="section-text">Giữ tinh thần web học tập sáng và rõ, nhưng các khối thông tin, tiến độ và CTA đều đồng bộ với Home, Volcard và Boss Hunt.</p>
+          <span class="section-kicker"><i class="bi bi-patch-question"></i> Thử Thách Trí Tuệ · Quiz Challenge</span>
+          <h1 class="section-title">Khảo Hạch Kiến Thức & Từ Vựng IT</h1>
+          <p class="section-text">Vượt qua các câu hỏi trắc nghiệm tiếng Anh và kiến thức công nghệ để tích lũy điểm kinh nghiệm, tôi luyện trí lực trước giờ săn Boss.</p>
           <div class="game-lite-hero__facts">
-            <span class="hero-fact">MCQ nhanh</span>
-            <span class="hero-fact">Fallback không phụ thuộc API</span>
-            <span class="hero-fact">Dễ nối BE sau</span>
+            <span class="hero-fact">Trắc nghiệm nhanh</span>
+            <span class="hero-fact">Chuẩn CEFR & IT</span>
+            <span class="hero-fact">Tích lũy EXP</span>
           </div>
           <div class="game-lite-hero__actions">
-            <a class="btn-soft btn-primary-soft" href="/app/minigame"><i class="bi bi-lightning-charge-fill"></i> Sang Boss Hunt</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/volcard"><i class="bi bi-journal-richtext"></i> Ôn Volcard</a>
+            <a class="pixel-btn pixel-btn--primary" href="/app/minigame"><i class="bi bi-lightning-charge-fill"></i> Sang Đấu Boss</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/volcard"><i class="bi bi-journal-richtext"></i> Ôn Thẻ Bài</a>
           </div>
         </div>
         <div class="game-lite-hero__art">
@@ -57,33 +54,33 @@
       </section>
 
       <div class="game-grid-lite">
-        <section class="soft-card game-card-lite">
+        <section class="soft-card game-card-lite pixel-panel-parchment">
           <div class="module-heading">
             <div>
-              <span class="module-pill">Playable FE module</span>
-              <h2 style="margin:10px 0 8px;font-size:2rem">Làm quiz trực tiếp ngay trên FE</h2>
-              <p class="small-muted" style="margin:0">Khi backend quiz API chưa hoàn tất, trang vẫn phải tự chạy mượt để kiểm UI, spacing và flow học.</p>
+              <span class="module-pill">Bài Khảo Hạch Hiện Tại</span>
+              <h2 style="margin:10px 0 6px;font-size:1.35rem; font-family: var(--font-pixel, monospace); color: var(--wood-dark, #1c120c);">Câu hỏi kiểm tra nhanh</h2>
+              <p class="small-muted" style="margin:0; color: var(--ink-muted, #695241);">Chọn phương án chính xác nhất để hoàn thành bài khảo hạch.</p>
             </div>
           </div>
           <div id="quizMount"></div>
         </section>
 
-        <aside class="soft-card mini-stats">
-          <div class="pixel-banner">Quiz progress</div>
+        <aside class="soft-card mini-stats pixel-panel-wood">
+          <div class="pixel-banner">Tiến Độ Khảo Hạch</div>
           <div class="stat-board">
-            <div class="mini-stat-card"><strong>Điểm</strong><div id="quizScore">0</div></div>
-            <div class="mini-stat-card"><strong>Tiến độ</strong><div id="quizProgress">1 / 5</div></div>
-            <div class="mini-stat-card"><strong>Streak đúng</strong><div id="quizStreak">0</div></div>
-            <div class="mini-stat-card"><strong>Mode</strong><div>Fallback</div></div>
+            <div class="mini-stat-card"><strong>Điểm số</strong><div id="quizScore">0</div></div>
+            <div class="mini-stat-card"><strong>Tiến trình</strong><div id="quizProgress">1 / 5</div></div>
+            <div class="mini-stat-card"><strong>Chuỗi đúng</strong><div id="quizStreak">0</div></div>
+            <div class="mini-stat-card"><strong>Chế độ</strong><div style="font-size: 1.1rem; color: #fff;">Tiêu chuẩn</div></div>
           </div>
-          <div class="side-note" id="quizNote">Giải thích của câu hỏi hiện tại sẽ hiện ở đây.</div>
+          <div class="side-note" id="quizNote">Giải thích chi tiết của câu hỏi sẽ hiển thị tại đây khi bạn chọn đáp án.</div>
           <div class="progress-strip">
-            <div class="progress-strip__item"><span>Điểm mạnh</span><strong>Rõ ràng, gọn, dễ nối API</strong></div>
-            <div class="progress-strip__item"><span>Phù hợp</span><strong>Daily challenge / review</strong></div>
+            <div class="progress-strip__item"><span>Mục tiêu</span><strong>Tăng tốc phản xạ</strong></div>
+            <div class="progress-strip__item"><span>Chủ đề</span><strong>Từ vựng chuyên ngành</strong></div>
           </div>
           <div class="quick-nav">
-            <a class="btn-soft btn-primary-soft" href="/app/home">Về Home</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/memory">Qua Memory</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/home" style="flex:1; text-align:center;">Về Trang Chủ</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/memory" style="flex:1; text-align:center;">Thử Thách Trí Nhớ</a>
           </div>
         </aside>
       </div>

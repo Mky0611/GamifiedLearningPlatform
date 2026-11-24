@@ -6,9 +6,9 @@
   ];
 
   const avatars = [
-    {code:'avatar1', dbKey:'avatar-a', name:'Knight Crest', url:'/ui/assets/imgs/avatar1.png'},
-    {code:'avatar2', dbKey:'avatar-b', name:'Lancer Crest', url:'/ui/assets/imgs/avatar2.png'},
-    {code:'avatar3', dbKey:'avatar-c', name:'Archer Crest', url:'/ui/assets/imgs/avatar3.png'}
+    {code:'avatar1', dbKey:'avatar-a', name:'Knight Warrior', url:'/ui/assets/ui/avatars/avatar-ts-1.png', desc:'Chiến binh quả cảm'},
+    {code:'avatar2', dbKey:'avatar-b', name:'Royal Lancer', url:'/ui/assets/ui/avatars/avatar-ts-18.png', desc:'Kỵ sĩ hoàng gia'},
+    {code:'avatar3', dbKey:'avatar-c', name:'Elven Archer', url:'/ui/assets/ui/avatars/avatar-ts-8.png', desc:'Xạ thủ tinh linh'}
   ];
 
   const state = { unitCode:'warrior', avatarCode:'avatar1' };
@@ -120,7 +120,7 @@
       <button class="option-card avatar-option ${avatar.code===state.avatarCode?'is-selected':''}" data-avatar="${avatar.code}" type="button">
         <span class="option-card__badge"><i class="bi bi-check2"></i></span>
         <div class="avatar-option__frame"><img src="${avatar.url}" alt="${avatar.name}"></div>
-        <div><strong style="display:block;font-size:1.08rem">${avatar.name}</strong><div class="muted">Khóa lưu BE: <code>${avatar.dbKey}</code></div></div>
+        <div><strong style="display:block;font-size:1.05rem;color:var(--gold-bright, #f6c344)">${avatar.name}</strong><div class="muted" style="color:#eeddc5;font-size:0.85rem">${avatar.desc || 'Chân dung hiệp sĩ'}</div></div>
       </button>`).join('');
     const grid = document.getElementById('avatarGrid');
     grid.innerHTML = html;
@@ -154,10 +154,10 @@
         });
       }
 
-      document.getElementById('accountStatus').innerHTML = '<div class="inline-message" data-tone="success">Đã lưu loadout. Boss Hunt sẽ dùng unit/avatar này ngay từ turn 1.</div>';
+      document.getElementById('accountStatus').innerHTML = '<div class="inline-message" data-tone="success">Đã lưu thiết lập nhân vật! Đấu Boss sẽ xuất chiến cùng hiệp sĩ và chân dung này.</div>';
       window.appApi.renderNavUser();
     }catch(err){
-      document.getElementById('accountStatus').innerHTML = `<div class="inline-message">FE đã lưu local nhưng BE chưa nhận save: ${window.appApi.escapeHtml(err.message)}</div>`;
+      document.getElementById('accountStatus').innerHTML = `<div class="inline-message">Đã lưu tạm trên thiết bị: ${window.appApi.escapeHtml(err.message)}</div>`;
     }
   }
 

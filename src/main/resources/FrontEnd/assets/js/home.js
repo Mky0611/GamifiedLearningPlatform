@@ -86,8 +86,8 @@
       stageId: 1,
       chapterNo: 1,
       name: 'Whispering Rain Gate',
-      description: 'Board chữ nằm ở trung tâm thấp, knight bên trái đối đầu boss bên phải.',
-      boss: { name: 'Mushroom Warden' },
+      description: 'Cửa ải Mưa Thầm — nơi quái vật Crabby canh giữ kho báu cổ. Hãy dùng từ vựng để phá khiên chắn và giành chiến thắng!',
+      boss: { name: 'Crabby (Cua Cướp Biển)' },
       boardRows: 5,
       boardCols: 5,
       timePerRoundSec: 20,
@@ -99,40 +99,40 @@
       <div class="hero-panel__content">
         <div class="hero-stage-top">
           <div>
-            <span class="section-kicker"><i class="bi bi-controller"></i> Recommended stage</span>
+            <span class="section-kicker"><i class="bi bi-controller"></i> Ải Đề Xuất Hiện Tại</span>
             <div class="hero-stage-name">${window.appApi.escapeHtml(data.name)}</div>
-            <p style="color:rgba(255,255,255,.76);margin:0">${window.appApi.escapeHtml(data.description || 'Đi vào boss battle ngay')}</p>
+            <p style="color:rgba(255,255,255,.82);margin:4px 0 0;font-size:0.9rem">${window.appApi.escapeHtml(data.description || 'Tiến vào trận chiến săn boss ngay')}</p>
           </div>
-          <img src="/ui/assets/imgs/avatar2.png" alt="stage avatar">
+          <img src="/ui/assets/ui/avatars/portrait-boss-crabby.png" alt="stage boss avatar" style="width:56px;height:56px;border:2px solid #d49b29;background:#382518;object-fit:cover;image-rendering:pixelated">
         </div>
         <div class="hero-stage-grid">
-          <div class="hero-stage-stat"><span>Boss</span><strong>${window.appApi.escapeHtml(data.boss?.name || 'Boss')}</strong></div>
-          <div class="hero-stage-stat"><span>Board</span><strong>${data.boardRows || 5} x ${data.boardCols || 5}</strong></div>
-          <div class="hero-stage-stat"><span>Timer</span><strong>${data.timePerRoundSec || 20}s</strong></div>
+          <div class="hero-stage-stat"><span>Quái Vật</span><strong>${window.appApi.escapeHtml(data.boss?.name || 'Boss')}</strong></div>
+          <div class="hero-stage-stat"><span>Bàn Cờ</span><strong>${data.boardRows || 5} x ${data.boardCols || 5}</strong></div>
+          <div class="hero-stage-stat"><span>Thời Gian</span><strong>${data.timePerRoundSec || 20}s / lượt</strong></div>
         </div>
         <div class="hero-actions-row">
-          <a class="btn-soft btn-primary-soft" href="${href}">Tiếp tục stage</a>
-          <a class="btn-soft btn-secondary-soft" href="/app/volcard">Ôn Volcard</a>
+          <a class="btn-soft btn-primary-soft" href="${href}"><i class="bi bi-sword"></i> Chiến Đấu Ngay</a>
+          <a class="btn-soft btn-secondary-soft" href="/app/volcard"><i class="bi bi-book"></i> Ôn Từ Vựng</a>
         </div>
       </div>`;
 
     grid.innerHTML = `
       <article class="soft-card stage-preview-card">
-        <span class="badge-soft"><i class="bi bi-stars"></i> Boss Hunt flow</span>
-        <h3 style="margin:0">Nối chữ → mở clue → đoán core word</h3>
-        <p class="muted" style="margin:0">Không dùng input text. Người chơi chỉ click hoặc drag qua các ô liền kề.</p>
+        <span class="badge-soft"><i class="bi bi-lightning-charge-fill"></i> Cơ Chế Chiến Đấu</span>
+        <h3 style="margin:0">Ghép Từ → Mở Manh Mối → Hạ Gục Boss</h3>
+        <p class="muted" style="margin:0">Bấm chọn các ô chữ trên bảng ma trận để ghép thành từ tiếng Anh chuẩn và tung đòn tấn công.</p>
         <div class="stage-preview-card__footer">
-          <div><strong>${data.turnLimit || 5} turns</strong><div class="small-muted">${window.appApi.escapeHtml(data.difficulty || 'NORMAL')}</div></div>
-          <a class="btn-soft btn-primary-soft" href="${href}">Play</a>
+          <div><strong>${data.turnLimit || 5} lượt đấu</strong><div class="small-muted">Độ khó: ${window.appApi.escapeHtml(data.difficulty || 'NORMAL')}</div></div>
+          <a class="btn-soft btn-primary-soft" href="${href}">Vào Ải</a>
         </div>
       </article>
       <article class="soft-card stage-preview-card">
-        <span class="badge-soft"><i class="bi bi-code-slash"></i> Side mode</span>
-        <h3 style="margin:0">Quiz, Memory, Math, Code Puzzle</h3>
-        <p class="muted" style="margin:0">Các page phụ đã được làm đồng bộ để bạn có thể chốt FE trước khi đi tiếp BE.</p>
+        <span class="badge-soft"><i class="bi bi-compass"></i> Các Đấu Trường Khác</span>
+        <h3 style="margin:0">Quiz, Memory, Speed Math, Code Puzzle</h3>
+        <p class="muted" style="margin:0">Đa dạng hóa lộ trình rèn luyện tiếng Anh và tư duy logic qua các minigame tương tác hấp dẫn.</p>
         <div class="stage-preview-card__footer">
-          <div><strong>6 modes</strong><div class="small-muted">same design language</div></div>
-          <a class="btn-soft btn-secondary-soft" href="/app/code-puzzle">Mở Code Puzzle</a>
+          <div><strong>6 Chế Độ</strong><div class="small-muted">Cùng ngôn ngữ Pixel RPG</div></div>
+          <a class="btn-soft btn-secondary-soft" href="/app/volcard">Khám Phá</a>
         </div>
       </article>`;
   }

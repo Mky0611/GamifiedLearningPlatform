@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lex Raid · Speed Math</title>
+  <title>Tính Toán Thần Tốc · Speed Calculation · Lex Raid</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
+  <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/games-lite.css">
 </head>
 <body class="pixel-cursor">
@@ -21,33 +22,30 @@
         </a>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home">Home</a>
-          <a class="nav-link-soft" href="/app/minigame">Boss Hunt</a>
-          <a class="nav-link-soft" href="/app/quiz">Quiz</a>
-          <a class="nav-link-soft" href="/app/memory">Memory</a>
-          <a class="nav-link-soft is-active" href="/app/speed-math">Speed Math</a>
-          <a class="nav-link-soft" href="/app/code-puzzle">Code Puzzle</a>
-          <a class="nav-link-soft" href="/app/volcard">Volcard</a>
-          <a class="nav-link-soft" href="/app/account">Tài khoản</a>
+          <a class="nav-link-soft" href="/app/home">Trang chủ</a>
+          <a class="nav-link-soft" href="/app/minigame">Đấu Boss</a>
+          <a class="nav-link-soft" href="/app/volcard">Kho từ vựng</a>
+          <a class="nav-link-soft is-active" href="/app/quiz">Quiz</a>
+          <a class="nav-link-soft" href="/app/account">Nhân vật</a>
           <div id="navUserArea"></div>
         </nav>
       </div>
     </header>
 
     <main class="page-container game-lite-shell">
-      <section class="soft-card game-lite-hero">
+      <section class="soft-card game-lite-hero pixel-panel-wood">
         <div class="game-lite-hero__copy">
-          <span class="section-kicker"><i class="bi bi-lightning-charge"></i> Speed Math</span>
-          <h1 class="section-title">Speed Math giờ không còn là card trống mà là một module FE đủ để test nhịp chơi</h1>
-          <p class="section-text">Giữ phong cách học tập sáng, nhưng side stats, timer và phản hồi sau mỗi đáp án đã rõ ràng hơn để sau này backend chỉ việc bơm session thật.</p>
+          <span class="section-kicker"><i class="bi bi-lightning-charge"></i> Phép Toán Thần Tốc · Speed Calculation</span>
+          <h1 class="section-title">Rèn Luyện Tư Duy & Tốc Độ Tính Toán</h1>
+          <p class="section-text">Giải quyết các phép tính ma thuật dưới áp lực thời gian để rèn giũa phản xạ nhanh nhạy và giữ vững chuỗi combo điểm số cao nhất.</p>
           <div class="game-lite-hero__facts">
-            <span class="hero-fact">45 giây</span>
-            <span class="hero-fact">Streak</span>
-            <span class="hero-fact">Input focus nhanh</span>
+            <span class="hero-fact">Thời gian: 45 giây</span>
+            <span class="hero-fact">Chuỗi liên hoàn</span>
+            <span class="hero-fact">Tăng tốc tư duy</span>
           </div>
           <div class="game-lite-hero__actions">
-            <a class="btn-soft btn-primary-soft" href="/app/code-puzzle"><i class="bi bi-braces"></i> Qua Code Puzzle</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/home">Quay về Home</a>
+            <a class="pixel-btn pixel-btn--primary" href="/app/code-puzzle"><i class="bi bi-braces"></i> Qua Code Puzzle</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/home">Quay Về Trang Chủ</a>
           </div>
         </div>
         <div class="game-lite-hero__art">
@@ -56,33 +54,33 @@
       </section>
 
       <div class="game-grid-lite">
-        <section class="soft-card game-card-lite">
+        <section class="soft-card game-card-lite pixel-panel-parchment">
           <div class="module-heading">
             <div>
-              <span class="module-pill">Math rush</span>
-              <h2 style="margin:10px 0 8px;font-size:2rem">Giải nhanh trước khi hết giờ</h2>
-              <p class="small-muted" style="margin:0">Trải nghiệm FE đã có timer và feedback, đủ để chốt layout trước khi BE sinh bài toán hoặc lưu result.</p>
+              <span class="module-pill">Vòng Tính Nhanh</span>
+              <h2 style="margin:10px 0 6px;font-size:1.35rem; font-family: var(--font-pixel, monospace); color: var(--wood-dark, #1c120c);">Tính toán thần tốc trước khi hết giờ</h2>
+              <p class="small-muted" style="margin:0; color: var(--ink-muted, #695241);">Nhập kết quả chính xác vào ô số và nhấn Enter để tích lũy điểm combo.</p>
             </div>
           </div>
           <div id="mathMount"></div>
         </section>
 
-        <aside class="soft-card mini-stats">
-          <div class="pixel-banner">Math rush</div>
+        <aside class="soft-card mini-stats pixel-panel-wood">
+          <div class="pixel-banner">Chỉ Số Thần Tốc</div>
           <div class="stat-board">
-            <div class="mini-stat-card"><strong>Điểm</strong><div id="mathScore">0</div></div>
-            <div class="mini-stat-card"><strong>Timer</strong><div id="mathTimer">45s</div></div>
-            <div class="mini-stat-card"><strong>Streak</strong><div id="mathStreak">0</div></div>
-            <div class="mini-stat-card"><strong>Engine</strong><div>FE demo</div></div>
+            <div class="mini-stat-card"><strong>Điểm số</strong><div id="mathScore">0</div></div>
+            <div class="mini-stat-card"><strong>Thời gian</strong><div id="mathTimer">45s</div></div>
+            <div class="mini-stat-card"><strong>Chuỗi đúng</strong><div id="mathStreak">0</div></div>
+            <div class="mini-stat-card"><strong>Chế độ</strong><div style="font-size: 1.1rem; color: #fff;">Thần tốc</div></div>
           </div>
-          <div class="side-note" id="mathNote">Trả lời càng nhanh càng dễ giữ streak.</div>
+          <div class="side-note" id="mathNote">Trả lời liên tiếp chính xác để tích lũy chuỗi streak và nhân đôi điểm số.</div>
           <div class="progress-strip">
-            <div class="progress-strip__item"><span>Phù hợp</span><strong>Daily brain warm-up</strong></div>
-            <div class="progress-strip__item"><span>Mở rộng</span><strong>Difficulty tiers / leaderboard</strong></div>
+            <div class="progress-strip__item"><span>Mục tiêu</span><strong>Khởi động phản xạ tư duy</strong></div>
+            <div class="progress-strip__item"><span>Cấp độ</span><strong>Toán học thuật</strong></div>
           </div>
           <div class="quick-nav">
-            <a class="btn-soft btn-primary-soft" href="/app/memory">Qua Memory</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/minigame">Qua Boss Hunt</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/memory" style="flex:1; text-align:center;">Qua Memory</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/minigame" style="flex:1; text-align:center;">Vào Đấu Boss</a>
           </div>
         </aside>
       </div>

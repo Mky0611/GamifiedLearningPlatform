@@ -69,12 +69,12 @@
 
   function getAvatarMap(){
     return {
-      'avatar1':'/ui/assets/imgs/avatar1.png',
-      'avatar2':'/ui/assets/imgs/avatar2.png',
-      'avatar3':'/ui/assets/imgs/avatar3.png'
+      'avatar1':'/ui/assets/ui/avatars/avatar-ts-1.png',
+      'avatar2':'/ui/assets/ui/avatars/avatar-ts-18.png',
+      'avatar3':'/ui/assets/ui/avatars/avatar-ts-8.png'
     };
   }
-  function getAvatarUrl(code){ return getAvatarMap()[normalizeAvatarCode(code)] || '/ui/assets/imgs/avatar1.png'; }
+  function getAvatarUrl(code){ return getAvatarMap()[normalizeAvatarCode(code)] || '/ui/assets/ui/avatars/avatar-ts-1.png'; }
 
   function renderNavUser(){
     const el=document.getElementById('navUserArea');

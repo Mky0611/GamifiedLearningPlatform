@@ -1,14 +1,310 @@
-.account-shell{display:grid;gap:24px}.account-hero{padding:28px}.account-layout{display:grid;grid-template-columns:320px 1fr;gap:22px}.account-panel,.option-panel{padding:22px}.profile-card{display:grid;justify-items:center;gap:14px;text-align:center}.profile-avatar{width:124px;height:124px;border-radius:28px;background:linear-gradient(180deg,#fff6e7,#efddba);padding:12px;box-shadow:var(--shadow), inset 0 0 0 1px rgba(100,75,45,.12)}.profile-avatar img{width:100%;height:100%;object-fit:contain;border-radius:18px;image-rendering:pixelated}.profile-name{font-size:1.5rem;font-weight:900}.profile-meta{color:var(--muted)}
-.option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.option-card{padding:18px;border-radius:24px;background:linear-gradient(180deg,#fff8ea,#f2e2bd);box-shadow:var(--shadow), inset 0 0 0 1px rgba(100,75,45,.1);display:grid;gap:14px;cursor:pointer;transition:.18s ease;position:relative;overflow:visible}.option-card:hover{transform:translateY(-2px)}.option-card.is-selected{box-shadow:0 16px 34px rgba(58,38,18,.24), inset 0 0 0 2px rgba(73,112,199,.55)}
-.option-card__badge{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:999px;background:linear-gradient(180deg,#7fa8ff,#4a71c7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;opacity:0;transform:scale(.8);transition:.18s ease;z-index:12;box-shadow:0 8px 18px rgba(40,63,113,.28)}.option-card.is-selected .option-card__badge{opacity:1;transform:scale(1)}
-.unit-stage{height:160px;border-radius:20px;background:radial-gradient(circle at top,#d6f6ff,#6bb1b9 55%,#4f9fa7 100%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;position:relative;isolation:isolate}.unit-stage::after{content:'';position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:90px;height:22px;background:radial-gradient(circle,rgba(0,0,0,.3),transparent 70%)}
-.unit-stage .pixel-unit{position:relative;z-index:1;transform:scale(1.08)}.unit-stage .pixel-unit--lancer{transform:scale(1.02) translateY(6px)}.avatar-option{display:grid;justify-items:center;text-align:center;gap:12px}.avatar-option__frame{width:140px;height:140px;border-radius:24px;background:linear-gradient(180deg,#fff8ea,#efe0b6);padding:10px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}.avatar-option__frame img{width:100%;height:100%;object-fit:contain;border-radius:16px;image-rendering:pixelated}
-.account-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.account-actions{display:flex;gap:12px;flex-wrap:wrap}.field-note{padding:14px 16px;border-radius:16px;background:#edf4ff;color:#38538b}
-.profile-level-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:linear-gradient(180deg,#fff8ea,#f3e1b7);border:1px solid rgba(180,130,60,.3);font-weight:800;font-size:.9rem;color:#78350f;box-shadow:0 2px 6px rgba(120,53,15,.08)}
-.account-stats-row{display:flex;gap:8px;width:100%;justify-content:center}
-.stat-pill{background:rgba(255,255,255,.75);border:1px solid rgba(100,75,45,.14);border-radius:12px;padding:6px 12px;font-size:.85rem;display:flex;align-items:center;gap:6px}
-.account-rpg-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;margin:4px 0}
-.metric-item{background:rgba(255,248,234,.85);border:1px solid rgba(100,75,45,.12);border-radius:12px;padding:8px 4px;display:grid;justify-items:center;text-align:center}
-.metric-val{font-weight:900;font-size:1.15rem;color:#3a2612}
-.metric-label{font-size:.68rem;color:var(--muted);margin-top:2px}
-@media (max-width:980px){.account-layout{grid-template-columns:1fr}}
+/* ==========================================================================
+   LEX RAID · ACCOUNT / CHARACTER PROFILE
+   Pure Fantasy Pixel RPG Styling
+   ========================================================================== */
+
+.account-shell {
+  display: grid;
+  gap: 22px;
+  padding: 24px 0 48px;
+}
+
+.account-hero {
+  padding: 24px 28px;
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.account-panel,
+.option-panel {
+  padding: 24px;
+}
+
+/* Profile Card (Left Panel) */
+.profile-card {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 110px;
+  height: 110px;
+  border: 4px solid var(--wood-frame, #3c2a1a);
+  background: #1e130c;
+  padding: 8px;
+  box-shadow: inset 0 0 0 2px var(--gold-base, #d49b29), 0 4px 0 0 rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.profile-name {
+  font-family: var(--font-pixel, monospace);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gold-bright, #f6c344);
+  text-shadow: 1px 1px 0 #000;
+  letter-spacing: 0.5px;
+}
+
+.profile-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: var(--gold-base, #d49b29);
+  border: 2px solid #573a0c;
+  color: #1c120c;
+  font-family: var(--font-pixel, monospace);
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: inset 1px 1px 0 #ffe082, inset -1px -1px 0 #8f6010, 0 2px 0 0 rgba(0,0,0,0.4);
+}
+
+/* RPG EXP Bar */
+.account-xp-wrap {
+  width: 100%;
+}
+
+.account-xp-bar-container {
+  height: 18px;
+  background: #140d08;
+  border: 3px solid var(--wood-frame, #3c2a1a);
+  box-shadow: inset 0 0 0 1px #000;
+  overflow: hidden;
+  position: relative;
+}
+
+.account-xp-bar-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #f59e0b 0px,
+    #f59e0b 8px,
+    #d97706 8px,
+    #d97706 16px
+  );
+  box-shadow: inset 0 2px 0 #fde68a, inset 0 -2px 0 #92400e;
+  transition: width 0.3s ease;
+}
+
+/* Currency & Streak */
+.account-stats-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.stat-pill {
+  flex: 1;
+  background: #1c120c;
+  border: 2px solid var(--wood-frame, #3c2a1a);
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  color: #eeddc5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: inset 1px 1px 0 #3a2517, inset -1px -1px 0 #0d0805;
+}
+
+.stat-pill strong {
+  color: var(--gold-bright, #f6c344);
+  font-family: var(--font-pixel, monospace);
+  font-size: 0.95rem;
+}
+
+/* RPG Stats Grid */
+.account-rpg-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.metric-item {
+  background: #1e130c;
+  border: 2px solid var(--wood-frame, #3c2a1a);
+  padding: 10px 4px;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  box-shadow: inset 1px 1px 0 #3a2517, inset -1px -1px 0 #0d0805;
+}
+
+.metric-val {
+  font-family: var(--font-pixel, monospace);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  color: #c9b097;
+  margin-top: 3px;
+}
+
+.field-note {
+  padding: 12px 14px;
+  background: #241710;
+  border: 2px solid var(--wood-frame, #3c2a1a);
+  color: #eeddc5;
+  font-size: 0.88rem;
+  box-shadow: inset 1px 1px 0 #3a2517;
+}
+
+/* Loadout Selection Grid (Right Panel) */
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.option-card {
+  padding: 16px;
+  background: #f7ebd4;
+  border: 3px solid var(--wood-frame, #3c2a1a);
+  box-shadow: inset 1px 1px 0 #fff8e8, inset -1px -1px 0 #d9be8b, 0 3px 0 0 rgba(0,0,0,0.4);
+  display: grid;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  position: relative;
+  text-align: left;
+}
+
+.option-card:hover {
+  transform: translateY(-2px);
+  background: #fff4dc;
+}
+
+.option-card.is-selected {
+  background: #fff4dc;
+  border-color: var(--gold-base, #d49b29);
+  box-shadow: inset 0 0 0 2px var(--gold-bright, #f6c344), 0 4px 0 0 rgba(0,0,0,0.5);
+}
+
+.option-card__badge {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  background: var(--gold-bright, #f6c344);
+  border: 2px solid var(--wood-dark, #1c120c);
+  color: var(--wood-dark, #1c120c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.12s ease;
+  z-index: 10;
+}
+
+.option-card.is-selected .option-card__badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Unit Display Stage */
+.unit-stage {
+  height: 140px;
+  border: 2px solid var(--wood-frame, #3c2a1a);
+  background: linear-gradient(180deg, #1f2b38 0%, #151d26 60%, #2b1f17 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+}
+
+.unit-stage::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 18px;
+  background: radial-gradient(circle, rgba(0,0,0,0.6) 0%, transparent 70%);
+}
+
+.unit-stage .pixel-unit {
+  position: relative;
+  z-index: 1;
+  transform: scale(1.15);
+  margin-bottom: 4px;
+}
+
+.unit-stage .pixel-unit--lancer {
+  transform: scale(1.1) translateY(4px);
+}
+
+/* Avatar Option Cards */
+.avatar-option {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.avatar-option__frame {
+  width: 96px;
+  height: 96px;
+  border: 3px solid var(--wood-frame, #3c2a1a);
+  background: #1e130c;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 1px 1px 0 #3a2517, inset -1px -1px 0 #0d0805;
+}
+
+.avatar-option__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.account-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.account-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 980px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+}

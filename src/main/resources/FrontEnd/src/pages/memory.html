@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lex Raid · Memory</title>
+  <title>Cổ Ngữ Ma Thuật · Memory Match · Lex Raid</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
+  <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/games-lite.css">
 </head>
 <body class="pixel-cursor">
@@ -21,33 +22,30 @@
         </a>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home">Home</a>
-          <a class="nav-link-soft" href="/app/minigame">Boss Hunt</a>
-          <a class="nav-link-soft" href="/app/quiz">Quiz</a>
-          <a class="nav-link-soft is-active" href="/app/memory">Memory</a>
-          <a class="nav-link-soft" href="/app/speed-math">Speed Math</a>
-          <a class="nav-link-soft" href="/app/code-puzzle">Code Puzzle</a>
-          <a class="nav-link-soft" href="/app/volcard">Volcard</a>
-          <a class="nav-link-soft" href="/app/account">Tài khoản</a>
+          <a class="nav-link-soft" href="/app/home">Trang chủ</a>
+          <a class="nav-link-soft" href="/app/minigame">Đấu Boss</a>
+          <a class="nav-link-soft" href="/app/volcard">Kho từ vựng</a>
+          <a class="nav-link-soft is-active" href="/app/quiz">Quiz</a>
+          <a class="nav-link-soft" href="/app/account">Nhân vật</a>
           <div id="navUserArea"></div>
         </nav>
       </div>
     </header>
 
     <main class="page-container game-lite-shell">
-      <section class="soft-card game-lite-hero">
+      <section class="soft-card game-lite-hero pixel-panel-wood">
         <div class="game-lite-hero__copy">
-          <span class="section-kicker"><i class="bi bi-grid-3x3-gap"></i> Memory Match</span>
-          <h1 class="section-title">Memory page giờ đã đúng vai trò mini game phụ nhưng vẫn cùng ngôn ngữ thiết kế</h1>
-          <p class="section-text">Dùng paper tiles, spacing sáng, CTA rõ và side panel để sau này nhúng progress thật từ backend hoặc user profile.</p>
+          <span class="section-kicker"><i class="bi bi-grid-3x3-gap"></i> Ma Trận Cổ Ngữ · Memory Match</span>
+          <h1 class="section-title">Thử Thách Khớp Thẻ Bài Ma Thuật</h1>
+          <p class="section-text">Lật mở các phiến đá ma pháp để tìm kiếm các cặp thẻ bài tương ứng, kích hoạt dòng chảy mana và rèn luyện trí nhớ sắc bén.</p>
           <div class="game-lite-hero__facts">
-            <span class="hero-fact">Flip nhanh</span>
-            <span class="hero-fact">Theo dõi moves</span>
-            <span class="hero-fact">Dễ đổi thành vocab memory</span>
+            <span class="hero-fact">Lật thẻ nhanh</span>
+            <span class="hero-fact">Đếm số lượt</span>
+            <span class="hero-fact">Rèn luyện trí nhớ</span>
           </div>
           <div class="game-lite-hero__actions">
-            <a class="btn-soft btn-primary-soft" href="/app/volcard"><i class="bi bi-journal-richtext"></i> Qua Volcard</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/home">Quay về Home</a>
+            <a class="pixel-btn pixel-btn--primary" href="/app/volcard"><i class="bi bi-journal-richtext"></i> Kho Từ Vựng</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/home">Quay Về Trang Chủ</a>
           </div>
         </div>
         <div class="game-lite-hero__art">
@@ -56,33 +54,30 @@
       </section>
 
       <div class="game-grid-lite">
-        <section class="soft-card game-card-lite">
+        <section class="soft-card game-card-lite pixel-panel-parchment">
           <div class="module-heading">
             <div>
-              <span class="module-pill">Memory board</span>
-              <h2 style="margin:10px 0 8px;font-size:2rem">Lật tile và ghép đúng cặp</h2>
-              <p class="small-muted" style="margin:0">Board dùng paper/tiny UI nên trông cùng hệ với Volcard và các khu vực học tập khác.</p>
+              <span class="module-pill">Đấu Ma Trận</span>
+              <h2 style="margin:10px 0 6px;font-size:1.35rem; font-family: var(--font-pixel, monospace); color: var(--wood-dark, #1c120c);">Tìm cặp thẻ trùng khớp</h2>
+              <p class="small-muted" style="margin:0; color: var(--ink-muted, #695241);">Nhấp vào 2 ô bất kỳ để tìm ra cặp cổ ngữ đồng nhất.</p>
             </div>
+            <button class="pixel-btn pixel-btn--wood" id="memoryResetBtn" type="button"><i class="bi bi-arrow-clockwise"></i> Chơi lại</button>
           </div>
           <div id="memoryMount"></div>
         </section>
 
-        <aside class="soft-card mini-stats">
-          <div class="pixel-banner">Memory loop</div>
+        <aside class="soft-card mini-stats pixel-panel-wood">
+          <div class="pixel-banner">Chỉ Số Giao Tranh</div>
           <div class="stat-board">
-            <div class="mini-stat-card"><strong>Moves</strong><div id="memoryMoves">0</div></div>
-            <div class="mini-stat-card"><strong>Pairs</strong><div id="memoryPairs">0 / 6</div></div>
-            <div class="mini-stat-card"><strong>Theme</strong><div>Lex terms</div></div>
-            <div class="mini-stat-card"><strong>State</strong><div>Playable</div></div>
+            <div class="mini-stat-card"><strong>Số lượt lật</strong><div id="memoryMoves">0</div></div>
+            <div class="mini-stat-card"><strong>Cặp đã ghép</strong><div id="memoryMatches">0 / 6</div></div>
+            <div class="mini-stat-card"><strong>Thời gian</strong><div id="memoryTimer">00:00</div></div>
+            <div class="mini-stat-card"><strong>Trạng thái</strong><div id="memoryState" style="font-size: 1.1rem; color: #fff;">Đang chờ</div></div>
           </div>
-          <div class="side-note" id="memoryNote">Lật 2 ô để tìm cặp giống nhau.</div>
-          <div class="progress-strip">
-            <div class="progress-strip__item"><span>Gợi ý tích hợp</span><strong>Vocab image pairs</strong></div>
-            <div class="progress-strip__item"><span>Dùng sau</span><strong>Session save / stars</strong></div>
-          </div>
+          <div class="side-note" id="memoryNote">Tìm hết tất cả các cặp thẻ ma thuật với số lượt lật ít nhất có thể.</div>
           <div class="quick-nav">
-            <a class="btn-soft btn-primary-soft" href="/app/quiz">Qua Quiz</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/speed-math">Qua Speed Math</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/quiz" style="flex:1; text-align:center;">Qua Quiz</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/speed-math" style="flex:1; text-align:center;">Speed Math</a>
           </div>
         </aside>
       </div>
@@ -96,8 +91,11 @@
     window.gamesLite.mountMemory({
       mountId: 'memoryMount',
       movesId: 'memoryMoves',
-      pairsId: 'memoryPairs',
-      noteId: 'memoryNote'
+      matchesId: 'memoryMatches',
+      timerId: 'memoryTimer',
+      stateId: 'memoryState',
+      noteId: 'memoryNote',
+      resetBtnId: 'memoryResetBtn'
     });
   </script>
 </body>

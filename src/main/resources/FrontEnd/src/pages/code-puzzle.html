@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lex Raid · Code Puzzle</title>
+  <title>Giải Mã Cổ Ngữ · Code Riddle · Lex Raid</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
+  <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/games-lite.css">
 </head>
 <body class="pixel-cursor">
@@ -21,33 +22,30 @@
         </a>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home">Home</a>
-          <a class="nav-link-soft" href="/app/minigame">Boss Hunt</a>
-          <a class="nav-link-soft" href="/app/quiz">Quiz</a>
-          <a class="nav-link-soft" href="/app/memory">Memory</a>
-          <a class="nav-link-soft" href="/app/speed-math">Speed Math</a>
-          <a class="nav-link-soft is-active" href="/app/code-puzzle">Code Puzzle</a>
-          <a class="nav-link-soft" href="/app/volcard">Volcard</a>
-          <a class="nav-link-soft" href="/app/account">Tài khoản</a>
+          <a class="nav-link-soft" href="/app/home">Trang chủ</a>
+          <a class="nav-link-soft" href="/app/minigame">Đấu Boss</a>
+          <a class="nav-link-soft" href="/app/volcard">Kho từ vựng</a>
+          <a class="nav-link-soft is-active" href="/app/quiz">Quiz</a>
+          <a class="nav-link-soft" href="/app/account">Nhân vật</a>
           <div id="navUserArea"></div>
         </nav>
       </div>
     </header>
 
     <main class="page-container game-lite-shell">
-      <section class="soft-card game-lite-hero">
+      <section class="soft-card game-lite-hero pixel-panel-wood">
         <div class="game-lite-hero__copy">
-          <span class="section-kicker"><i class="bi bi-braces"></i> Code Puzzle</span>
-          <h1 class="section-title">Đã thêm page riêng cho Code Puzzle để catalog không còn trỏ tới metadata rỗng</h1>
-          <p class="section-text">Page này chưa cần backend, nhưng đã có flow FE đủ để chốt style và UX trước: code block, multiple choice output và side notes.</p>
+          <span class="section-kicker"><i class="bi bi-braces"></i> Giải Mã Mật Ngữ · Code Riddle</span>
+          <h1 class="section-title">Phân Tích Mã Nguồn & Dự Đoán Đầu Ra</h1>
+          <p class="section-text">Đọc hiểu các đoạn mã cổ thuật lập trình, suy luận logic thực thi và tìm ra kết quả chính xác để hóa giải ma trận bảo vệ kho báu.</p>
           <div class="game-lite-hero__facts">
-            <span class="hero-fact">Code block rõ</span>
-            <span class="hero-fact">Output prediction</span>
-            <span class="hero-fact">Nối quiz engine sau</span>
+            <span class="hero-fact">Logic lập trình</span>
+            <span class="hero-fact">Dự đoán kết quả</span>
+            <span class="hero-fact">Rèn luyện tư duy IT</span>
           </div>
           <div class="game-lite-hero__actions">
-            <a class="btn-soft btn-primary-soft" href="/app/quiz"><i class="bi bi-patch-question"></i> Qua Quiz</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/home">Quay về Home</a>
+            <a class="pixel-btn pixel-btn--primary" href="/app/quiz"><i class="bi bi-patch-question"></i> Qua Quiz</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/home">Quay Về Trang Chủ</a>
           </div>
         </div>
         <div class="game-lite-hero__art">
@@ -56,33 +54,33 @@
       </section>
 
       <div class="game-grid-lite">
-        <section class="soft-card game-card-lite">
+        <section class="soft-card game-card-lite pixel-panel-parchment">
           <div class="module-heading">
             <div>
-              <span class="module-pill">Programming logic</span>
-              <h2 style="margin:10px 0 8px;font-size:2rem">Đọc snippet và đoán output</h2>
-              <p class="small-muted" style="margin:0">Tối ưu cho mảng học logic hoặc prediction puzzle mà sản phẩm của bạn đã chốt từ đầu.</p>
+              <span class="module-pill">Mật Ngữ Cổ Thuật</span>
+              <h2 style="margin:10px 0 6px;font-size:1.35rem; font-family: var(--font-pixel, monospace); color: var(--wood-dark, #1c120c);">Đọc mã nguồn và chọn đầu ra</h2>
+              <p class="small-muted" style="margin:0; color: var(--ink-muted, #695241);">Phân tích luồng điều khiển của đoạn mã dưới đây và chọn đáp án chính xác.</p>
             </div>
           </div>
           <div id="codePuzzleMount"></div>
         </section>
 
-        <aside class="soft-card mini-stats">
-          <div class="pixel-banner">Code puzzle</div>
+        <aside class="soft-card mini-stats pixel-panel-wood">
+          <div class="pixel-banner">Tiến Độ Giải Mã</div>
           <div class="stat-board">
-            <div class="mini-stat-card"><strong>Điểm</strong><div id="codePuzzleScore">0</div></div>
-            <div class="mini-stat-card"><strong>Tiến độ</strong><div id="codePuzzleProgress">1 / 3</div></div>
-            <div class="mini-stat-card"><strong>Focus</strong><div>Logic</div></div>
-            <div class="mini-stat-card"><strong>State</strong><div>Playable</div></div>
+            <div class="mini-stat-card"><strong>Điểm số</strong><div id="codePuzzleScore">0</div></div>
+            <div class="mini-stat-card"><strong>Tiến trình</strong><div id="codePuzzleProgress">1 / 3</div></div>
+            <div class="mini-stat-card"><strong>Chuyên đề</strong><div style="font-size: 1.1rem; color: #fff;">Logic IT</div></div>
+            <div class="mini-stat-card"><strong>Trạng thái</strong><div style="font-size: 1.1rem; color: #fff;">Sẵn sàng</div></div>
           </div>
-          <div class="side-note" id="codePuzzleNote">Giải thích logic của snippet hiện tại sẽ hiện ở đây.</div>
+          <div class="side-note" id="codePuzzleNote">Phân tích kỹ lưỡng các nhánh điều kiện và vòng lặp trước khi xác nhận đáp án.</div>
           <div class="progress-strip">
-            <div class="progress-strip__item"><span>Hướng BE sau</span><strong>Question set / score save</strong></div>
-            <div class="progress-strip__item"><span>Phù hợp</span><strong>Code bootcamp / CS basics</strong></div>
+            <div class="progress-strip__item"><span>Mục tiêu</span><strong>Nắm vững cú pháp cơ bản</strong></div>
+            <div class="progress-strip__item"><span>Độ khó</span><strong>Nhập môn IT</strong></div>
           </div>
           <div class="quick-nav">
-            <a class="btn-soft btn-primary-soft" href="/app/speed-math">Qua Speed Math</a>
-            <a class="btn-soft btn-secondary-soft" href="/app/volcard">Qua Volcard</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/speed-math" style="flex:1; text-align:center;">Qua Speed Math</a>
+            <a class="pixel-btn pixel-btn--wood" href="/app/volcard" style="flex:1; text-align:center;">Kho Từ Vựng</a>
           </div>
         </aside>
       </div>
