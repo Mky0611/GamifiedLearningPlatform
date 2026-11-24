@@ -165,7 +165,7 @@
       renderGames([]);
       renderLeaderboard([]);
       renderRecommendedStage(null);
-      document.getElementById('homeStatus').innerHTML = '<div class="inline-message">API overview chưa sẵn hoặc lỗi, đang dùng dữ liệu FE fallback để bạn vẫn check giao diện.</div>';
+      document.getElementById('homeStatus').innerHTML = '<div class="inline-message"><i class="bi bi-eye"></i> <strong>Vercel Preview Mode:</strong> Đang hiển thị giao diện và dữ liệu demo tĩnh (không kết nối SQL Server).</div>';
     }
   }
 

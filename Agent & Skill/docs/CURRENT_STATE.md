@@ -1,10 +1,10 @@
 # CURRENT PROJECT STATE — LEX RAID PIXEL RPG
 
-**Thời điểm cập nhật:** 23/11/2026  
+**Thời điểm cập nhật:** 24/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát triển:** `feature/p3-rpg-progression`  
-**Trạng thái hiện tại:** **PHASE P3 COMPLETE (RPG PROGRESSION, LEVEL FORMULAS, COINS, XP, PERSISTENT SESSIONS & PLAYER PROFILE)**  
+**Nhánh phát triển:** `feature/p4-vercel-preview`  
+**Trạng thái hiện tại:** **PHASE P4-A COMPLETED (VERCEL PRODUCTION PREVIEW DEPLOYED & VERIFIED LIVE)**  
 **Lead AI Engineering Agent:** Antigravity  
 **Cộng tác viên Review/QA/Planning:** ChatGPT  
 
@@ -122,12 +122,37 @@ Lex Raid là một web game học tiếng Anh kết hợp phong cách Pixel RPG 
 | **IMPORTER UNIT** | `test_vocabulary_importer.py` | **PASS** | 3/3 tests pass (POS normalization, board eligibility, dry-run pipeline). |
 | **DATABASE AUDIT** | `audit_vocabulary_db.py` | **PASS** | 2.098 words, 17 sets, 9 topics, 6 stages parsed từ file UTF-16 LE. |
 | **STATIC PASS** | `smoke_check.py` | **PASS** | 0 lỗi cú pháp JS, 0 ID DOM thiếu, 0 asset hỏng. |
+| **ASSET CASE-AUDIT** | `check_case_sensitivity.py` | **PASS** | 348 files trên đĩa, 129 dynamic Phaser URLs: 0 missing, 0 case mismatch cho môi trường Linux Vercel. |
 | **PREVIEW SERVER** | `preview-server.js` | **PASS** | Node.js route đúng `/app/volcard`, `/app/quiz`, `/app/account`. |
 
 ---
 
-## 5. CÔNG VIỆC TIẾP THEO
+## 5. KẾT QUẢ THỰC HIỆN PHASE P4-A (VERCEL PREVIEW DEPLOYMENT)
 
-1. Commit các thay đổi Phase P3 lên nhánh `feature/p3-rpg-progression`.
-2. Push lên repository GitHub `Mky0611/GamifiedLearningPlatform`.
-3. Bàn giao báo cáo nghiệm thu Phase P3 cho người dùng và ChatGPT.
+1. **Triển khai Production Vercel Thực tế:**
+   - URL Production: [https://gamified-learning-platform-sandy.vercel.app](https://gamified-learning-platform-sandy.vercel.app)
+   - Deployment URL: [https://gamified-learning-platform-82avq2pma-mky0624.vercel.app](https://gamified-learning-platform-82avq2pma-mky0624.vercel.app)
+   - Dự án: `mky0624/gamified-learning-platform` (Deployment ID: `dpl_C3Vqob2As8xs3CAX71DWcyjrRBk2`)
+   - Trạng thái: `READY`
+2. **Cấu hình Vercel (`src/main/resources/FrontEnd/vercel.json` & root `vercel.json`):**
+   - Định tuyến chuẩn 11 trang HTML: `/`, `/app/home`, `/app/auth`, `/app/minigame`, `/app/quiz`, `/app/volcard`, `/app/memory`, `/app/speed-math`, `/app/code-puzzle`, `/app/account`.
+   - Ánh xạ `/ui/assets/**` sang thư mục `/assets/**`.
+   - Refresh trang trực tiếp 100% không bị 404.
+   - Không dùng catch-all rewrite đưa `/api/**` về `home.html` (trả về 404 sạch).
+3. **Kiểm thử Trực tiếp trên Mạng (Live Probe Verification):**
+   - Chạy `tools/probe_deployment.py`: 16/16 endpoints (11 HTML routes + 5 assets) đạt **HTTP 200 OK (0 FAIL)**.
+4. **Nâng cấp Giao diện Chế độ Xem trước (Preview Mode):**
+   - `minigame.js`: Hiển thị rõ chip `Preview Mode: Đang dùng stage demo độc lập`.
+   - `home.js`: Hiển thị banner `Vercel Preview Mode` khi không có API backend.
+   - `account.js`: Hiển thị banner hồ sơ demo và lưu tùy chỉnh loadout trên trình duyệt.
+   - `auth.html`: Hướng dẫn truy cập trực tiếp các chế độ trải nghiệm.
+5. **Báo cáo Hướng dẫn Triển khai:**
+   - Xuất bản `docs/VERCEL_DEPLOYMENT.md` chi tiết toàn bộ thông tin triển khai và hướng dẫn nghiệm thu.
+
+---
+
+## 6. CÔNG VIỆC TIẾP THEO
+
+1. Commit và push toàn bộ thay đổi Phase P4-A lên nhánh `feature/p4-vercel-preview`.
+2. Bàn giao URL trực tiếp cho người dùng nghiệm thu trên laptop và điện thoại di động.
+3. Chuẩn bị kế hoạch cho Phase P4-B (Docker, CI/CD, Containerization) và hoàn thiện backend integration.

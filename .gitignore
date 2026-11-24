@@ -49,6 +49,9 @@ build/
 # VS Code
 .vscode/
 
+# Vercel
+.vercel/
+
 # OS and system files
 .DS_Store
 Thumbs.db

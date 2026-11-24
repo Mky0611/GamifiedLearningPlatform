@@ -1,10 +1,10 @@
 # BÁO CÁO KIỂM THỬ CHẤT LƯỢNG — QA REPORT
-## GIAI ĐOẠN P0, P1, P2, P3 & SECURITY AUDIT — LEX RAID PIXEL RPG
+## GIAI ĐOẠN P0, P1, P2, P3, P4-A & SECURITY AUDIT — LEX RAID PIXEL RPG
 
-**Thời điểm lập:** 23/11/2026  
+**Thời điểm lập:** 24/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh kiểm thử:** `feature/p3-rpg-progression`  
+**Nhánh kiểm thử:** `feature/p4-vercel-preview`  
 **Đơn vị thực hiện:** Antigravity QA Engineering Team  
 
 ---
@@ -13,6 +13,10 @@
 
 | Hạng mục kiểm thử | Cấp độ | Kết quả | Chi tiết & Ghi chú |
 | :--- | :---: | :---: | :--- |
+| **Vercel Live Production Deployment** | LIVE HTTP | **PASS** | `gamified-learning-platform-sandy.vercel.app`: probe 16/16 endpoints đạt HTTP 200 OK (0 fail); direct refresh không 404; API unmapped trả về 404 sạch. |
+| **Vercel Routing & Clean URLs** | CONFIG | **PASS** | Định tuyến 11 routes HTML tĩnh; map `/ui/assets/**` chuẩn; không catch-all `/api/**`. |
+| **Kiểm toán Chữ hoa/thường Linux (`check_case_sensitivity.py`)** | STATIC | **PASS** | 348 files trên đĩa và 129 dynamic Phaser URLs: 0 missing assets, 0 case mismatches. |
+| **Giao diện Chế độ Xem trước (Preview Mode Fallbacks)** | E2E STATIC | **PASS** | 0 lỗi JS, hiển thị rõ chip & banner Preview Mode; Boss Hunt, Volcard, Quiz, Account hoạt động demo mượt mà. |
 | **RPG Level & Reward Engine (`RpgProgressionServiceTest`)** | UNIT | **PASS** | 9/9 tests pass: ngưỡng cấp độ L1..L10, XP bậc 2 $O(1)$, thưởng Lex Raid, single level-up, multi-level jump, tính chuẩn thanh EXP tại 150 XP (25%), khóa bi quan chống mất cập nhật XP giữa các session. |
 | **Player Profile Calculation (`AccountProfileServiceTest`)** | UNIT | **PASS** | 2/2 tests pass: tổng hợp profile, exp bar, loadout, stages cleared, best score, self-healing cấp độ lệch trong DB. |
 | **Lex Raid Session Progression (`LexRaidProgressionTest`)** | UNIT | **PASS** | 4/4 tests pass: thưởng trận đấu từ verified events, chống hack điểm/thắng giả, chống nhận thưởng 2 lần (idempotency), sao kỷ lục không suy giảm. |
@@ -34,7 +38,31 @@
 
 ---
 
-## 2. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P3 (RPG PROGRESSION & IDEMPOTENCY)
+## 2. KẾT QUẢ KIỂM THỬ TRIỂN KHAI VERCEL THỰC TẾ (PHASE P4-A)
+
+- **URL Production:** [https://gamified-learning-platform-sandy.vercel.app](https://gamified-learning-platform-sandy.vercel.app)
+- **Deployment URL:** [https://gamified-learning-platform-82avq2pma-mky0624.vercel.app](https://gamified-learning-platform-82avq2pma-mky0624.vercel.app)
+- **Deployment ID:** `dpl_C3Vqob2As8xs3CAX71DWcyjrRBk2`
+- **Tài khoản / Tổ chức:** `mky0611` (Team: `mky0624`)
+- **Dự án:** `gamified-learning-platform`
+- **Kết quả Probe tự động (`tools/probe_deployment.py`):** **16/16 PASS (0 FAIL)**
+  - 11 routes HTML tĩnh (`/`, `/app`, `/app/home`, `/app/auth`, `/app/minigame`, `/app/quiz`, `/app/volcard`, `/app/account`, `/app/memory`, `/app/speed-math`, `/app/code-puzzle`): 100% trả về `HTTP 200 OK` (Content-Type: `text/html; charset=utf-8`).
+  - 5 tài nguyên cốt lõi (`/ui/assets/css/base.css`, `/ui/assets/js/minigame.js`, `/ui/assets/vendor/phaser.min.js`, `/ui/assets/imgs/logo.png`, `/ui/assets/units/warrior/idle.png`): 100% trả về `HTTP 200 OK` với Content-Type chuẩn xác (`text/css`, `application/javascript`, `image/png`).
+  - Route API chưa triển khai trên Vercel (`GET /api/lex-raid/test`): Trả về `HTTP 404` sạch sẽ, không bị catch-all ghi đè sang `home.html`.
+  - Direct refresh trên trình duyệt: 100% các trang khi F5 / tải lại trực tiếp trả về `HTTP 200 OK`, không bị 404 hoặc vòng lặp redirect.
+- **Kiểm toán Chữ hoa/thường Linux (`tools/check_case_sensitivity.py`):**
+  - Đã quét 348 file trên đĩa và 129 URLs động Phaser từ `raid-config.js`.
+  - Kết quả: **0 missing assets, 0 case mismatches**.
+- **Kiểm tra cú pháp & ID DOM (`tools/smoke_check.py`):**
+  - JS syntax errors: **0**
+  - Missing DOM IDs: **0**
+  - Missing asset paths: **0**
+- **Kiểm tra rò rỉ mã nguồn (`tools/git_security_scanner.py`):**
+  - Working tree: **0 secrets** (Sạch hoàn toàn).
+
+---
+
+## 3. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P3 (RPG PROGRESSION & IDEMPOTENCY)
 
 - **Chi tiết báo cáo:** Tham chiếu tài liệu độc lập `docs/P3_REWARD_TEST_REPORT.md`.
 - **Bộ kiểm thử tự động (Maven Surefire + JDK 21 LTS):** Đạt **20/20 tests PASS** (0 failures, 0 errors, 0 skipped).
@@ -69,7 +97,7 @@
 
 ---
 
-## 3. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P2 (VOCABULARY & IT TAXONOMY)
+## 4. KẾT QUẢ KIỂM THỬ CHI TIẾT GIAI ĐOẠN P2 (VOCABULARY & IT TAXONOMY)
 
 ### A. Kiểm toán Cơ sở Dữ liệu Từ vựng Seed (P2-A Audit)
 - **Tập tin công cụ:** `src/main/resources/tools/audit_vocabulary_db.py`
@@ -135,7 +163,7 @@
 
 ---
 
-## 3. BẰNG CHỨNG HÌNH ẢNH FRAME-BY-FRAME P0
+## 5. BẰNG CHỨNG HÌNH ẢNH FRAME-BY-FRAME P0
 
 1. `warrior_frame_stability_audit.png` (2760×220px): Chân cố định tại Y=170.
 2. `archer_frame_stability_audit.png` (2070×220px): Chân cố định tại Y=135.
@@ -145,12 +173,12 @@
 
 ---
 
-## 4. KẾT LUẬN & ĐIỀU KIỆN NGHIỆM THU
+## 6. KẾT LUẬN & ĐIỀU KIỆN NGHIỆM THU PHASE P4-A
 
-Phase P2 (Vocabulary Engine & IT English) đã hoàn thành đầy đủ toàn bộ các tiêu chí:
-1. Đã kiểm toán chi tiết cơ sở dữ liệu và file seed UTF-16 LE.
-2. Đã thiết lập kiến trúc hai trục độc lập và taxonomy 35 IT domains.
-3. Đã xây dựng pipeline import dữ liệu với chế độ DRY RUN nghiêm ngặt và 3/3 unit tests pass.
-4. Đã tối ưu hóa thuật toán sinh bàn cờ Lex Raid cân bằng tỷ lệ nguyên âm và đảm bảo ghép từ.
-5. Đã nâng cấp toàn diện giao diện Volcard và Quiz theo Pixel RPG Design System.
+Giai đoạn **P4-A Vercel Preview Deployment** đã hoàn thành xuất sắc toàn bộ các mục tiêu kỹ thuật:
+1. Triển khai production Vercel thành công tại `https://gamified-learning-platform-sandy.vercel.app` với chứng chỉ SSL hợp lệ.
+2. Cấu hình điều hướng tĩnh 11 routes chính xác, không dùng catch-all ghi đè `/api/**` về `home.html`, direct refresh không bị 404.
+3. Kiểm toán phân biệt hoa thường Linux đạt 100% (348 assets disk + 129 URLs động: 0 lỗi).
+4. Kiểm tra probe thực tế 16/16 endpoints đạt chuẩn HTTP 200 OK (0 fail).
+5. Giao diện chế độ xem trước (Preview Mode) cho Lex Raid, Volcard, Quiz, Account hoạt động độc lập, mượt mà, không ghi nhận thưởng ảo khi chưa có backend SQL Server.
 6. Toàn bộ mã nguồn đạt chuẩn an toàn 0 sensitive leaks và 0 smoke check errors.

@@ -196,6 +196,11 @@
     renderAvatars();
     renderProfile();
 
+    const statusEl = document.getElementById('accountStatus');
+    if(!userId && statusEl && !statusEl.innerHTML){
+      statusEl.innerHTML = '<div class="inline-message"><i class="bi bi-eye"></i> <strong>Chế độ xem trước (Vercel Preview):</strong> Đang hiển thị hồ sơ demo cục bộ. Các tùy chỉnh loadout được lưu trên trình duyệt (chưa đồng bộ database).</div>';
+    }
+
     document.getElementById('saveLoadoutBtn').addEventListener('click', save);
     document.getElementById('resetLoadoutBtn').addEventListener('click', () => {
       state.unitCode = 'warrior';

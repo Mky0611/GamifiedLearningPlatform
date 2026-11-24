@@ -1,9 +1,9 @@
 # TASK TRACKER — LEX RAID PIXEL RPG
 
-**Trạng thái cập nhật:** 23/11/2026  
+**Trạng thái cập nhật:** 24/11/2026  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh hiện tại:** `feature/p3-rpg-progression`  
+**Nhánh hiện tại:** `feature/p4-vercel-preview`  
 
 ---
 
@@ -15,9 +15,22 @@
 | **P0** | **Animation, Gameplay UI, Mobile Responsive, Runtime QA** | **CODE COMPLETE** | Sửa dứt điểm 9 lỗi animation/battle; mobile 320px no-scroll; script Playwright sẵn sàng. |
 | **P1** | **Pixel RPG Design System & Java 21 / Spring Boot 4.2** | **CODE COMPLETE** | Java 21 LTS & Spring Boot 4.2.0; Design system tokens; minigame & home pixel hóa. |
 | **P2** | **Vocabulary Engine, CEFR A1–C2, IT Taxonomy** | **COMPLETE** | Audit DB UTF-16; 2 trục độc lập; Pipeline importer DRY RUN; Thuật toán sinh bàn cờ cân bằng; Volcard & Quiz UI polish. |
-| **P3** | **RPG Progression, XP, Coins, Level, Sessions & Profile** | **POST-AUDIT ACCEPTANCE READY** | Động cơ cấp độ O(1); Toàn vẹn dữ liệu thưởng (Verified Score); Chống hack điểm/thắng giả; Khóa bi quan chống double reward & mất XP; Chống tráo đề/đáp án Quiz; Sửa toán học thanh EXP; UI 4 trạng thái (Pending/Confirmed/Error/Preview); 20/20 Unit Tests PASS. |
-| **P4** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
+| **P3** | **RPG Progression, XP, Coins, Level, Sessions & Profile** | **POST-AUDIT ACCEPTANCE READY** | Động cơ cấp độ O(1); Toàn vẹn dữ liệu thưởng (Verified Score); Chống hack điểm/thắng giả; Khóa bi quan chống double reward & mất XP; Chống tráo đề/đáp án Quiz; Sửa toán học thanh EXP; UI 4 trạng thái; 20/20 Unit Tests PASS. |
+| **P4-A** | **Vercel Preview Deployment (Frontend Static + Fallbacks)** | **COMPLETED (VERIFIED LIVE)** | Triển khai production Vercel thành công; routing 11 pages; probe 16/16 endpoints đạt HTTP 200 OK; không catch-all `/api/**` (404); audit 348 assets pass 0 lỗi; direct refresh hoạt động mượt mà. |
+| **P4-B** | **Docker, CI/CD, Deployment** | `TODO` | Dockerfile, docker-compose, script build tự động, môi trường test. |
 | **P5** | **Microservices Evaluation** | `TODO` | Đánh giá kiến trúc mở rộng và tối ưu hóa hệ thống. |
+
+---
+
+## 2. CHI TIẾT CÁC TASKS GIAI ĐOẠN P4-A (VERCEL PREVIEW DEPLOYMENT)
+
+| Mã Task | Tên nhiệm vụ | Trạng thái | Tập tin liên quan | Tiêu chí nghiệm thu & Kết quả |
+| :--- | :--- | :---: | :--- | :--- |
+| **P4-A1** | Cấu hình Vercel Routing & Clean URLs | **DONE (PASS)** | `FrontEnd/vercel.json`, `vercel.json` | Cấu hình 11 routes chính; map `/ui/assets/**` sang `/assets/**`; không dùng catch-all; API trả về 404 sạch sẽ. |
+| **P4-A2** | Kiểm toán Phân biệt Hoa/Thường (Linux Case Sensitivity) | **DONE (PASS)** | `check_case_sensitivity.py` | Kiểm tra toàn bộ 348 file trên đĩa và 129 URLs animation động trong `raid-config.js`: 0 missing assets, 0 case mismatches. |
+| **P4-A3** | Nâng cấp Giao diện Chế độ Xem trước (Preview Mode) | **DONE (PASS)** | `minigame.js`, `home.js`, `account.js`, `auth.html` | Hiển thị rõ chip và banner Preview Mode; giải thích rõ dữ liệu demo chưa đồng bộ DB; không tạo phần thưởng ảo. |
+| **P4-A4** | Tài liệu Hướng dẫn Triển khai Vercel | **DONE (PASS)** | `docs/VERCEL_DEPLOYMENT.md` | Tài liệu nghiệm thu chi tiết, bảng routes, hướng dẫn và kết quả probe trực tiếp. |
+| **P4-A5** | Triển khai Production & Probe Trực tiếp | **DONE (PASS)** | `tools/probe_deployment.py` | Triển khai thành công tới `https://gamified-learning-platform-sandy.vercel.app`; probe 16/16 endpoints đạt HTTP 200 OK (0 fail); kiểm tra route `/api/**` trả về 404 chuẩn. |
 
 ---
 

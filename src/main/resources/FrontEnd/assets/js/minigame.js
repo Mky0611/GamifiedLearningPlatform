@@ -1190,7 +1190,7 @@
         difficulty: 'NORMAL',
         boss: { name: 'Raincap Warden', baseHp: 100, baseShield: 30, rageThreshold: 20, elementType: 'SHADOW', code: 'MUSHROOM_WARDEN' }
       };
-      renderStatus('API stage detail chưa sẵn, đang dùng stage fallback.');
+      renderStatus('<span class="pixel-chip" style="background:#451a03;color:#fbbf24;border:1px solid #d97706;padding:4px 8px;font-size:0.85rem"><i class="bi bi-eye"></i> Preview Mode: Đang dùng stage demo độc lập (không kết nối SQL Server)</span>');
     }
 
     try{

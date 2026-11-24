@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/", "destination": "/src/pages/home.html" },
+    { "source": "/app", "destination": "/src/pages/home.html" },
+    { "source": "/app/", "destination": "/src/pages/home.html" },
+    { "source": "/app/home", "destination": "/src/pages/home.html" },
+    { "source": "/app/auth", "destination": "/src/pages/auth.html" },
+    { "source": "/app/minigame", "destination": "/src/pages/minigame.html" },
+    { "source": "/app/quiz", "destination": "/src/pages/quiz.html" },
+    { "source": "/app/volcard", "destination": "/src/pages/volcard.html" },
+    { "source": "/app/memory", "destination": "/src/pages/memory.html" },
+    { "source": "/app/speed-math", "destination": "/src/pages/speed-math.html" },
+    { "source": "/app/code-puzzle", "destination": "/src/pages/code-puzzle.html" },
+    { "source": "/app/account", "destination": "/src/pages/account.html" },
+    { "source": "/ui/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/ui/src/(.*)", "destination": "/src/$1" },
+    { "source": "/ui/(.*)", "destination": "/$1" }
+  ]
+}

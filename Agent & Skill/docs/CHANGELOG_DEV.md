@@ -7,6 +7,39 @@
 
 ---
 
+## [P4-A] — 24/11/2026: Vercel Preview Deployment, Static Routing & Asset Case-Audit
+
+### 1. Cấu hình Vercel Static Routing & Clean URLs
+- **`src/main/resources/FrontEnd/vercel.json` & `vercel.json` (Root):**
+  - Cấu hình rewrites tĩnh chuẩn xác cho toàn bộ 11 routes trang: `/`, `/app`, `/app/home`, `/app/auth`, `/app/minigame`, `/app/quiz`, `/app/volcard`, `/app/memory`, `/app/speed-math`, `/app/code-puzzle`, `/app/account`.
+  - Ánh xạ đường dẫn `/ui/assets/**` về `/assets/**` và `/ui/src/**` về `/src/**`.
+  - Refresh trang trực tiếp 100% không bị 404.
+  - Không sử dụng catch-all rewrite đưa `/api/**` về `home.html`, đảm bảo các request API khi không có backend sẽ trả về mã 404 sạch để kích hoạt graceful fallback trong frontend JS.
+
+### 2. Kiểm toán Tài nguyên & Phân biệt Hoa/Thường (Linux Case Sensitivity)
+- **`src/main/resources/tools/check_case_sensitivity.py`:**
+  - Viết công cụ tự động kiểm tra đối chiếu phân biệt chữ hoa/thường trên toàn bộ 348 file tĩnh và 129 URLs hoạt ảnh Phaser động từ `raid-config.js`.
+  - Kết quả: **0 missing assets, 0 case mismatches** (100% tài nguyên tương thích môi trường Linux của Vercel).
+
+### 3. Nâng cấp Giao diện Chế độ Xem trước (Preview Mode UX Polish)
+- **`minigame.js`, `home.js`, `account.js`, `auth.html`:**
+  - Bổ sung chip và thông báo Preview Mode rõ ràng, giải thích trải nghiệm demo độc lập không có kết nối cơ sở dữ liệu.
+  - Modal kết thúc trận đấu hiển thị `PREVIEW` mode chuẩn xác, không ghi nhận điểm hoặc XP ảo vào DB.
+
+### 4. Triển khai Production & Probe Trực tiếp (Live Probe Verification)
+- **Production URL:** `https://gamified-learning-platform-sandy.vercel.app`
+- **Deployment URL:** `https://gamified-learning-platform-82avq2pma-mky0624.vercel.app` (Deployment ID: `dpl_C3Vqob2As8xs3CAX71DWcyjrRBk2`).
+- **`src/main/resources/tools/probe_deployment.py`:**
+  - Probe tự động toàn bộ 16 routes và tài nguyên tĩnh: 16/16 endpoints đạt **HTTP 200 OK (0 FAIL)**.
+  - Route `/api/lex-raid/test` trả về đúng HTTP 404 sạch, không bị ghi đè.
+  - Direct refresh trên trình duyệt hoạt động ổn định 100%.
+
+### 5. Tài liệu Nghiệm thu & Hướng dẫn Deploy
+- **`docs/VERCEL_DEPLOYMENT.md`:**
+  - Xuất bản tài liệu nghiệm thu triển khai Vercel, bảng ma trận route, kết quả probe thực tế và hướng dẫn kiểm thử.
+
+---
+
 ## [P3-POST-AUDIT] — 23/11/2026: Reward Data Integrity, Concurrency Locking & Battle UI Polish
 
 ### 1. Toàn vẹn Dữ liệu Thưởng & Chống Hack Điểm (Reward Data Integrity)

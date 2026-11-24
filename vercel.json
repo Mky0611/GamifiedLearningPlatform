@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
+    { "source": "/app", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
+    { "source": "/app/", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
+    { "source": "/app/home", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
+    { "source": "/app/auth", "destination": "/src/main/resources/FrontEnd/src/pages/auth.html" },
+    { "source": "/app/minigame", "destination": "/src/main/resources/FrontEnd/src/pages/minigame.html" },
+    { "source": "/app/quiz", "destination": "/src/main/resources/FrontEnd/src/pages/quiz.html" },
+    { "source": "/app/volcard", "destination": "/src/main/resources/FrontEnd/src/pages/volcard.html" },
+    { "source": "/app/memory", "destination": "/src/main/resources/FrontEnd/src/pages/memory.html" },
+    { "source": "/app/speed-math", "destination": "/src/main/resources/FrontEnd/src/pages/speed-math.html" },
+    { "source": "/app/code-puzzle", "destination": "/src/main/resources/FrontEnd/src/pages/code-puzzle.html" },
+    { "source": "/app/account", "destination": "/src/main/resources/FrontEnd/src/pages/account.html" },
+    { "source": "/ui/assets/(.*)", "destination": "/src/main/resources/FrontEnd/assets/$1" },
+    { "source": "/ui/src/(.*)", "destination": "/src/main/resources/FrontEnd/src/$1" },
+    { "source": "/ui/(.*)", "destination": "/src/main/resources/FrontEnd/$1" },
+    { "source": "/assets/(.*)", "destination": "/src/main/resources/FrontEnd/assets/$1" },
+    { "source": "/src/(.*)", "destination": "/src/main/resources/FrontEnd/src/$1" }
+  ]
+}
