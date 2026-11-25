@@ -289,6 +289,11 @@ body.raid-body{
 .arena-hud-badge{font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.7rem;color:#fff;text-shadow:1px 1px 0 #000;display:inline-flex;align-items:center}
 @media (min-width:1024px){.arena-hud-overlay{display:none}}
 
+.status-pill{display:inline-flex;align-items:center;padding:1px 6px;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.6rem;font-weight:700;border:1px solid #140d09;color:#fff}
+.status-pill--burn{background:#c2410c}.status-pill--frost{background:#0284c7}.status-pill--stun{background:#a16207}.status-pill--guard{background:#2e7d47}
+.skill-deck-tab{min-height:28px;padding:2px 8px;border:2px solid #5b3e2b;background:#3a271b;color:#ffebb3;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.66rem;font-weight:700;cursor:pointer}
+.skill-deck-tab.is-active{background:#d49b29;color:#1c120c;border-color:#1c120c}
+
 /* Accessible focus */
 .btn-soft:focus-visible,.board-tile:focus-visible,.info-btn:focus-visible,.pixel-chip-btn:focus-visible,.skill-preview-chip:focus-visible{outline:3px solid #f3c46a;outline-offset:2px}
 

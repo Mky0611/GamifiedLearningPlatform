@@ -60,7 +60,8 @@
     bossMaxHp: 100,
     bossMaxShield: 30,
     bossStatuses: {},
-    timerPaused: false
+    timerPaused: false,
+    skillDeck: 'knight'
   };
 
   function isQaEnvironment(){
@@ -1851,11 +1852,25 @@
     return baseCheck;
   }
 
+  function getVisibleSkillsForDeck(){
+    const all = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+    const deck = state.skillDeck === 'spell' ? 'spell' : 'knight';
+    let filtered = [];
+    if (deck === 'spell') {
+      filtered = all.filter((s) => s.deckGroup === 'spell' || s.id === 'sacred_recovery' || s.id === 'lexical_judgment');
+    } else if (state.unitCode === 'warrior') {
+      filtered = all.filter((s) => s.deckGroup === 'knight' || s.deckGroup === 'both');
+    } else {
+      filtered = all.filter((s) => Array.isArray(s.allowedHeroes) && s.allowedHeroes.includes(state.unitCode));
+    }
+    return filtered.slice(0, 6);
+  }
+
   function renderSkillBar(){
     const bar = document.getElementById('knightSkillBar');
     if(!bar) return;
     const isBackend = Boolean(state.raidSessionId);
-    const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+    const skills = getVisibleSkillsForDeck();
     const cycleBtn = document.getElementById('cycleBossPreviewBtn');
     if (cycleBtn) {
       cycleBtn.disabled = isBackend || state.finished;
@@ -1874,10 +1889,12 @@
     const metaPill = isBackend
       ? '<span class="skill-mp-pill skill-mp-pill--locked" title="Máy chủ chưa hỗ trợ Knight Skill Preview">Backend · Skill Off</span>'
       : `<span class="skill-mp-pill" title="Preview Skill Mana (không ghi DB)">MP ${state.previewMana}/${state.maxPreviewMana}</span>${guardPill}`;
+    const deckLabel = state.skillDeck === 'spell' ? 'Kiếm Kỹ' : 'Phép (3)';
 
     bar.innerHTML = `
       <div class="skill-bar-preview__meta">
         ${metaPill}
+        <button class="skill-deck-tab ${state.skillDeck === 'spell' ? 'is-active' : ''}" id="skillDeckToggle" type="button" title="Chuyển giữa Kiếm Kỹ & Phép Thuật">${deckLabel}</button>
         <button class="skill-sound-toggle ${state.soundEnabled ? 'is-on' : ''}" id="raidSoundBtn" type="button" title="${state.soundEnabled ? 'Tắt âm thanh VFX' : 'Bật âm thanh VFX (Mặc định tắt)'}" aria-label="Bật tắt âm thanh"><i class="bi ${state.soundEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}"></i></button>
       </div>
       ${skills.map((s) => {
@@ -1892,6 +1909,10 @@
 
     bar.querySelectorAll('[data-skill-id]').forEach((btn) => {
       btn.addEventListener('click', () => castKnightSkill(btn.dataset.skillId));
+    });
+    document.getElementById('skillDeckToggle')?.addEventListener('click', () => {
+      state.skillDeck = state.skillDeck === 'spell' ? 'knight' : 'spell';
+      renderSkillBar();
     });
     const sndBtn = document.getElementById('raidSoundBtn');
     if (sndBtn) {
@@ -1937,13 +1958,29 @@
       state.royalGuardReflect = Number(skill.reflectDmg || 6);
     } else {
       const previewDmg = Number(skill.previewDmg || 14);
+      const shieldMult = Number(skill.shieldMultiplier || 1);
+      if (skill.applyStatus === 'burn') {
+        state.bossStatuses.burn = Math.max(Number(state.bossStatuses.burn || 0), Number(skill.statusTurns || 2));
+      } else if (skill.applyStatus === 'frost') {
+        state.bossStatuses.frost = Math.max(Number(state.bossStatuses.frost || 0), Number(skill.statusTurns || 2));
+        if (skill.timeBonusSec && state.playMode === 'campaign') {
+          state.timeLeft = Math.min(60, state.timeLeft + Number(skill.timeBonusSec));
+        }
+      }
+      const hadShieldBefore = state.bossShield > 0;
       if (state.bossShield > 0) {
-        const spill = Math.max(0, previewDmg - state.bossShield);
-        state.bossShield = Math.max(0, state.bossShield - previewDmg);
-        state.bossHp = Math.max(1, state.bossHp - spill);
+        const shieldDmg = previewDmg * shieldMult;
+        const absorbed = Math.min(state.bossShield, shieldDmg);
+        const leftover = Math.max(0, previewDmg - Math.ceil(absorbed / shieldMult));
+        state.bossShield = Math.max(0, state.bossShield - shieldDmg);
+        state.bossHp = Math.max(1, state.bossHp - leftover);
       } else {
         state.bossHp = Math.max(1, state.bossHp - previewDmg);
       }
+      if (skill.applyStatus === 'stunOnBreak' && state.bossShield === 0 && hadShieldBefore) {
+        state.bossStatuses.stun = 1;
+      }
+      checkAndTriggerBossPhase2();
     }
     fillBars();
     renderSkillBar();
@@ -2155,7 +2192,9 @@
           cooldowns: { ...state.skillCooldowns },
           activeSkillId: state.activeSkillId,
           royalGuardActive: state.royalGuardActive,
-          soundEnabled: state.soundEnabled
+          soundEnabled: state.soundEnabled,
+          skillDeck: state.skillDeck,
+          bossStatuses: { ...state.bossStatuses }
         }),
         castSkill: (skillId) => castKnightSkill(skillId),
         cycleBossPreview: () => cyclePreviewBoss(),
