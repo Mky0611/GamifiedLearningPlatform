@@ -274,6 +274,15 @@
       }
       ctx.globalAlpha = 1;
     }
+
+    const activeTheme = document.documentElement.dataset.theme;
+    if (activeTheme === 'daylight') {
+      ctx.fillStyle = 'rgba(243, 238, 220, 0.24)';
+      ctx.fillRect(0, 0, cw, ch);
+    } else if (activeTheme === 'moonlight') {
+      ctx.fillStyle = 'rgba(33, 42, 52, 0.36)';
+      ctx.fillRect(0, 0, cw, ch);
+    }
     if (force) lastDrawTs = performance.now();
   }
 
@@ -329,6 +338,10 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) pause();
       else resume();
+    });
+
+    window.addEventListener('glp:themechange', () => {
+      drawFrame(true);
     });
 
     setBiome(biomeId || detectDefaultBiome());
