@@ -29,9 +29,12 @@
 
     const applyWhenReady = (callback)=>{
       const tryRun = ()=>{
-        const ready = game.scene.keys.BattleScene && game.scene.keys.UIScene;
-        if (ready) return callback();
-        setTimeout(tryRun, 50);
+        const battle = game.scene.getScene('BattleScene');
+        const ui = game.scene.getScene('UIScene');
+        if (battle && ui && game.scene.isActive('BattleScene') && game.scene.isActive('UIScene')) {
+          return callback();
+        }
+        setTimeout(tryRun, 60);
       };
       tryRun();
     };

@@ -64,76 +64,76 @@
     },
     bosses: {
       captain: {
-        label: 'Captain Clown Nose', scale: 2.8,
+        label: 'Captain Clown Nose', scale: 3.0,
         portrait: '/ui/assets/ui/avatars/portrait-boss-captain.png',
         originX: 0.5, originY: 0.8, // 32 / 40
-        idle: { frames: seq(5, n => `/ui/assets/monsters/treasure/captain/idle/Idle Sword ${String(n).padStart(2,'0')}.png`), rate: 8 },
-        attack: { frames: seq(3, n => `/ui/assets/monsters/treasure/captain/attack/Attack 1 ${String(n).padStart(2,'0')}.png`), rate: 10 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/captain/hit/Hit Sword ${String(n).padStart(2,'0')}.png`), rate: 10 }
+        idle: { frames: seq(5, n => `/ui/assets/bosses/captain/boss-captain-idle-${String(n).padStart(2,'0')}.png`), rate: 8 },
+        attack: { frames: seq(3, n => `/ui/assets/bosses/captain/boss-captain-attack-${String(n).padStart(2,'0')}.png`), rate: 10 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/captain/boss-captain-hit-${String(n).padStart(2,'0')}.png`), rate: 10 }
       },
       crabby: {
         label: 'Crabby', scale: 3.2,
         portrait: '/ui/assets/ui/avatars/portrait-boss-crabby.png',
         originX: 0.5, originY: 0.9062, // 29 / 32
-        idle: { frames: seq(9, n => `/ui/assets/monsters/treasure/crabby/idle/Idle ${String(n).padStart(2,'0')}.png`), rate: 10 },
-        attack: { frames: seq(4, n => `/ui/assets/monsters/treasure/crabby/attack/Attack ${String(n).padStart(2,'0')}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/crabby/hit/Hit ${String(n).padStart(2,'0')}.png`), rate: 12 }
+        idle: { frames: seq(9, n => `/ui/assets/bosses/crabby/boss-crabby-idle-${String(n).padStart(2,'0')}.png`), rate: 10 },
+        attack: { frames: seq(4, n => `/ui/assets/bosses/crabby/boss-crabby-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/crabby/boss-crabby-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       fierce: {
         label: 'Fierce Tooth', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-fierce.png',
         originX: 0.5, originY: 0.9333, // 28 / 30
-        idle: { frames: seq(8, n => `/ui/assets/monsters/treasure/fierce/idle/Idle ${String(n).padStart(2,'0')}.png`), rate: 10 },
-        attack: { frames: seq(4, n => `/ui/assets/monsters/treasure/fierce/attack/Attack ${String(n).padStart(2,'0')}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/fierce/hit/Hit ${String(n).padStart(2,'0')}.png`), rate: 12 }
+        idle: { frames: seq(8, n => `/ui/assets/bosses/fierce/boss-fierce-idle-${String(n).padStart(2,'0')}.png`), rate: 10 },
+        attack: { frames: seq(5, n => `/ui/assets/bosses/fierce/boss-fierce-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/fierce/boss-fierce-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       pink: {
         label: 'Pink Star', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-pink.png',
         originX: 0.5, originY: 0.9667, // 29 / 30
-        idle: { frames: seq(8, n => `/ui/assets/monsters/treasure/pink/idle/Idle ${String(n).padStart(2,'0')}.png`), rate: 10 },
-        attack: { frames: seq(4, n => `/ui/assets/monsters/treasure/pink/attack/Attack ${String(n).padStart(2,'0')}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/pink/hit/Hit ${String(n).padStart(2,'0')}.png`), rate: 12 }
+        idle: { frames: seq(8, n => `/ui/assets/bosses/pink/boss-pink-idle-${String(n).padStart(2,'0')}.png`), rate: 10 },
+        attack: { frames: seq(4, n => `/ui/assets/bosses/pink/boss-pink-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/pink/boss-pink-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       totem1: {
         label: 'Totem Head I', scale: 3.4,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem1.png',
         originX: 0.5, originY: 0.9688, // 31 / 32
-        idle: { frames: ['/ui/assets/monsters/treasure/totem1/idle/1.png'], rate: 6 },
-        attack: { frames: seq(6, n => `/ui/assets/monsters/treasure/totem1/attack/${n}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/totem1/hit/${n}.png`), rate: 12 }
+        idle: { frames: ['/ui/assets/bosses/totem1/boss-totem1-idle-01.png'], rate: 6 },
+        attack: { frames: seq(6, n => `/ui/assets/bosses/totem1/boss-totem1-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/totem1/boss-totem1-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       totem2: {
         label: 'Totem Head II', scale: 3.4,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem2.png',
         originX: 0.5, originY: 1.0,
-        idle: { frames: ['/ui/assets/monsters/treasure/totem2/idle/1.png'], rate: 6 },
-        attack: { frames: seq(6, n => `/ui/assets/monsters/treasure/totem2/attack/${n}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/totem2/hit/${n}.png`), rate: 12 }
+        idle: { frames: ['/ui/assets/bosses/totem2/boss-totem2-idle-01.png'], rate: 6 },
+        attack: { frames: seq(6, n => `/ui/assets/bosses/totem2/boss-totem2-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/totem2/boss-totem2-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       totem3: {
         label: 'Totem Head III', scale: 3.4,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem3.png',
         originX: 0.5, originY: 1.0,
-        idle: { frames: ['/ui/assets/monsters/treasure/totem3/idle/1.png'], rate: 6 },
-        attack: { frames: seq(6, n => `/ui/assets/monsters/treasure/totem3/attack/${n}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/totem3/hit/${n}.png`), rate: 12 }
+        idle: { frames: ['/ui/assets/bosses/totem3/boss-totem3-idle-01.png'], rate: 6 },
+        attack: { frames: seq(6, n => `/ui/assets/bosses/totem3/boss-totem3-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/totem3/boss-totem3-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       seashell: {
         label: 'Seashell', scale: 3.4,
         portrait: '/ui/assets/ui/avatars/portrait-boss-seashell.png',
         originX: 0.5, originY: 1.0,
-        idle: { frames: ['/ui/assets/monsters/treasure/seashell/idle/1.png'], rate: 6 },
-        attack: { frames: seq(6, n => `/ui/assets/monsters/treasure/seashell/attack/${n}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/seashell/hit/${n}.png`), rate: 12 }
+        idle: { frames: ['/ui/assets/bosses/seashell/boss-seashell-idle-01.png'], rate: 6 },
+        attack: { frames: seq(6, n => `/ui/assets/bosses/seashell/boss-seashell-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/seashell/boss-seashell-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       },
       cannon: {
         label: 'Cannon', scale: 3.5,
         portrait: '/ui/assets/ui/avatars/portrait-boss-cannon.png',
         originX: 0.5, originY: 1.0,
-        idle: { frames: ['/ui/assets/monsters/treasure/cannon/idle/1.png'], rate: 6 },
-        attack: { frames: seq(6, n => `/ui/assets/monsters/treasure/cannon/attack/${n}.png`), rate: 12 },
-        hit: { frames: seq(4, n => `/ui/assets/monsters/treasure/cannon/hit/${n}.png`), rate: 12 }
+        idle: { frames: ['/ui/assets/bosses/cannon/boss-cannon-idle-01.png'], rate: 6 },
+        attack: { frames: seq(6, n => `/ui/assets/bosses/cannon/boss-cannon-attack-${String(n).padStart(2,'0')}.png`), rate: 12 },
+        hit: { frames: seq(4, n => `/ui/assets/bosses/cannon/boss-cannon-hit-${String(n).padStart(2,'0')}.png`), rate: 12 }
       }
     },
     bossOrder: ['crabby', 'fierce', 'pink', 'captain', 'totem1', 'totem2', 'totem3', 'seashell', 'cannon']

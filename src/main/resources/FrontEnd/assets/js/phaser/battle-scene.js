@@ -176,11 +176,16 @@
     }
 
     setBattleState(next){
+      const prevUnit = this.battleState.unitCode;
       Object.assign(this.battleState, next || {});
-      const heroUnitChanged = next && Object.prototype.hasOwnProperty.call(next, 'unitCode');
-      if (heroUnitChanged) this.spawnActors();
-      else this.applyState();
-      this.scene.get('UIScene').events.emit('set-ui-state', this.battleState);
+      const heroUnitChanged = next && Object.prototype.hasOwnProperty.call(next, 'unitCode') && next.unitCode !== prevUnit;
+      if (this.scene.isActive() && (!this.hero || !this.boss || heroUnitChanged)) {
+        this.spawnActors();
+      } else {
+        this.applyState();
+      }
+      const uiScene = this.scene.get('UIScene');
+      if (uiScene && uiScene.events) uiScene.events.emit('set-ui-state', this.battleState);
     }
 
     applyState(){

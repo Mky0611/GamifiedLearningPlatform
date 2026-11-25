@@ -108,8 +108,9 @@
     async mount(target, initialState){
       const mount = typeof target === 'string' ? document.querySelector(target) : target;
       if(!mount) return null;
-      if(!window.Phaser){ await loadPhaserFromCdn(); }
-      if(window.Phaser && window.RaidPhaserStarter && typeof window.RaidPhaserStarter.mount === 'function'){
+      const forceCanvas = new URLSearchParams(location.search).get('renderer') === 'canvas';
+      if(!forceCanvas && !window.Phaser){ await loadPhaserFromCdn(); }
+      if(!forceCanvas && window.Phaser && window.RaidPhaserStarter && typeof window.RaidPhaserStarter.mount === 'function'){
         mount.dataset.renderer = 'phaser';
         return window.RaidPhaserStarter.mount(mount, initialState || {});
       }

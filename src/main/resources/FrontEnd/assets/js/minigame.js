@@ -358,21 +358,53 @@
     if(nameEl) nameEl.textContent = heroName;
 
     const roleEl = document.getElementById('heroRoleText');
-    if(roleEl) roleEl.textContent = `${role} · Chọn chữ bất kỳ để ghép thành từ rồi tung đòn.`;
+    if(roleEl) roleEl.textContent = `${role} · Chiến binh từ vựng`;
   }
 
   function boardKey(row, col){ return `${row}:${col}`; }
   function randomLetter(){ return alphabet[Math.floor(Math.random() * alphabet.length)]; }
   function normalizeWord(word){ return String(word || '').trim().toUpperCase().replace(/[^A-Z]/g, ''); }
 
-  function renderStatus(message, tone = 'danger'){
+  function renderStatus(message, tone = 'danger', options = {}){
     const el = document.getElementById('raidStatus');
     if(!el) return;
-    if(typeof message === 'string' && message.trim().startsWith('<')){
-      el.innerHTML = message;
-    } else {
-      el.innerHTML = `<div class="inline-message" data-tone="${tone}">${window.appApi.escapeHtml(message)}</div>`;
+    el.replaceChildren();
+
+    const cfg = (message && typeof message === 'object' && !Array.isArray(message))
+      ? message
+      : { text: message, tone, ...options };
+
+    const textValue = String(cfg.text ?? '').trim();
+    if(!textValue && !cfg.badge) return;
+
+    const box = document.createElement('div');
+    box.className = 'inline-message';
+    box.dataset.tone = cfg.isPreview ? 'preview' : (cfg.tone || 'danger');
+
+    if(cfg.badge){
+      const badgeEl = document.createElement('span');
+      badgeEl.className = 'pixel-badge pixel-badge--status';
+      if(cfg.icon){
+        const iconEl = document.createElement('i');
+        iconEl.className = cfg.icon;
+        badgeEl.appendChild(iconEl);
+      }
+      const badgeLabel = document.createElement('span');
+      badgeLabel.textContent = String(cfg.badge);
+      badgeEl.appendChild(badgeLabel);
+      box.appendChild(badgeEl);
+    } else if(cfg.icon){
+      const iconEl = document.createElement('i');
+      iconEl.className = cfg.icon;
+      box.appendChild(iconEl);
     }
+
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'status-message-text';
+    msgSpan.textContent = textValue;
+    box.appendChild(msgSpan);
+
+    el.appendChild(box);
   }
 
   function currentWord(){
@@ -548,6 +580,12 @@
     if (heroAvatarImg) {
       const unit = state.unitCode || 'warrior';
       heroAvatarImg.src = `/ui/assets/ui/avatars/portrait-hero-${unit}.png`;
+    }
+    const roleEl = document.getElementById('heroRoleText');
+    if (roleEl) {
+      const unit = state.unitCode || 'warrior';
+      const role = unitTheme[unit]?.label || unitTheme.warrior.label;
+      roleEl.textContent = `${role} · Chiến binh từ vựng`;
     }
     const bossNameEl = document.getElementById('bossName');
     if (bossNameEl) {
@@ -1190,7 +1228,7 @@
         stageNo: stageId,
         chapterNo: 1,
         name: 'Whispering Rain Gate',
-        description: 'Board nằm giữa, knight và boss đối đầu trực tiếp.',
+        description: 'Cửa ải Mưa Thầm — ghép từ vựng mở phong ấn và hạ gục quái vật cổ đại.',
         boardRows: 5,
         boardCols: 5,
         turnLimit: 5,
@@ -1198,7 +1236,11 @@
         difficulty: 'NORMAL',
         boss: { name: 'Raincap Warden', baseHp: 100, baseShield: 30, rageThreshold: 20, elementType: 'SHADOW', code: 'MUSHROOM_WARDEN' }
       };
-      renderStatus('<span class="pixel-chip" style="background:#451a03;color:#fbbf24;border:1px solid #d97706;padding:4px 8px;font-size:0.85rem"><i class="bi bi-eye"></i> Preview Mode: Đang dùng stage demo độc lập (không kết nối SQL Server)</span>');
+      renderStatus('Đang dùng màn chơi xem trước độc lập (không kết nối SQL Server).', 'warning', {
+        badge: 'Preview Mode',
+        icon: 'bi bi-eye',
+        isPreview: true
+      });
     }
 
     try{
@@ -1312,6 +1354,16 @@
         getScore: () => state.score,
         getBossHp: () => state.bossHp,
         getBossShield: () => state.bossShield,
+        getPlayerHp: () => state.playerHp,
+        getTurn: () => state.turn,
+        getRenderer: () => state.renderer?.renderer || null,
+        setLoadoutAndBoss: ({ unitCode, bossTheme } = {}) => {
+          if (unitCode) state.unitCode = unitCode;
+          if (bossTheme) state.bossTheme = bossTheme;
+          syncRendererState();
+          fillBars();
+        },
+        triggerBossTurn: () => bossTurn('Boss phản công (kiểm thử).'),
         isSubmitting: () => state.isSubmitting,
         isFallback: () => !state.raidSessionId
       };

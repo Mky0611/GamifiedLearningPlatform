@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lex Raid · Boss Hunt</title>
+  <title>Lex Raid · Đấu Boss</title>
+  <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
@@ -16,29 +17,29 @@
 <div class="app-shell">
   <header class="main-nav">
     <div class="page-container main-nav__inner">
-      <a href="/app/home" class="brand"><img class="brand__logo" src="/ui/assets/imgs/logo.png" alt="Lex Raid logo"><span>Lex Raid</span></a>
-      <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
+      <a href="/app/home" class="brand"><img class="brand__logo" src="/ui/assets/imgs/logo-mark.png" alt="Lex Raid emblem"><span>Lex Raid</span></a>
+      <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Mở menu"><i class="bi bi-list"></i></button>
       <nav class="nav-links" id="mainNavLinks">
-        <a class="nav-link-soft" href="/app/home">Home</a>
-        <a class="nav-link-soft is-active" href="/app/minigame">Boss Hunt</a>
-        <a class="nav-link-soft" href="/app/quiz">Quiz</a>
-        <a class="nav-link-soft" href="/app/volcard">Volcard</a>
-        <a class="nav-link-soft" href="/app/account">Tài khoản</a>
+        <a class="nav-link-soft" href="/app/home"><img class="nav-pixel-icon" src="/ui/assets/imgs/favicon.png" alt=""><span>Trang chủ</span></a>
+        <a class="nav-link-soft is-active" href="/app/minigame"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-sword.png" alt=""><span>Đấu Boss</span></a>
+        <a class="nav-link-soft" href="/app/volcard"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-info.png" alt=""><span>Kho từ vựng</span></a>
+        <a class="nav-link-soft" href="/app/quiz"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-settings.png" alt=""><span>Quiz</span></a>
+        <a class="nav-link-soft" href="/app/account"><img class="nav-pixel-icon" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt=""><span>Nhân vật</span></a>
         <div id="navUserArea"></div>
       </nav>
     </div>
   </header>
 
   <main class="page-container raid-shell">
-    <section class="soft-card raid-header" style="padding: 10px 18px; margin-bottom: 10px;">
+    <section class="soft-card raid-header">
       <div class="raid-header__grid">
         <div>
           <span class="section-kicker"><i class="bi bi-shield-shaded"></i> Đấu Trường Từ Vựng · Boss Hunt</span>
           <div class="raid-title" id="stageTitle">Đang tải ải...</div>
-          <p class="raid-sub" id="stageSubtitle" style="margin: 4px 0 0;">Ghép từ vựng tiếng Anh trên bảng ma trận để tung chiêu thức, hóa giải khiên chắn và đánh bại quái vật cổ đại!</p>
+          <p class="raid-sub" id="stageSubtitle" style="margin: 2px 0 0;">Ghép từ vựng tiếng Anh trên bảng ma trận để tung chiêu thức, hóa giải khiên chắn và đánh bại quái vật cổ đại!</p>
         </div>
         <div class="raid-header__brand">
-          <img src="/ui/assets/imgs/logo.png" alt="logo" style="height: 38px; width: auto; object-fit: contain;">
+          <img src="/ui/assets/imgs/logo-mark.png" alt="Lex Raid emblem">
           <div class="raid-chip-row" id="stageChipRow"></div>
         </div>
       </div>
@@ -67,7 +68,6 @@
 
         <div class="battle-stage battle-stage--engine">
           <div id="raidPhaserMount" class="raid-phaser-mount"></div>
-          <div class="raid-engine-note" id="raidEngineNote"></div>
           <div class="battle-stage__actors battle-stage__actors--fallback" aria-hidden="true">
             <div class="left"><div class="pixel-unit pixel-unit--warrior is-idle" id="heroStageSprite"></div></div>
             <div class="right">
@@ -87,6 +87,7 @@
             </div>
           </div>
         </div>
+        <div class="raid-engine-note" id="raidEngineNote"></div>
 
         <div class="attack-dock">
           <div class="attack-dock__content">
@@ -95,8 +96,8 @@
             <div class="attack-dock__meta" id="currentWordMeta">Bấm các ô chữ bất kỳ trên bàn cờ để tạo từ</div>
           </div>
           <div class="attack-dock__actions">
-            <button class="pixel-btn pixel-btn--wood" id="clearPathBtn" type="button" style="min-width: 100px; min-height: 44px;"><i class="bi bi-x-lg"></i> Xóa</button>
-            <button class="pixel-btn pixel-btn--primary" id="submitWordBtn" type="button" style="min-width: 130px; min-height: 44px; font-size: 0.95rem;"><i class="bi bi-lightning-fill"></i> Tấn Công</button>
+            <button class="pixel-btn pixel-btn--wood" id="clearPathBtn" type="button"><i class="bi bi-x-lg"></i> Xóa</button>
+            <button class="pixel-btn pixel-btn--primary" id="submitWordBtn" type="button"><i class="bi bi-lightning-fill"></i> Tấn Công</button>
           </div>
         </div>
       </section>
@@ -108,7 +109,7 @@
           <div class="boss-title-row">
             <strong id="bossName">Boss</strong>
             <button class="info-btn" id="bossInfoBtn" type="button" title="Xem thông tin quái vật">
-              <img src="/ui/assets/imgs/Icon_11.png" alt="info">
+              <img src="/ui/assets/ui/icons/icon-info.png" alt="info">
             </button>
           </div>
           <span class="small-muted" id="bossElement">Arcane</span>
@@ -211,9 +212,9 @@
     </div>
 
     <div class="hero-actions finish-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a class="btn-soft btn-primary-soft" href="/app/minigame"><i class="bi bi-arrow-repeat"></i> Chơi lại</a>
-      <a class="btn-soft btn-secondary-soft" href="/app/account"><i class="bi bi-person-badge"></i> Tài khoản</a>
-      <a class="btn-soft btn-ghost-soft" href="/app/home"><i class="bi bi-house"></i> Về Home</a>
+      <a class="pixel-btn pixel-btn--primary" href="/app/minigame"><i class="bi bi-arrow-repeat"></i> Chơi lại</a>
+      <a class="pixel-btn pixel-btn--mana" href="/app/account"><i class="bi bi-person-badge"></i> Nhân vật</a>
+      <a class="pixel-btn pixel-btn--wood" href="/app/home"><i class="bi bi-house"></i> Về Trang chủ</a>
     </div>
   </div>
 </div>

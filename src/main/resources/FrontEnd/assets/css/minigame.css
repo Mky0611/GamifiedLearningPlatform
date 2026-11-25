@@ -1,26 +1,26 @@
 :root {
-  --tile-size: 58px;
+  --tile-size: clamp(40px, 5.1vh, 46px);
 }
 body.raid-body{
   background:
     linear-gradient(180deg, rgba(18,12,10,.72) 0%, rgba(29,19,15,.84) 100%),
-    url('/ui/assets/imgs/fantasy_bg.png') center top / cover fixed no-repeat;
+    url('/ui/assets/backgrounds/fantasy-arena-bg.png') center top / cover fixed no-repeat;
   color:#f6e8d4;
 }
-.raid-body .main-nav{background:rgba(28,20,16,.88);backdrop-filter:none;border-bottom-color:rgba(255,255,255,.08)}
-.raid-body .nav-link-soft{color:#e7d8c2}.raid-body .nav-link-soft:hover,.raid-body .nav-link-soft.is-active{background:rgba(255,255,255,.08)}
 
-.raid-shell{padding:24px 0 40px;width:min(1480px,calc(100vw - 32px))}.raid-status-wrap{margin-top:14px}
-.raid-header{padding:24px;overflow:hidden;background:linear-gradient(180deg,rgba(34,24,20,.88),rgba(24,18,15,.94));position:relative}
-.raid-header::after{content:'';position:absolute;inset:0;background:url('/ui/assets/imgs/fantasy_bg.png') center 24%/cover no-repeat;opacity:.22}
-.raid-header>*{position:relative;z-index:1}.raid-header__grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
-.raid-title{font-size:clamp(2rem,3.8vw,3.5rem);font-weight:900;margin:14px 0 8px;color:#fff}.raid-sub{color:rgba(255,255,255,.78)}
-.raid-header__brand{display:flex;align-items:center;gap:14px}.raid-header__brand img{width:86px;height:86px;object-fit:contain}.raid-chip-row{display:flex;gap:10px;flex-wrap:wrap}.raid-chip{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:800;color:#f7ead3}
+.raid-shell{padding:6px 0 22px;width:min(1440px,calc(100vw - 24px))}.raid-status-wrap{margin-top:4px}
+.raid-status-wrap .inline-message{padding:3px 10px;font-size:.76rem}
+.raid-header{padding:5px 14px;overflow:hidden;background:linear-gradient(180deg,rgba(34,24,20,.92),rgba(24,18,15,.96));position:relative}
+.raid-header::after{content:'';position:absolute;inset:0;background:url('/ui/assets/backgrounds/fantasy-arena-bg.png') center 24%/cover no-repeat;opacity:.22}
+.raid-header>*{position:relative;z-index:1}.raid-header__grid{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.raid-title{font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:clamp(1.05rem,1.8vw,1.5rem);font-weight:900;margin:2px 0;color:#ffebb3;line-height:1.12}.raid-sub{color:#e7d8c2;font-size:.78rem;display:none}
+@media (min-height:920px){.raid-sub{display:block}}
+.raid-header__brand{display:flex;align-items:center;gap:10px}.raid-header__brand img{width:32px;height:32px;object-fit:contain;image-rendering:pixelated}.raid-chip-row{display:flex;gap:6px;flex-wrap:wrap}.raid-chip{padding:3px 8px;border:2px solid #5a3d24;border-radius:0;background:#1c120c;font-family:var(--font-pixel,'Silkscreen',monospace);font-size:.68rem;font-weight:700;color:#ffebb3}
 
-.raid-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 280px;grid-template-areas:'fighter arena boss' 'core board objectives';gap:16px;margin-top:14px;align-items:start}
+.raid-layout{display:grid;grid-template-columns:236px minmax(0,1fr) 236px;grid-template-areas:'fighter arena boss' 'core board boss';gap:8px;margin-top:6px;align-items:start}
 .raid-cell--fighter{grid-area:fighter}.raid-cell--arena{grid-area:arena;min-width:0}.raid-cell--boss{grid-area:boss;min-width:0}.raid-cell--core{grid-area:core}.raid-cell--board{grid-area:board;min-width:0}.raid-cell--objectives{grid-area:objectives}
 .fighter-panel, .boss-panel {
-  padding: 16px 14px;
+  padding: 10px 12px;
   background: #251b14;
   border: 4px solid var(--wood-dark, #1c120c);
   border-radius: 0 !important;
@@ -31,15 +31,15 @@ body.raid-body{
   height: auto;
   align-self: start;
 }
-.fighter-panel .panel-banner, .boss-panel .panel-banner { margin-bottom: 10px; min-height: 42px; font-size: 0.9rem; }
+.fighter-panel .panel-banner, .boss-panel .panel-banner { margin-bottom: 6px; min-height: 30px; padding: 2px 12px; font-size: 0.82rem; }
 .avatar-hero, .avatar-boss { 
-  width: 64px; 
-  height: 64px; 
+  width: 52px; 
+  height: 52px; 
   border-radius: 0 !important; 
   border: 3px solid #1c120c; 
   box-shadow: inset 0 0 0 2px #d49b29, 0 3px 0 #1c120c; 
   background: #382518; 
-  margin: 0 auto 10px; 
+  margin: 0 auto 6px; 
   display: flex; 
   align-items: center; 
   justify-content: center;
@@ -47,9 +47,9 @@ body.raid-body{
 }
 .avatar-hero img, .avatar-boss img, #heroAvatarImg { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .fighter-panel .sprite-stage { display: none; }
-.fighter-meta, .boss-meta { text-align: center; margin-bottom: 10px; display: grid; gap: 4px; }
-.fighter-meta strong, .boss-meta strong { display: block; font-family: var(--font-pixel, 'Silkscreen'); font-size: 1.05rem; color: #ffebb3; text-shadow: 1px 1px 0 #1c120c; }
-.fighter-meta span, .boss-meta span { color: #d7c2a7; font-size: 0.8rem; line-height: 1.35; }
+.fighter-meta, .boss-meta { text-align: center; margin-bottom: 6px; display: grid; gap: 3px; }
+.fighter-meta strong, .boss-meta strong { display: block; font-family: var(--font-pixel, 'Silkscreen'); font-size: 0.96rem; color: #ffebb3; text-shadow: 1px 1px 0 #1c120c; }
+.fighter-meta span, .boss-meta span { color: #d7c2a7; font-size: 0.76rem; line-height: 1.25; }
 
 .arena-panel {
   padding: 12px;
@@ -93,7 +93,6 @@ body.raid-body{
 }
 .panel-banner::before { left: 4px; }
 .panel-banner::after { right: 4px; }
-.avatar-hero,.avatar-boss{width:84px;height:84px;border-radius:20px;overflow:hidden;margin:0 auto 12px;border:2px solid rgba(255,255,255,.1);background:#2d2117}.avatar-hero img,.avatar-boss img,#heroAvatarImg{width:100%;height:100%;object-fit:cover;background:#f4e2b7}
 .sprite-stage{display:flex;align-items:flex-end;justify-content:center;height:220px;position:relative;margin:8px 0 12px;overflow:hidden}.sprite-stage::after{content:'';position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:80%;height:30px;background:radial-gradient(circle,rgba(0,0,0,.45),transparent 70%)}
 .sprite-stage .pixel-unit{transform-origin:50% 88%}
 .sprite-stage .pixel-unit--lancer{transform:scale(.96) translateY(10px)}
@@ -103,10 +102,10 @@ body.raid-body{
 .fighter-kv,.boss-kv {
   background: rgba(18, 12, 10, 0.82);
   border: 3px solid #2d1f15;
-  padding: 10px 14px;
-  margin-top: auto;
+  padding: 7px 10px;
+  margin-top: 8px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
   box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
   border-radius: 0;
 }
@@ -114,7 +113,8 @@ body.raid-body{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  gap: 8px;
+  font-size: 0.74rem;
   color: #ebd2b6;
   font-family: 'Silkscreen', sans-serif;
   text-transform: uppercase;
@@ -122,12 +122,14 @@ body.raid-body{
 .fighter-kv__row strong, .boss-kv__row strong {
   color: #fff;
   font-weight: 700;
+  text-align: right;
+  font-size: 0.74rem;
 }
-.bar-stack{display:grid;gap:8px;margin-top:10px}
-.pixel-bar__label{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;font-family:var(--font-pixel,'Silkscreen');margin-bottom:4px;color:#ffebb3;font-weight:700}
+.bar-stack{display:grid;gap:5px;margin-top:6px}
+.pixel-bar__label{display:flex;justify-content:space-between;align-items:center;font-size:.74rem;font-family:var(--font-pixel,'Silkscreen');margin-bottom:2px;color:#ffebb3;font-weight:700}
 .pixel-bar {
   position: relative;
-  height: 22px;
+  height: 17px;
   width: 100%;
   box-sizing: border-box;
   background: #18100c;
@@ -166,24 +168,24 @@ body.raid-body{
   transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1) 0.15s !important;
 }
 
-.arena-panel{display:grid;gap:16px;overflow:hidden}
+.arena-panel{display:grid;gap:6px;overflow:hidden;padding:8px 10px}
 .hud-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.hud-card{padding:12px 14px;border:2px solid #1c120c;border-radius:0 !important;background:rgba(255,255,255,.08);box-shadow:inset 1px 1px 0 rgba(255,255,255,.15)}.hud-card span{display:block;color:#d7c2a7;font-family:'Silkscreen',sans-serif;font-size:.74rem}.hud-card strong{font-size:1.08rem;color:#fff}
-.battle-stage{position:relative;width:100%;min-width:0;aspect-ratio:960/420;min-height:240px;max-height:360px;background:#18100c;border:4px solid #1c120c;border-radius:0 !important;padding:0;overflow:hidden;box-shadow:inset 0 0 0 2px #d49b29,0 4px 0 rgba(0,0,0,.5)}
+.battle-stage{position:relative;width:min(100%,calc(var(--stage-h,220px) * 960 / 420));height:var(--stage-h,220px);--stage-h:clamp(165px,24.5vh,248px);margin:0 auto;min-width:0;background:#18100c;border:4px solid #1c120c;border-radius:0 !important;padding:0;overflow:hidden;box-shadow:inset 0 0 0 2px #d49b29,0 4px 0 rgba(0,0,0,.5)}
 .battle-stage::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at center bottom,rgba(255,244,230,.08),transparent 40%);pointer-events:none;z-index:1}
 .raid-phaser-mount{position:absolute;inset:0;display:grid;place-items:center;width:100%;height:100%;min-width:0;border-radius:0 !important;overflow:hidden;background:transparent;z-index:0}
-.raid-phaser-mount > div,.raid-phaser-mount .phaser-scale-manager{width:100% !important;height:100% !important;display:grid !important;place-items:center;min-width:0;overflow:hidden}
-.raid-phaser-mount canvas{display:block;width:100% !important;height:auto !important;max-width:100% !important;max-height:100% !important;aspect-ratio:960/420;image-rendering:pixelated;background:transparent;border-radius:0 !important;margin:0 auto !important}
-.raid-engine-note{display:none;margin-top:12px;padding:10px 14px;border-radius:0 !important;border:3px solid #1c120c;background:rgba(76,19,12,.88);color:#ffd9d4;font-size:.88rem;line-height:1.45}.raid-engine-note.is-visible{display:block}
-.battle-stage__actors--fallback{display:none;position:absolute;inset:0;z-index:2}.battle-stage[data-renderer='canvas-fallback'] .battle-stage__actors--fallback{display:flex;align-items:flex-end;justify-content:space-between;padding:0 10% 48px}
+.raid-phaser-mount > div,.raid-phaser-mount .phaser-scale-manager{position:relative;width:100% !important;height:100% !important;display:block !important;min-width:0;min-height:0;overflow:hidden}
+.raid-phaser-mount canvas{position:absolute;inset:0;display:block;width:100% !important;height:100% !important;max-width:100% !important;max-height:100% !important;object-fit:contain !important;image-rendering:pixelated;background:transparent;border-radius:0 !important;margin:0 !important}
+.raid-engine-note{display:none;margin-top:6px;padding:8px 12px;border-radius:0 !important;border:3px solid #1c120c;background:rgba(76,19,12,.9);color:#ffd9d4;font-size:.82rem;line-height:1.4}.raid-engine-note.is-visible{display:block}
+.battle-stage__actors--fallback{display:none;position:absolute;inset:0;z-index:2}.battle-stage[data-renderer='dom-fallback'] .battle-stage__actors--fallback{display:flex;align-items:flex-end;justify-content:space-between;padding:0 12% 36px}
+.boss-frame-monster{height:96px;width:auto;image-rendering:pixelated;transform:scaleX(-1);transform-origin:bottom center;display:block}
 .battle-stage__ground{position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(180deg,transparent,rgba(12,8,6,.18) 40%,rgba(12,8,6,.5));z-index:0}
 
-.attack-dock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 16px;border:4px solid #1c120c;border-radius:0 !important;background:#251b14;box-shadow:inset 0 0 0 2px #d49b29, 0 4px 0 rgba(0,0,0,.45)}
-.attack-dock__content{display:grid;gap:4px;min-width:0}.attack-dock__word{min-height:44px;display:flex;align-items:center;padding:6px 14px;border:3px solid #1c120c;border-radius:0 !important;background:#18100c;font-family:'Silkscreen',sans-serif;font-size:1.4rem;font-weight:700;color:#ffebb3;letter-spacing:.08em;box-shadow:inset 2px 2px 0 rgba(0,0,0,.6);overflow-wrap:anywhere;text-transform:uppercase}
-.attack-dock__meta{color:#ebd2b6;font-size:.8rem;line-height:1.3}.attack-dock__actions{display:flex;gap:8px;align-items:center}
-.attack-dock__actions .btn-soft{min-width:110px;min-height:44px;padding:8px 14px;font-family:var(--font-pixel,'Silkscreen');font-size:0.88rem;border:3px solid #1c120c;border-radius:0 !important;text-transform:uppercase;cursor:pointer}
+.attack-dock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px;border:4px solid #1c120c;border-radius:0 !important;background:#251b14;box-shadow:inset 0 0 0 2px #d49b29, 0 4px 0 rgba(0,0,0,.45)}
+.attack-dock__content{display:grid;gap:3px;min-width:0}.attack-dock__word{min-height:36px;display:flex;align-items:center;padding:3px 10px;border:3px solid #1c120c;border-radius:0 !important;background:#18100c;font-family:'Silkscreen',sans-serif;font-size:1.15rem;font-weight:700;color:#ffebb3;letter-spacing:.08em;box-shadow:inset 2px 2px 0 rgba(0,0,0,.6);overflow-wrap:anywhere;text-transform:uppercase}
+.attack-dock__meta{color:#ebd2b6;font-size:.74rem;line-height:1.25}.attack-dock__actions{display:flex;gap:8px;align-items:center}
+.attack-dock__actions .btn-soft{min-width:100px;min-height:42px;padding:8px 12px;font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:0.86rem;border:3px solid #1c120c;border-radius:0 !important;cursor:pointer}
 
-.paper-card{background:#fae9c5;color:#442d16;border:4px solid #1c120c;border-radius:0 !important;box-shadow:inset 0 0 0 2px #d49b29, inset 0 0 0 4px #3c2a1a, 0 4px 0 rgba(0,0,0,.4)}
-.paper-card{padding:28px 24px;min-height:100%}.paper-card h3{margin:0 0 14px;font-size:1.1rem;color:#fff;text-align:center;padding:10px 20px;font-family:'Silkscreen',sans-serif;text-shadow:2px 2px 0px #1a0f08;min-height:52px;display:flex;align-items:center;justify-content:center;background-color:#5b3e2b;border:4px solid #1a0f08;box-shadow:inset -4px -4px 0px 0px #382418,inset 4px 4px 0px 0px #825c43,0 4px 0px 0px rgba(0,0,0,0.35);position:relative;text-transform:uppercase;border-radius:0 !important}.paper-card h3::before,.paper-card h3::after{content:'';position:absolute;width:6px;height:6px;background:#f59e0b;border:2px solid #1a0f08;top:4px}.paper-card h3::before{left:4px}.paper-card h3::after{right:4px}.paper-card p,.paper-card .muted{color:#70553a}.raid-side-card__actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.paper-card{background:#fae9c5;color:#442d16;border:4px solid #1c120c;border-radius:0 !important;box-shadow:inset 0 0 0 2px #d49b29, inset 0 0 0 4px #3c2a1a, 0 4px 0 rgba(0,0,0,.4);padding:18px 16px;align-self:start}.paper-card h3{margin:0 0 12px;font-size:1rem;color:#fff;text-align:center;padding:8px 16px;font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-weight:800;text-shadow:2px 2px 0px #1a0f08;min-height:44px;display:flex;align-items:center;justify-content:center;background-color:#5b3e2b;border:4px solid #1a0f08;box-shadow:inset -4px -4px 0px 0px #382418,inset 4px 4px 0px 0px #825c43,0 4px 0px 0px rgba(0,0,0,0.35);position:relative;text-transform:uppercase;border-radius:0 !important}.paper-card h3::before,.paper-card h3::after{content:'';position:absolute;width:6px;height:6px;background:#f59e0b;border:2px solid #1a0f08;top:4px}.paper-card h3::before{left:4px}.paper-card h3::after{right:4px}.paper-card p,.paper-card .muted{color:#70553a}.raid-side-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .core-mask{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.core-mask__slot{width:52px;height:58px;border:3px solid #1c120c;border-radius:0 !important;background:#fff5df;display:flex;align-items:center;justify-content:center;font-family:'Silkscreen',sans-serif;font-size:1.6rem;font-weight:700;box-shadow:inset -2px -2px 0 #dfd0b0, inset 2px 2px 0 #ffffff, 0 3px 0 #1c120c}
 
 /* Compact Horizontal Word Board Styling */
@@ -196,12 +198,12 @@ body.raid-body{
     inset 4px 4px 0px 0px #a39587,
     0 8px 16px rgba(0,0,0,0.3);
   border-radius: 0;
-  padding: 16px 20px;
+  padding: 10px 14px;
 }
 .board-horizontal-container {
   display: grid;
-  grid-template-columns: 210px 1fr 230px;
-  gap: 20px;
+  grid-template-columns: 165px 1fr 205px;
+  gap: 14px;
   align-items: start;
 }
 .board-info-section {
@@ -240,7 +242,7 @@ body.raid-body{
 .board-grid {
   display: grid;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   user-select: none;
   touch-action: manipulation;
   position: relative;
@@ -248,8 +250,9 @@ body.raid-body{
   max-width: 100%;
 }
 .board-tile {
-  width: var(--tile-size, 58px);
-  height: var(--tile-size, 58px);
+  --desktop-tile: clamp(40px, 5.4vh, 52px);
+  width: var(--tile-size, var(--desktop-tile));
+  height: var(--tile-size, var(--desktop-tile));
   min-width: 0;
   border: 3px solid #1c120c;
   background: #fae9c5;
@@ -306,7 +309,7 @@ body.raid-body{
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 2.1rem;
+  font-size: clamp(1.35rem, 2.8vh, 1.9rem);
   line-height: 1;
   font-weight: 900;
   text-transform: uppercase;
@@ -400,15 +403,15 @@ body.raid-body{
   font-size: 0.68rem;
   color: #c4b5a6;
 }
-.finish-overlay{position:fixed;inset:0;background:rgba(14,10,8,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:99;padding:16px}
+.finish-overlay{position:fixed;inset:0;background:rgba(14,10,8,.82);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
 .finish-overlay.is-open{display:flex}
-.finish-card{width:min(580px,100%);padding:28px;background:linear-gradient(180deg,rgba(255,250,242,.98),rgba(245,229,198,.98));border:3px solid #7c5836;border-radius:24px;color:#362514;box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.5);text-align:center}
-.finish-card h2{margin:8px 0 10px;font-size:2rem;font-weight:900}
+.finish-card{width:min(560px,100%);padding:24px;background:#fae9c5;border:4px solid #1c120c;border-radius:0 !important;color:#2b1d14;box-shadow:inset 0 0 0 2px #d49b29, inset 0 0 0 4px #3c2a1a, 0 8px 0 rgba(0,0,0,.55);text-align:center}
+.finish-card h2{margin:8px 0 10px;font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:1.75rem;font-weight:900}
 .pixel-result-header{display:grid;justify-items:center;gap:6px}
 .pixel-stars-row{display:flex;gap:8px;font-size:2.4rem;line-height:1;margin:6px 0}
 .pixel-star{color:#d1c7bc;transition:color .2s ease;text-shadow:0 2px 4px rgba(0,0,0,.2)}
 .pixel-star.is-active{color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,.6)}
-.pixel-levelup-banner{margin:14px 0;padding:12px 18px;border-radius:16px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);color:#451a03;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 8px 24px rgba(245,158,11,.35);border:2px solid #b45309;animation:pixelPulse 1.8s infinite}
+.pixel-levelup-banner{margin:14px 0;padding:12px 18px;border-radius:0 !important;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);color:#451a03;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 8px 24px rgba(245,158,11,.35);border:3px solid #1c120c;animation:pixelPulse 1.8s infinite}
 @keyframes pixelPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 .pixel-levelup-banner i{font-size:1.8rem}
 .pixel-levelup-banner .levelup-text{text-align:left}
@@ -416,7 +419,7 @@ body.raid-body{
 .pixel-levelup-banner .levelup-text span{font-size:.85rem;opacity:.9}
 .pixel-rewards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;text-align:left}
 @media (max-width:520px){.pixel-rewards-grid{grid-template-columns:1fr}}
-.pixel-reward-pill{background:rgba(255,255,255,.75);border:2px solid rgba(124,88,54,.2);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.pixel-reward-pill{background:rgba(255,255,255,.85);border:3px solid #1c120c;border-radius:0 !important;padding:12px 14px;display:flex;align-items:center;gap:10px}
 .reward-icon{font-size:1.6rem;display:flex;align-items:center;justify-content:center}
 .reward-meta{display:grid}
 .reward-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;font-weight:700}
@@ -439,19 +442,46 @@ body.raid-body{
 }
 
 @media (max-width:1320px){
-  .raid-layout{grid-template-columns:1fr 1fr;grid-template-areas:'arena arena' 'board board' 'fighter boss' 'core objectives';gap:16px}
-  .raid-header__grid{grid-template-columns:1fr}
-  .battle-stage{min-height:280px;max-height:none}
+  .raid-layout{grid-template-columns:212px minmax(0,1fr) 212px;gap:8px}
+  .battle-stage{--stage-h:clamp(160px,24vh,215px);width:min(100%,calc(var(--stage-h) * 960 / 420));height:var(--stage-h)}
+  .board-horizontal-container{grid-template-columns:138px 1fr 172px;gap:8px}
 }
-@media (max-width:1024px){
+@media (min-width:961px) and (max-height:830px){
+  :root{--tile-size:40px}
+  .raid-shell{padding:4px 0 16px}
+  .raid-header{padding:4px 12px}
+  .raid-header .section-kicker{font-size:.66rem;padding:2px 6px}
+  .raid-title{font-size:1.05rem;margin:1px 0}
+  .raid-layout{gap:6px;margin-top:4px}
+  .fighter-panel,.boss-panel{padding:8px 10px}
+  .fighter-panel .panel-banner,.boss-panel .panel-banner{min-height:26px;font-size:.76rem;margin-bottom:4px}
+  .avatar-hero,.avatar-boss{width:42px;height:42px;margin-bottom:4px}
+  .fighter-meta,.boss-meta{margin-bottom:4px;gap:2px}
+  .fighter-meta strong,.boss-meta strong{font-size:.88rem}
+  .fighter-kv,.boss-kv{margin-top:5px;padding:5px 8px;gap:2px}
+  .pixel-bar{height:15px}
+  .battle-stage{--stage-h:clamp(158px,23.5vh,184px);width:min(100%,calc(var(--stage-h) * 960 / 420));height:var(--stage-h)}
+  .arena-panel{padding:6px 8px;gap:5px}
+  .attack-dock{padding:5px 10px}
+  .attack-dock .section-kicker{font-size:.66rem !important;padding:1px 6px !important}
+  .attack-dock__word{min-height:32px;font-size:1rem}
+  .attack-dock__meta{display:none}
+  .board-shell{padding:6px 10px}
+  .board-grid{gap:4px}
+  .board-tile__letter{font-size:1.35rem}
+}
+@media (max-width:960px){
   :root {
-    --tile-size: clamp(48px, 6vw, 62px);
+    --tile-size: clamp(44px, 5.2vw, 52px);
   }
+  .raid-layout{grid-template-columns:1fr 1fr;grid-template-areas:'arena arena' 'board board' 'fighter boss' 'core core';gap:10px}
+  .raid-header__grid{grid-template-columns:1fr}
+  .battle-stage{width:100%;height:clamp(170px,28vw,226px);min-height:170px;max-height:226px}
   .board-horizontal-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
   }
   .board-info-section {
     display: none;
@@ -465,51 +495,57 @@ body.raid-body{
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 }
 @media (max-width:860px){
-  .raid-layout{grid-template-columns:1fr;grid-template-areas:'arena' 'board' 'fighter' 'boss' 'core' 'objectives';gap:12px}
+  .raid-layout{grid-template-columns:1fr;grid-template-areas:'arena' 'board' 'fighter' 'boss' 'core';gap:10px}
 }
 @media (max-width:720px){
   :root {
-    --tile-size: clamp(40px, calc((100vw - 36px) / var(--board-cols, 5) - 4px), 52px);
+    --tile-size: clamp(36px, calc((100vw - 44px) / var(--board-cols, 5) - 4px), 46px);
   }
-  .raid-shell{width:min(100vw - 8px,1480px);padding:4px 0 20px}
-  .raid-header{display:none} /* Clean combat view: hide redundant header on mobile */
-  .raid-layout{margin-top:6px;gap:8px}
+  .raid-shell{width:min(100vw - 8px,1440px);padding:2px 0 18px}
+  .raid-header{display:none}
+  .raid-status-wrap{margin-top:4px}
+  .raid-status-wrap .inline-message{padding:3px 8px;font-size:.68rem;gap:6px;flex-wrap:nowrap}
+  .raid-status-wrap .status-message-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .raid-layout{margin-top:4px;gap:6px}
   .hud-grid{grid-template-columns:1fr 1fr}
-  .attack-dock{grid-template-columns:1fr;padding:6px 8px;gap:6px}
+  .attack-dock{grid-template-columns:1fr;padding:5px 8px;gap:4px}
   .attack-dock .section-kicker{display:none}
   .attack-dock__meta{display:none}
-  .attack-dock__word{font-size:1.1rem;min-height:32px;padding:2px 8px}
+  .attack-dock__word{font-size:1rem;min-height:28px;padding:2px 8px}
   .attack-dock__actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .board-tile__letter{font-size:calc(var(--tile-size, 46px) * 0.48)}
-  .board-shell,.paper-card{padding:8px}
+  .board-tile__letter{font-size:calc(var(--tile-size, 42px) * 0.48)}
+  .board-grid{gap:4px}
+  .board-shell,.paper-card{padding:6px 8px}
+  .board-grid-section{min-height:0}
   .board-objectives-section{grid-template-columns:1fr}
   .core-mask__slot{width:36px;height:42px}
   .board-actions .btn-soft,.paper-card .btn-soft,.attack-dock .btn-soft{min-width:0;width:100%}
-  .attack-dock .btn-soft{padding:8px 10px;min-height:40px;font-size:0.84rem;border-width:4px}
-  .battle-stage{aspect-ratio:960/420;min-height:125px;max-height:175px;border-width:4px}
-  .arena-panel{padding:6px;gap:6px}
+  .attack-dock .btn-soft,.attack-dock .pixel-btn{padding:5px 8px;min-height:40px;font-size:0.82rem}
+  .battle-stage{width:100%;height:clamp(108px,34vw,142px);min-height:108px;max-height:142px;border-width:3px}
+  .arena-panel{padding:5px;gap:5px}
 }
 @media (max-width:360px){
   :root {
-    --tile-size: clamp(38px, calc((100vw - 24px) / var(--board-cols, 5) - 3px), 44px);
+    --tile-size: clamp(34px, calc((100vw - 32px) / var(--board-cols, 5) - 3px), 37px);
   }
   .board-grid{gap:3px}
   .board-shell,.arena-panel{padding:4px}
-  .battle-stage{min-height:115px;max-height:140px}
-  .attack-dock{padding:6px 6px;gap:6px}
-  .attack-dock .btn-soft{font-size:0.8rem;padding:6px 8px;min-height:40px}
+  .battle-stage{width:100%;height:110px;min-height:94px;max-height:110px}
+  .attack-dock{padding:4px 6px;gap:4px}
+  .attack-dock__word{font-size:.9rem;min-height:24px}
+  .attack-dock .btn-soft,.attack-dock .pixel-btn{font-size:0.78rem;padding:4px 6px;min-height:40px}
 }
 
-/* Arena Quick HUD Overlay (Mobile priority) */
+/* Arena Quick HUD Overlay (Mobile & Tablet <= 960px priority) */
 .arena-hud-overlay {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+  top: 6px;
+  left: 6px;
+  right: 6px;
   display: flex;
   justify-content: space-between;
   pointer-events: none;
@@ -521,19 +557,19 @@ body.raid-body{
   gap: 6px;
   background: rgba(18, 12, 10, 0.85);
   border: 2px solid #5b3e2b;
-  padding: 3px 6px;
-  border-radius: 4px;
+  padding: 2px 6px;
+  border-radius: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 .arena-hud-badge {
   font-family: 'Silkscreen', monospace;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: #fff;
   text-shadow: 1px 1px 0 #000;
   display: inline-flex;
   align-items: center;
 }
-@media (min-width: 861px) {
+@media (min-width: 961px) {
   .arena-hud-overlay {
     display: none;
   }
@@ -564,9 +600,10 @@ body.raid-body{
 .info-btn {
   background: none;
   border: none;
-  padding: 0;
-  width: 22px;
-  height: 22px;
+  padding: 9px;
+  width: 40px;
+  height: 40px;
+  margin: -9px 0;
   cursor: pointer;
   image-rendering: pixelated;
   transition: transform 0.1s ease;
