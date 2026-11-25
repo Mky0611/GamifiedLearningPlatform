@@ -13,15 +13,15 @@ def generate_portraits():
 
     # 1. Boss Portraits Mapping
     boss_sources = {
-        "crabby": base / "monsters/treasure/crabby/idle/Idle 01.png",
-        "captain": base / "monsters/treasure/captain/idle/Idle Sword 01.png",
-        "fierce": base / "monsters/treasure/fierce/idle/Idle 01.png",
-        "pink": base / "monsters/treasure/pink/idle/Idle 01.png",
-        "totem1": base / "monsters/treasure/totem1/idle/1.png",
-        "totem2": base / "monsters/treasure/totem2/idle/1.png",
-        "totem3": base / "monsters/treasure/totem3/idle/1.png",
-        "seashell": base / "monsters/treasure/seashell/idle/1.png",
-        "cannon": base / "monsters/treasure/cannon/idle/1.png"
+        "crabby": base / "bosses/crabby/boss-crabby-idle-01.png",
+        "captain": base / "bosses/captain/boss-captain-idle-01.png",
+        "fierce": base / "bosses/fierce/boss-fierce-idle-01.png",
+        "pink": base / "bosses/pink/boss-pink-idle-01.png",
+        "totem1": base / "bosses/totem1/boss-totem1-idle-01.png",
+        "totem2": base / "bosses/totem2/boss-totem2-idle-01.png",
+        "totem3": base / "bosses/totem3/boss-totem3-idle-01.png",
+        "seashell": base / "bosses/seashell/boss-seashell-idle-01.png",
+        "cannon": base / "bosses/cannon/boss-cannon-idle-01.png"
     }
 
     target_size = (64, 64)
