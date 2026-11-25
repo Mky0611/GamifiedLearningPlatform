@@ -49,7 +49,11 @@
     royalGuardActive: false,
     royalGuardMitigationPct: 0,
     royalGuardReflect: 0,
-    soundEnabled: false
+    soundEnabled: false,
+    hintCharges: 3,
+    hintsUsedCount: 0,
+    boardSeedOffset: 0,
+    discoveredWords: []
   };
 
   function isQaEnvironment(){
@@ -248,10 +252,12 @@
     return true;
   }
 
-  function rebuildBoardForActiveCoreWord(){
-    if(!applyBoardFromPayload(state.runtime?.board)){
-      state.board = buildFallbackBoard(getActiveCoreWord(), state.stage?.boardRows || 5, state.stage?.boardCols || 5);
+  function rebuildBoardForActiveCoreWord(forceRegenerate = false){
+    if(!forceRegenerate && applyBoardFromPayload(state.runtime?.board)){
+      renderBoard(true);
+      return;
     }
+    state.board = buildFallbackBoard(getActiveCoreWord(), state.stage?.boardRows || 5, state.stage?.boardCols || 5);
     renderBoard(true);
   }
 
@@ -542,7 +548,172 @@
     if(duration) setTimeout(()=>setHeroMode('idle'), duration);
   }
 
+  function findVocabMetadata(word){
+    const target = normalizeWord(word);
+    if (!target) return null;
+    const raw = Array.isArray(state.runtime?.vocabulary)
+      ? state.runtime.vocabulary
+      : (Array.isArray(state.runtime?.vocabularyWords) ? state.runtime.vocabularyWords : []);
+    const match = raw.find((entry) => normalizeWord(entry?.wordText || entry?.normalizedText || entry?.word) === target);
+    if (match) {
+      return {
+        wordText: match.wordText || target,
+        partOfSpeech: match.partOfSpeech || null,
+        meaningVi: match.meaningVi || null,
+        meaningEn: match.meaningEn || null,
+        levelCefr: match.levelCefr || null
+      };
+    }
+    const core = getActiveCoreEntry();
+    if (core && normalizeWord(core.coreWord) === target) {
+      return {
+        wordText: core.coreWord,
+        partOfSpeech: null,
+        meaningVi: core.clueText || null,
+        meaningEn: null,
+        levelCefr: null
+      };
+    }
+    return null;
+  }
+
+  function speakEnglishWord(word){
+    const clean = String(word || '').trim();
+    if (!clean) return false;
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function') {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(clean);
+        utter.lang = 'en-US';
+        utter.rate = 0.92;
+        window.speechSynthesis.speak(utter);
+        return true;
+      }
+    } catch (e) {
+      // Ignore audio errors cleanly in headless browsers
+    }
+    return false;
+  }
+
+  function renderWordFeedback(entry){
+    const toast = document.getElementById('wordFeedbackToast');
+    if (!toast || !entry) return;
+    const badgeClass = entry.wordCategory === 'TOPIC' || entry.wordCategory === 'CORE'
+      ? 'word-feedback-badge word-feedback-badge--topic'
+      : 'word-feedback-badge';
+    const badgeLabel = entry.wordCategory === 'CORE'
+      ? 'CORE WORD'
+      : (entry.wordCategory === 'TOPIC' ? 'TOPIC +30%' : 'GLOBAL LEXICON');
+    const meaningText = entry.meaningText
+      ? window.appApi.escapeHtml(entry.meaningText)
+      : 'Từ tiếng Anh hợp lệ (chưa có thẻ nghĩa đầy đủ trong DB)';
+    const statsText = `${entry.damageDealt} DMG · +${entry.manaGain} MP`;
+    toast.innerHTML = `
+      <span class="${badgeClass}">${badgeLabel}</span>
+      <strong>${window.appApi.escapeHtml(entry.word)}</strong>
+      <span>(${statsText})</span>
+      <span>· ${meaningText}</span>
+      <button type="button" class="word-tts-btn" id="wordTtsBtn" aria-label="Phát âm từ ${window.appApi.escapeHtml(entry.word)}">
+        <i class="bi bi-volume-up-fill"></i> Nghe
+      </button>`;
+    toast.classList.add('is-visible');
+    const ttsBtn = document.getElementById('wordTtsBtn');
+    if (ttsBtn) ttsBtn.onclick = () => speakEnglishWord(entry.word);
+  }
+
+  function recordWordJournal(entry){
+    if (!entry || !entry.word) return;
+    const exists = state.discoveredWords.some((item) => item.word === entry.word);
+    if (!exists) {
+      state.discoveredWords.push(entry);
+    }
+    try {
+      const key = 'glp.wordJournal';
+      const current = JSON.parse(localStorage.getItem(key) || '[]');
+      const list = Array.isArray(current) ? current : [];
+      const idx = list.findIndex((item) => item && item.word === entry.word);
+      const record = {
+        word: entry.word,
+        wordCategory: entry.wordCategory,
+        meaningText: entry.meaningText || null,
+        hasMeaningCard: Boolean(entry.meaningText),
+        learnedAt: new Date().toISOString()
+      };
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...record };
+      } else {
+        list.unshift(record);
+      }
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 80)));
+    } catch (e) {
+      // Ignore storage quota errors
+    }
+  }
+
+  function updateHintControls(){
+    const chargeEl = document.getElementById('hintChargeVal');
+    if (chargeEl) chargeEl.textContent = String(Math.max(0, state.hintCharges));
+    const revealBtn = document.getElementById('hintRevealBtn');
+    if (revealBtn) revealBtn.disabled = state.hintCharges <= 0 || state.finished;
+  }
+
+  function useMeaningHint(){
+    if (state.finished) return;
+    const word = getActiveCoreWord();
+    const clue = getActiveClueText();
+    const firstLetter = word ? word[0] : '?';
+    state.hintsUsedCount += 1;
+    const hintText = `Gợi ý: ${clue} (${word.length} chữ cái · Bắt đầu bằng "${firstLetter}")`;
+    const clueEl = document.getElementById('clueText');
+    if (clueEl) clueEl.textContent = hintText;
+    renderStatus(hintText, 'success');
+  }
+
+  function useRevealLetterHint(){
+    if (state.finished) return;
+    const word = getActiveCoreWord();
+    if (!word) return;
+    if (state.hintCharges <= 0) {
+      renderStatus('Hết lượt mở chữ cho chapter này!', 'warning');
+      return;
+    }
+    if (state.revealedIndexes.length >= word.length) {
+      renderStatus('Core Word đã mở đủ các chữ cái!', 'success');
+      return;
+    }
+    state.hintCharges -= 1;
+    state.hintsUsedCount += 1;
+    nextReveal();
+    renderCore();
+    updateHintControls();
+    renderStatus(`Đã mở gợi ý chữ cái (${state.revealedIndexes.length}/${word.length}).`, 'success');
+  }
+
+  function refreshSolvableBoard(){
+    if (state.finished || state.transitioning) return;
+    state.boardSeedOffset += 1;
+    state.selected = [];
+    rebuildBoardForActiveCoreWord(true);
+    updateHintControls();
+    if (state.raidSessionId) syncSession();
+    renderStatus('Đã tạo bảng chữ mới (đảm bảo có từ hợp lệ & Core Word).', 'success');
+  }
+
   function buildFallbackBoard(coreWord, rows = 5, cols = 5){
+    if (window.LexRaidBalance && typeof window.LexRaidBalance.generateSolvableBoard === 'function') {
+      const seed = Number(state.stage?.stageId || 1) * 131 + Number(state.waveIndex || 1) * 17 + Number(state.boardSeedOffset || 0) * 53;
+      const generated = window.LexRaidBalance.generateSolvableBoard({
+        coreWord,
+        topicWords: allRuntimeWords(),
+        rows,
+        cols,
+        seed,
+        minGlobalWords: 8
+      });
+      if (generated && Array.isArray(generated.board) && generated.board.length) {
+        return generated.board;
+      }
+    }
     const totalCells = rows * cols;
     const board = Array.from({ length: rows }, () => Array.from({ length: cols }, randomLetter));
     const letters = normalizeWord(coreWord).split('').filter(Boolean);
@@ -823,6 +994,27 @@
 
   function refillSelected(){
     state.selected.forEach((tile)=>{ state.board[tile.row][tile.col] = randomLetter(); });
+    // Guarantee active core word remains formable on the board
+    const core = getActiveCoreWord();
+    if (core) {
+      const flat = [];
+      state.board.forEach((row, r) => row.forEach((ch, c) => flat.push({ r, c, ch: String(ch || '').toUpperCase() })));
+      const available = {};
+      flat.forEach((cell) => { available[cell.ch] = (available[cell.ch] || 0) + 1; });
+      const needed = {};
+      for (const ch of core) needed[ch] = (needed[ch] || 0) + 1;
+      const missing = [];
+      Object.keys(needed).forEach((ch) => {
+        const diff = needed[ch] - (available[ch] || 0);
+        for (let i = 0; i < diff; i += 1) missing.push(ch);
+      });
+      if (missing.length && state.selected.length) {
+        for (let i = 0; i < Math.min(missing.length, state.selected.length); i += 1) {
+          const slot = state.selected[i];
+          if (state.board[slot.row]) state.board[slot.row][slot.col] = missing[i];
+        }
+      }
+    }
   }
 
   function nextReveal(){
@@ -953,6 +1145,34 @@
       if(coinsEl) coinsEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chế độ xem trước</span>';
       if(levelUpBanner) levelUpBanner.style.display = 'none';
       if(finishText) finishText.textContent = `Score ${state.score} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'} (Trận đấu xem trước, không tích lũy phần thưởng)`;
+    }
+
+    const reviewPanel = document.getElementById('finishReviewPanel');
+    if (reviewPanel && (stateType === 'CONFIRMED' || stateType === 'PREVIEW' || stateType === 'ERROR')) {
+      const coreWord = getActiveCoreWord();
+      const coreMeta = findVocabMetadata(coreWord);
+      const coreDesc = coreMeta && (coreMeta.meaningVi || coreMeta.meaningEn)
+        ? `${coreMeta.meaningVi || coreMeta.meaningEn}`
+        : getActiveClueText();
+      const prompts = state.discoveredWords.slice(0, 4);
+      const promptHtml = prompts.length
+        ? prompts.map((item) => {
+            const desc = item.meaningText
+              ? window.appApi.escapeHtml(item.meaningText)
+              : 'Từ tiếng Anh hợp lệ — bấm Ôn Volcard để luyện sâu.';
+            return `<div class="review-prompt-chip"><strong>${window.appApi.escapeHtml(item.word)}</strong> <span class="small-muted">(${item.wordCategory})</span> · ${desc}</div>`;
+          }).join('')
+        : `<div class="review-prompt-chip">Core Word: <strong>${window.appApi.escapeHtml(coreWord)}</strong> — ${window.appApi.escapeHtml(coreDesc)}</div>`;
+      reviewPanel.style.display = 'grid';
+      reviewPanel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+          <strong><i class="bi bi-journal-bookmark-fill"></i> Sổ Tay Từ Vựng Trận Đấu</strong>
+          <span>Tìm thấy ${state.discoveredWords.length} từ (${state.topicCount} từ chủ đề · ${state.hintsUsedCount} gợi ý)</span>
+        </div>
+        <div class="small-muted">Core Word: <strong>${window.appApi.escapeHtml(coreWord)}</strong> · ${window.appApi.escapeHtml(coreDesc)}</div>
+        <div class="review-prompt-list">${promptHtml}</div>`;
+    } else if (reviewPanel && stateType === 'PENDING') {
+      reviewPanel.style.display = 'none';
     }
   }
 
@@ -1204,6 +1424,21 @@
 
       state.recentWords.unshift(word);
       state.recentWords = [...new Set(state.recentWords)].slice(0, 10);
+      const meta = findVocabMetadata(word);
+      const meaningText = (backendResult && Array.isArray(backendResult.unlockedClues) && backendResult.unlockedClues.length)
+        ? backendResult.unlockedClues[0]
+        : (meta ? [meta.partOfSpeech, meta.meaningVi || meta.meaningEn, meta.levelCefr].filter(Boolean).join(' · ') : null);
+      const wordEntry = {
+        word,
+        wordCategory,
+        damageDealt,
+        manaGain,
+        meaningText: meaningText || null,
+        hasMeaningCard: Boolean(meaningText)
+      };
+      recordWordJournal(wordEntry);
+      renderWordFeedback(wordEntry);
+
       if(!movedCoreFromSubmit && !coreSolved){
         nextReveal();
       }
@@ -1609,6 +1844,10 @@
     document.getElementById('clearPathBtn').onclick = ()=>resetSelection();
     document.getElementById('finishBattleBtn').onclick = ()=>finishBattle(false);
     document.getElementById('cycleBossPreviewBtn')?.addEventListener('click', cyclePreviewBoss);
+    document.getElementById('hintMeaningBtn')?.addEventListener('click', useMeaningHint);
+    document.getElementById('hintRevealBtn')?.addEventListener('click', useRevealLetterHint);
+    document.getElementById('boardRefreshBtn')?.addEventListener('click', refreshSolvableBoard);
+    updateHintControls();
 
     // Initialize boss info modal
     const bossInfoBtn = document.getElementById('bossInfoBtn');
@@ -1685,7 +1924,16 @@
         },
         triggerBossTurn: () => bossTurn('Boss phản công (kiểm thử).'),
         isSubmitting: () => state.isSubmitting,
-        isFallback: () => !state.raidSessionId
+        isFallback: () => !state.raidSessionId,
+        isValidWord: (w) => isValidWord(w),
+        isTopicWord: (w) => isTopicWord(w),
+        getDiscoveredWords: () => [...state.discoveredWords],
+        getBoard: () => state.board.map((r) => [...r]),
+        getHintCharges: () => state.hintCharges,
+        useHintMeaning: () => useMeaningHint(),
+        useHintReveal: () => useRevealLetterHint(),
+        refreshBoard: () => refreshSolvableBoard(),
+        speakWord: (w) => speakEnglishWord(w)
       };
     }
   }
