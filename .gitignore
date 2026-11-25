@@ -55,3 +55,7 @@ build/
 # OS and system files
 .DS_Store
 Thumbs.db
+
+# Raw unvetted local asset inbox (never commit or deploy)
+UI Extra/
+UI Extra.zip

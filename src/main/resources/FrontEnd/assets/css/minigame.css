@@ -2,16 +2,14 @@
   --tile-size: clamp(40px, 5.1vh, 46px);
 }
 body.raid-body{
-  background:
-    linear-gradient(180deg, rgba(18,12,10,.72) 0%, rgba(29,19,15,.84) 100%),
-    url('/ui/assets/backgrounds/fantasy-arena-bg.png') center top / cover fixed no-repeat;
+  background:linear-gradient(180deg, rgba(18,12,10,.55) 0%, rgba(25,16,12,.72) 100%);
   color:#f6e8d4;
 }
 
 .raid-shell{padding:6px 0 22px;width:min(1440px,calc(100vw - 24px))}.raid-status-wrap{margin-top:4px}
 .raid-status-wrap .inline-message{padding:3px 10px;font-size:.76rem}
 .raid-header{padding:5px 14px;overflow:hidden;background:linear-gradient(180deg,rgba(34,24,20,.92),rgba(24,18,15,.96));position:relative}
-.raid-header::after{content:'';position:absolute;inset:0;background:url('/ui/assets/backgrounds/fantasy-arena-bg.png') center 24%/cover no-repeat;opacity:.22}
+.raid-header::after{content:'';position:absolute;inset:0;background:url('/ui/assets/backgrounds/worlds/mountain-dusk/mountain-dusk-a.png') center 40%/cover no-repeat;opacity:.22}
 .raid-header>*{position:relative;z-index:1}.raid-header__grid{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
 .raid-title{font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:clamp(1.05rem,1.8vw,1.5rem);font-weight:900;margin:2px 0;color:#ffebb3;line-height:1.12}.raid-sub{color:#e7d8c2;font-size:.78rem;display:none}
 @media (min-height:920px){.raid-sub{display:block}}
@@ -446,9 +444,9 @@ body.raid-body{
   .battle-stage{--stage-h:clamp(160px,24vh,215px);width:min(100%,calc(var(--stage-h) * 960 / 420));height:var(--stage-h)}
   .board-horizontal-container{grid-template-columns:138px 1fr 172px;gap:8px}
 }
-@media (min-width:961px) and (max-height:830px){
+@media (min-width:961px) and (max-height:920px){
   :root{--tile-size:40px}
-  .raid-shell{padding:4px 0 16px}
+  .raid-shell{padding:4px 0 14px}
   .raid-header{padding:4px 12px}
   .raid-header .section-kicker{font-size:.66rem;padding:2px 6px}
   .raid-title{font-size:1.05rem;margin:1px 0}
@@ -460,15 +458,15 @@ body.raid-body{
   .fighter-meta strong,.boss-meta strong{font-size:.88rem}
   .fighter-kv,.boss-kv{margin-top:5px;padding:5px 8px;gap:2px}
   .pixel-bar{height:15px}
-  .battle-stage{--stage-h:clamp(158px,23.5vh,184px);width:min(100%,calc(var(--stage-h) * 960 / 420));height:var(--stage-h)}
-  .arena-panel{padding:6px 8px;gap:5px}
+  .battle-stage{--stage-h:clamp(146px,20.5vh,182px);width:min(100%,calc(var(--stage-h) * 960 / 420));height:var(--stage-h)}
+  .arena-panel{padding:6px 8px;gap:4px}
   .attack-dock{padding:5px 10px}
   .attack-dock .section-kicker{font-size:.66rem !important;padding:1px 6px !important}
-  .attack-dock__word{min-height:32px;font-size:1rem}
+  .attack-dock__word{min-height:30px;font-size:1rem}
   .attack-dock__meta{display:none}
   .board-shell{padding:6px 10px}
   .board-grid{gap:4px}
-  .board-tile__letter{font-size:1.35rem}
+  .board-tile__letter{font-size:1.3rem}
 }
 @media (max-width:960px){
   :root {
@@ -738,6 +736,117 @@ body.raid-body{
   margin-top: 4px;
   text-transform: uppercase;
 }
+/* Compact Knight Skill Bar Preview */
+.skill-bar-preview{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 5px;
+  background:#1c120c;
+  border:3px solid #3c2a1a;
+  box-shadow:inset 0 0 0 1px #d49b29, 0 2px 0 rgba(0,0,0,.45);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.skill-bar-preview::-webkit-scrollbar{display:none}
+.skill-bar-preview__meta{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex-shrink:0;
+  padding-right:4px;
+  border-right:2px solid #3c2a1a;
+}
+.skill-mp-pill{
+  font-family:var(--font-pixel,'Pixelify Sans',monospace);
+  font-size:.68rem;
+  font-weight:700;
+  color:#93c5fd;
+  background:#111c2d;
+  border:2px solid #2563eb;
+  padding:2px 5px;
+  white-space:nowrap;
+}
+.skill-preview-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:36px;
+  padding:3px 6px;
+  background:#2d1f15;
+  color:#ffebb3;
+  border:2px solid #5b3e2b;
+  font-family:var(--font-display,'Be Vietnam Pro',sans-serif);
+  font-size:.66rem;
+  font-weight:700;
+  cursor:pointer;
+  flex-shrink:0;
+  white-space:nowrap;
+  box-shadow:inset 1px 1px 0 #4a3424, 0 2px 0 #140d09;
+}
+.skill-preview-chip:hover:not(:disabled){
+  background:#3e2b1d;
+  border-color:#d49b29;
+}
+.skill-preview-chip.is-active{
+  background:#4f3513;
+  border-color:#f6c344;
+  color:#fff;
+  box-shadow:0 0 0 1px #f6c344;
+}
+.skill-preview-chip:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+.skill-preview-chip img{
+  width:18px;
+  height:18px;
+  image-rendering:pixelated;
+  flex-shrink:0;
+}
+.skill-preview-chip__cd{
+  font-family:var(--font-pixel,'Pixelify Sans',monospace);
+  font-size:.64rem;
+  color:#93c5fd;
+}
+.skill-sound-toggle{
+  min-width:36px;
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#2d1f15;
+  color:#ffebb3;
+  border:2px solid #5b3e2b;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.skill-sound-toggle.is-on{
+  background:#2e7d47;
+  color:#fff;
+  border-color:#5bd47e;
+}
+@media (min-width:961px) and (max-height:920px){
+  .battle-stage{--stage-h:clamp(142px,19.5vh,168px)}
+  .skill-bar-preview{padding:2px 4px}
+}
+@media (max-width:720px){
+  .battle-stage{height:clamp(88px,26vw,116px);min-height:88px;max-height:116px}
+  .skill-preview-chip{min-height:34px;padding:2px 5px;font-size:.64rem}
+  .skill-sound-toggle{min-width:34px;min-height:34px}
+  .skill-preview-chip__label{display:none}
+}
+@media (max-width:360px){
+  :root{--tile-size:clamp(32px, calc((100vw - 32px) / var(--board-cols, 5) - 3px), 35px)}
+  .raid-status-wrap{margin-top:2px}
+  .raid-status-wrap .inline-message{padding:2px 6px;font-size:.64rem}
+  .battle-stage{height:82px;min-height:82px;max-height:82px}
+  .attack-dock{padding:3px 6px;gap:3px}
+  .attack-dock__word{min-height:22px;font-size:.86rem}
+  .attack-dock .btn-soft,.attack-dock .pixel-btn{min-height:40px;padding:3px 6px}
+  .board-tile__letter{font-size:1.1rem}
+}
+
 .element-badge--fire { color: #9a2b06; background: rgba(194, 65, 12, 0.08); border: 1px solid rgba(194, 65, 12, 0.2); }
 .element-badge--water { color: #025a87; background: rgba(3, 105, 161, 0.08); border: 1px solid rgba(3, 105, 161, 0.2); }
 .element-badge--shadow { color: #581c5c; background: rgba(112, 26, 117, 0.08); border: 1px solid rgba(112, 26, 117, 0.2); }

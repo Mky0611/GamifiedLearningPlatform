@@ -3,9 +3,17 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P4-B (Pure Fantasy Pixel RPG Redesign, Asset Reorganization & Visual QA)  
+**Giai đoạn:** P4-B.2 (Kingdom of Words — Asset-Driven Fantasy Pixel RPG)
 
 ---
+
+## [P4-B.2] — 2026-11-25: Kingdom of Words, Asset-Driven 9-Slice UI, Combat VFX State Machine & World Environment
+- **Milestone A (Asset Audit & Provenance):** Thêm `audit_ui_extra.py` (`3,676` raw / `2,881` non-OS files) và `curate_p4b2_assets.py` (cách ly `UI Extra/` trong `.gitignore` và loại `428` tệp `Tiny Swords` `LICENSE_PENDING`); sửa lỗi đảo `cursor-action.png` <-> `cursor-forbidden.png`; xuất bản `P4B2_ASSET_MANIFEST.json`, `P4B2_COMPONENT_ASSET_MAP.csv`, `P4B2_THIRD_PARTY_ASSETS.md`, `P4B2_EXECUTION_PLAN.md`, `P4B2_DECISIONS.md`.
+- **Milestone B (Asset-Driven Design System):** Ghép contiguous 9-slice/3-slice (`paper-regular`, `wood-board`, `banner-scroll`, `paper-special`, 5 `ribbon-*`, `kenney/Ancient`); tích hợp bộ icon Kibyra cho Navbar và Skill Bar; nạp thêm `Lora` + `Pixelify Sans` vào `typography-specimen.html`.
+- **Milestone C (Shared Animated Worlds):** Tạo `world-environment.js` hỗ trợ `village`, `forest`, `mountain-dusk`, `academy`, `gate`, `waterfall` (kèm credit `"Waterfall pixel art by Burcu Sak"`), tự dừng khi `document.hidden` hoặc `prefers-reduced-motion`.
+- **Milestone D (Knight FSM & Pooled VFX):** Nâng cấp `battle-scene.js` thành FSM (`IDLE`, `APPROACH`, `ATTACK`, `IMPACT`, `RECOVERY`, `RETURN`, `GUARD`, `HURT`, `DEATH`, `VICTORY`), tách base coords khỏi tweens, dùng pool 12 VFX (`fx-slash-clean`, `tiny-pixel-fx-vol1`, `Mira Forge`), thêm `Warrior_Attack2.png` và đồng bộ `raid-phaser-embed.js` Canvas 2D fallback.
+- **Milestone E (Skills & Monster Preview + Backend Compatibility):** Thêm 6 kỹ năng Hiệp sĩ (Preview Mode, SFX tắt mặc định) và 2 quái vật xem trước (`Verdant Slime`, `Cursed Skeleton` kèm portrait), đã đối chiếu an toàn với `LexRaidController`/`LexRaidServiceImpl` (không thay đổi schema/XP/coins).
+- **Milestones F–H (9-Page Redesign, Optimization & Chromium QA):** Tinh gọn toàn bộ 9 trang HTML, loại bỏ tham chiếu nặng (`background.png`, `map*.gif`), tinh chỉnh `320x568` (`543/568`) và `1440x900` (`733/900`), chạy `chromium_p4b2_acceptance.js` đạt **0 failures**.
 
 ## [P4-B-ACCEPTANCE] — 2026-11-25: Visual Acceptance, Asset Correction & Chromium 9-Viewport Verification
 - **Strict QA Reclassification:** Phân biệt rõ `STATIC PASS` (`audit_assets.py`, `check_case_sensitivity.py`, `smoke_check.py`, `test_p4b_verification.py`, `test_typography.py`), `UNIT PASS`, `HTTP PASS`, `BROWSER PASS` (`chromium_p4b_acceptance.js`), và `NOT TESTED`.

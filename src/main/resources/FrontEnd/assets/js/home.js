@@ -1,11 +1,11 @@
 (function(){
   const artByCode = {
-    LEX_RAID: '/ui/assets/imgs/map1.gif',
-    QUIZ: '/ui/assets/imgs/logo-mark.png',
-    MEMORY: '/ui/assets/imgs/map2.gif',
-    SPEED_MATH: '/ui/assets/ui/icons/icon-settings.png',
-    CODE_PUZZLE: '/ui/assets/imgs/map3.gif',
-    VOLCARD: '/ui/assets/imgs/logo.png'
+    LEX_RAID: '/ui/assets/ui/kibyra/icon26.png',
+    QUIZ: '/ui/assets/ui/kibyra/icon37.png',
+    MEMORY: '/ui/assets/ui/kibyra/icon35.png',
+    SPEED_MATH: '/ui/assets/ui/kibyra/icon59.png',
+    CODE_PUZZLE: '/ui/assets/ui/kibyra/icon27.png',
+    VOLCARD: '/ui/assets/ui/kibyra/icon32.png'
   };
 
   const hrefByCode = {

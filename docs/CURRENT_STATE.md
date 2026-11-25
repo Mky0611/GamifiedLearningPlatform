@@ -3,31 +3,31 @@
 **Thời điểm cập nhật:** 2026-11-25  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát triển:** `feature/p4b-fantasy-pixel-redesign`  
-**Trạng thái hiện tại:** **PHASE P4-B VISUAL ACCEPTANCE & ASSET CORRECTION VERIFIED IN CHROMIUM — READY FOR PREVIEW DEPLOY**  
+**Nhánh phát triển:** `feature/p4b2-kingdom-of-words` (branced from `7e725ed`)  
+**Trạng thái hiện tại:** **PHASE P4-B.2 KINGDOM OF WORDS VERIFIED IN CHROMIUM — READY FOR VERCEL PREVIEW DEPLOY**
 
 ---
 
 ## 1. TỔNG QUAN HỆ THỐNG (GIỮ NGUYÊN KHÔNG PHÁ VỠ)
-- **Backend:** Java 21 LTS, Spring Boot 4.2.0, Spring Data JPA, Spring Security (không sửa đổi trong P4-B).
+- **Backend:** Java 21 LTS, Spring Boot 4.2.0, Spring Data JPA, Spring Security (không sửa mã nguồn hay schema SQL Server trong P4-B.2; đã kiểm tra tương thích read-only với `LexRaidController` & `LexRaidServiceImpl`).
 - **Database:** Microsoft SQL Server (`script_GPL_v2.sql` — 57 bảng, không thay đổi schema).
-- **Frontend:** Vanilla HTML5, CSS3 Pure Fantasy Pixel Design System, ES6+ JS, Phaser 3.90.0 + Canvas 2D Fallback.
+- **Frontend:** Vanilla HTML5, CSS3 Asset-Driven Fantasy Pixel Design System, ES6+ JS, Phaser 3.90.0 + Canvas 2D Fallback + Shared Animated `WorldEnvironment`.
 
 ---
 
-## 2. TỔNG HỢP CÁC THAY ĐỔI ĐÃ XÁC MINH Ở P4-B ACCEPTANCE
-
-1. **Asset Hygiene & Semantic Naming (`STATIC PASS`):**
-   - Quét sạch 316 media assets trong `src/main/resources/FrontEnd/assets/` sau khi gỡ `assets/qa_audit/` ra ngoài cây public (`test_output/asset_audit/`).
-   - 123 assets đổi tên chuẩn via `git mv` (`117` boss spritesheets vào `assets/bosses/<boss>/`, `5` UI icons sau kiểm tra contact sheet, `1` battle background vào `assets/backgrounds/`). `check_case_sensitivity.py` pass **712 disk files / 130 Phaser URLs / 0 errors**.
-2. **Logo & Unified Navigation (`BROWSER PASS`):**
-   - `logo-mark.png` (`192x192`, 42.78 KB) hiển thị sắc nét `40x40` không cắt chữ trên thanh điều hướng gỗ tối (`#241a14`) ở cả 9 trang HTML; drawer mobile dùng chữ kem `#f3e4be` tương phản cao trên nền `#241a14`.
-3. **Typography & Volcard Readability (`BROWSER PASS`):**
-   - Trang `/app/typography` xác nhận Chromium load đủ 5 font (`Silkscreen` cho ASCII HUD/số, `Be Vietnam Pro` cho tiếng Việt & mặt chính từ vựng, `JetBrains Mono`/`VT323` cho code/chỉ số).
-   - Volcard gỡ bỏ `nowrap`/`ellipsis`, xếp nút nghe phát âm gọn dưới từ, hiển thị trọn vẹn `POLYMORPHISM`, `CONTINUOUS INTEGRATION`, `AUTHENTICATION`, `INFRASTRUCTURE` từ `320x568` tới `1366x768` (`clippedX=false`, `ttsOverlap=false`).
-4. **Battle Arena Render & Above-The-Fold (`9/9 BROWSER PASS`):**
-   - Sửa lỗi CSS Grid khiến canvas Phaser bị cắt chân ở `768x1024`, `1024x768`, `1920x1080` (`canvasClipped: false` tất cả 9/9 viewports).
-   - Cả 9 viewports (`320x568` đến `1920x1080`) đưa toàn bộ Đấu trường, Dock tấn công, nút Clear/Attack (`>=40px`) và Bàn cờ chữ `5x5` nằm trọn trong màn hình đầu (`fit=true`), `0` lỗi JS console/page, an toàn DOM trong `renderStatus()`.
-   - Đã kiểm tra cả `Phaser` (Warrior, Lancer, Archer + 9 Bosses + Guard/Attack) lẫn Canvas 2D Fallback (`?renderer=canvas`).
+## 2. TỔNG HỢP THÀNH TỰU ĐÃ XÁC MINH Ở P4-B.2 (`BROWSER PASS` + `STATIC PASS`)
+1. **Asset Audit, Curation & Cursors (`STATIC PASS`):**
+   - Kiểm toán toàn bộ `UI Extra` (`3,676` raw files -> `2,881` non-OS files) bằng `audit_ui_extra.py`; giữ `UI Extra/` & `UI Extra.zip` trong `.gitignore`, cách ly `428` tệp `Tiny Swords (Free Pack)` có trạng thái `LICENSE_PENDING`.
+   - Sửa lỗi đảo ngược `cursor-action.png` <-> `cursor-forbidden.png`; ghép `13` sheet `9-slice`/`3-slice` chuẩn pixel tại `assets/ui/slices/`; trích xuất có chọn lọc `113` assets (`Kibyra` icons, `Kenney` Ancient 9-slice, `Sword Slash Pixel FX`, `Tiny Pixel FX Vol.1`, `Mira Forge`, `Tall Forest`, `Super Mountain Dusk`, `GothicVania Town`, `Pixel Art Waterfall` kèm credit bắt buộc, và 2 quái preview `Slime` & `Skeleton`).
+2. **Asset-Driven Design System & Typography (`BROWSER PASS`):**
+   - Nâng cấp `pixel-rpg.css` & `base.css`: viền gỗ/giấy cổ 9-slice thật (`paper-regular.png`, `wood-board.png`, `banner-scroll.png`, `paper-special.png`), ruy-băng 3-slice (`ribbon-*.png`), nút & skill slot phản hồi xúc giác.
+   - `/app/typography` xác nhận Chromium load đủ `Lora`, `Pixelify Sans`, `Be Vietnam Pro`, `JetBrains Mono`, `Silkscreen`.
+3. **Animated World Environments & Battle Engine (`BROWSER PASS`):**
+   - `world-environment.js` vẽ bối cảnh động (rừng thẳm, núi hoàng hôn, thị trấn, thác nước) theo trang, tự tạm dừng khi ẩn tab và tôn trọng `prefers-reduced-motion`.
+   - `battle-scene.js` tái cấu trúc theo Finite State Machine 10 trạng thái với object-pooled VFX (`poolSize: 12`), tích hợp `Warrior_Attack2.png`, phục hồi sạch khi reset giữa đòn (`resetSceneActors`) và đồng bộ 2 chiều với Canvas 2D Fallback (`?renderer=canvas`).
+4. **Knight Skill Bar & Monster Preview (`BROWSER PASS`):**
+   - Thanh 6 kỹ năng Hiệp sĩ Preview Mode + âm thanh mặc định tắt (`fx-slash-swing.wav`), không làm sai lệch công thức XP/Coins server (`LexRaidServiceImpl`).
+   - Hỗ trợ xem trước `Verdant Slime` & `Cursed Skeleton` kèm chân dung front-facing đồng nhất.
+   - Toàn bộ **9 viewports (`320x568` → `1920x1080`)** đạt `fit=true`, `tap=true`, `clear=true`, `attack=true`, **0 failures** (`chromium_p4b2_acceptance.js`).
 5. **Untested Boundaries (`NOT TESTED`):**
-   - Tương tác trình duyệt nối sống Spring Boot + SQL Server chưa chạy trong phiên này (chỉ test frontend fallback).
+   - Tương tác trình duyệt kết nối trực tiếp Spring Boot + SQL Server (`NOT TESTED` trong phiên này; chỉ kiểm tra frontend + Vercel Preview fallback).

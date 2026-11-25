@@ -7,15 +7,16 @@
   <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@600;700&family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
   <style>
     .spec-grid { display: grid; gap: 20px; padding: 24px 0; }
-    .spec-card { padding: 20px; background: #fae9c5; border: 4px solid #1c120c; color: #1c120c; }
+    .spec-card { padding: 20px; background: #efe0bf; border: 4px solid #1c120c; color: #1c120c; }
     .spec-card--dark { background: #241a14; color: #ffebb3; }
     .combo-a { font-family: 'Silkscreen', monospace; }
-    .combo-b-pixel { font-family: 'Silkscreen', monospace; }
+    .combo-b-pixel { font-family: 'Pixelify Sans', 'Silkscreen', monospace; }
+    .combo-b-fantasy { font-family: 'Lora', 'Be Vietnam Pro', serif; font-weight: 700; font-size: 1.18rem; }
     .combo-b-display { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 800; }
     .combo-b-mono { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
     .combo-c-display { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
@@ -41,7 +42,8 @@
     </section>
 
     <section class="spec-card" id="comboB">
-      <h2>Combination B (Adopted): Silkscreen (ASCII HUD) + Be Vietnam Pro (VN/Vocab) + JetBrains Mono (Code)</h2>
+      <h2>Combination B (Adopted P4-B.2): Lora (Fantasy Display) + Be Vietnam Pro (VN/Vocab) + Pixelify Sans (ASCII HUD) + JetBrains Mono (Code)</h2>
+      <div class="sample-row combo-b-fantasy" data-sample="vn-fantasy">Vương Quốc Ngôn Từ · Đấu Trường Từ Vựng · Cổ Thư Anh Ngữ</div>
       <div class="sample-row combo-b-display" data-sample="vn-heading">ĐĂNG NHẬP · TIẾNG ANH CHUYÊN NGÀNH · QUẢN LÝ NHÂN VẬT · TỪ VỰNG</div>
       <div class="sample-row combo-b-display" data-sample="vn-diacritics">Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ệ Ứ Ừ Ự — Đa hình (Polymorphism) là nguyên lý cốt lõi.</div>
       <div class="sample-row combo-b-mono" data-sample="ambig">O0 · I1l · rn / m · 12:34 · 50/200 XP</div>
@@ -65,6 +67,8 @@
     window.addEventListener('load', async () => {
       await document.fonts.ready;
       const summary = {
+        loraLoaded: document.fonts.check('700 16px Lora') || document.fonts.check('16px Lora'),
+        pixelifyLoaded: document.fonts.check('700 16px "Pixelify Sans"') || document.fonts.check('16px "Pixelify Sans"'),
         silkscreenLoaded: document.fonts.check('16px Silkscreen'),
         beVietnamLoaded: document.fonts.check('16px "Be Vietnam Pro"'),
         jetbrainsMonoLoaded: document.fonts.check('700 16px "JetBrains Mono"') || document.fonts.check('16px "JetBrains Mono"'),

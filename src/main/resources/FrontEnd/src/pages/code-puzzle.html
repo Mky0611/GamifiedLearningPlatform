@@ -7,13 +7,13 @@
   <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Lora:wght@600;700&family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
   <link rel="stylesheet" href="/ui/assets/css/base.css">
   <link rel="stylesheet" href="/ui/assets/css/games-lite.css">
 </head>
-<body class="pixel-cursor">
+<body class="pixel-cursor" data-world="academy">
   <div class="app-shell">
     <header class="main-nav">
       <div class="page-container main-nav__inner">
@@ -23,11 +23,11 @@
         </a>
         <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Mở menu"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home"><img class="nav-pixel-icon" src="/ui/assets/imgs/favicon.png" alt=""><span>Trang chủ</span></a>
-          <a class="nav-link-soft" href="/app/minigame"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-sword.png" alt=""><span>Đấu Boss</span></a>
-          <a class="nav-link-soft" href="/app/volcard"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-info.png" alt=""><span>Kho từ vựng</span></a>
-          <a class="nav-link-soft is-active" href="/app/quiz"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-settings.png" alt=""><span>Quiz</span></a>
-          <a class="nav-link-soft" href="/app/account"><img class="nav-pixel-icon" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt=""><span>Nhân vật</span></a>
+          <a class="nav-link-soft" href="/app/home"><img class="nav-pixel-icon" src="/ui/assets/ui/kibyra/icon40.png" alt=""><span>Trang chủ</span></a>
+          <a class="nav-link-soft" href="/app/minigame"><img class="nav-pixel-icon" src="/ui/assets/ui/kibyra/icon26.png" alt=""><span>Đấu Boss</span></a>
+          <a class="nav-link-soft" href="/app/volcard"><img class="nav-pixel-icon" src="/ui/assets/ui/kibyra/icon32.png" alt=""><span>Kho từ vựng</span></a>
+          <a class="nav-link-soft is-active" href="/app/quiz"><img class="nav-pixel-icon" src="/ui/assets/ui/kibyra/icon37.png" alt=""><span>Quiz</span></a>
+          <a class="nav-link-soft" href="/app/account"><img class="nav-pixel-icon" src="/ui/assets/ui/kibyra/icon4.png" alt=""><span>Nhân vật</span></a>
           <div id="navUserArea"></div>
         </nav>
       </div>
@@ -49,8 +49,8 @@
             <a class="pixel-btn pixel-btn--wood" href="/app/home">Quay Về Trang Chủ</a>
           </div>
         </div>
-        <div class="game-lite-hero__art">
-          <img src="/ui/assets/imgs/map3.gif" alt="Code puzzle art">
+        <div class="game-lite-hero__art game-lite-hero__art--compact">
+          <img src="/ui/assets/ui/kibyra/icon27.png" alt="Code puzzle arcane emblem">
         </div>
       </section>
 
@@ -88,6 +88,7 @@
     </main>
   </div>
 
+  <script src="/ui/assets/js/world-environment.js"></script>
   <script src="/ui/assets/js/api.js"></script>
   <script src="/ui/assets/js/games-lite.js"></script>
   <script>

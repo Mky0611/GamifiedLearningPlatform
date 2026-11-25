@@ -1,27 +1,33 @@
 /* ==============================================================================
- * LEX RAID — PIXEL RPG DESIGN SYSTEM
- * Classic Fantasy Pixel RPG Theme · Original Retro Tokens · Responsive Ergonomics
+ * LEX RAID — KINGDOM OF WORDS DESIGN SYSTEM (PHASE P4-B.2)
+ * Asset-Driven Fantasy Pixel RPG · Real 9-Slice Panels · Dual-Script Typography
  * ============================================================================== */
 
 :root {
-  /* Wood & Timber Palette */
+  /* Timber, Oak & Leather Palette */
   --wood-dark: #1c120c;
   --wood-frame: #3c2a1a;
-  --wood-panel: #241710;
-  --wood-medium: #5a3d24;
-  --wood-light: #7a5432;
+  --wood-panel: #251912;
+  --wood-medium: #5b3e2b;
+  --wood-light: #825c43;
 
-  /* Gold & Brass Palette */
+  /* Royal Gold & Amber (Strictly Selected / Primary / Reward States) */
   --gold-bright: #f6c344;
   --gold-base: #d49b29;
   --gold-shadow: #8f6010;
   --gold-highlight: #ffebb3;
 
-  /* Parchment & Slate Palette */
-  --parchment-base: #fae9c5;
-  --parchment-light: #fff5df;
-  --parchment-dark: #dfd0b0;
-  --parchment-border: #b89c72;
+  /* Illuminated Parchment & Slate */
+  --parchment-base: #efe0bf;
+  --parchment-light: #fbf1d8;
+  --parchment-dark: #dcc497;
+  --parchment-border: #a68453;
+
+  /* Kingdom Biome Accents */
+  --kingdom-teal: #2e849e;
+  --kingdom-teal-dark: #1a4f61;
+  --kingdom-forest: #2e7d47;
+  --kingdom-plum: #5d3d73;
 
   /* Combat Indicators */
   --hp-crimson: #d9383a;
@@ -33,104 +39,177 @@
   --xp-emerald: #2ea44f;
   --xp-shadow: #17652e;
   --xp-highlight: #5bd47e;
+  --shield-iron: #64748b;
+  --shield-highlight: #94a3b8;
+  --shield-shadow: #334155;
+  --rage-amber: #ea580c;
+  --rage-highlight: #fb923c;
+  --rage-shadow: #9a3412;
   --gold-coin: #f59e0b;
 
-  /* Ink & Typography */
+  /* Ink & Dual-Script Typography (VN diacritics safe) */
   --ink-deep: #140e0a;
-  --ink-primary: #2b1d14;
-  --ink-muted: #695241;
-  /* Pixel font strictly for short ASCII HUD labels, numbers, and tiles */
-  --font-pixel: 'Silkscreen', 'JetBrains Mono', monospace;
-  /* Readable geometric sans with full Vietnamese diacritics for headings, nav & body */
+  --ink-primary: #281b12;
+  --ink-muted: #5c4636;
+  --font-fantasy: 'Lora', 'Be Vietnam Pro', Georgia, serif;
+  --font-pixel: 'Pixelify Sans', 'Silkscreen', 'JetBrains Mono', monospace;
   --font-display: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'VT323', ui-monospace, monospace;
 
-  /* Retro Pixel Shadows */
+  /* Stepped Shadows & Spacing Grid */
   --pixel-shadow-sm: 0 2px 0 0 rgba(0, 0, 0, 0.4);
   --pixel-shadow-md: 0 4px 0 0 rgba(0, 0, 0, 0.45);
-  --pixel-shadow-lg: 0 6px 0 0 rgba(0, 0, 0, 0.5);
+  --pixel-shadow-lg: 0 6px 0 0 rgba(0, 0, 0, 0.55);
+  --focus-ring: 0 0 0 3px #ffe082;
 }
 
-/* Base Pixel Reset */
 .pixel-crisp {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
 /* ==============================================================================
- * PIXEL PANELS (Khung gỗ, viền vàng, nền giấy cổ)
+ * REAL 9-SLICE FANTASY PANELS (Stitched Tiny Swords & Kenney Textures)
  * ============================================================================== */
-.pixel-panel {
+.pixel-panel,
+.pixel-panel-parchment {
   position: relative;
-  background: var(--parchment-base);
+  background-color: var(--parchment-base);
   color: var(--ink-primary);
-  border: 4px solid var(--wood-dark);
+  border-style: solid;
+  border-width: 10px;
   border-radius: 0 !important;
-  box-shadow:
-    inset 0 0 0 2px var(--gold-base),
-    inset 0 0 0 4px var(--wood-frame),
-    var(--pixel-shadow-md);
+  border-image-source: url('/ui/assets/ui/slices/paper-regular.png');
+  border-image-slice: 44 52 45 52;
+  border-image-repeat: stretch;
+  box-shadow: inset 0 0 0 2px #d4b887, var(--pixel-shadow-md);
+  box-sizing: border-box;
+}
+
+.pixel-scroll-banner {
+  position: relative;
+  background-color: var(--parchment-light);
+  color: var(--ink-primary);
+  border-style: solid;
+  border-width: 18px 20px 22px 20px;
+  border-radius: 0 !important;
+  border-image-source: url('/ui/assets/ui/slices/banner-scroll.png');
+  border-image-slice: 68 84 111 100 fill;
+  border-image-repeat: stretch;
+  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.45));
   box-sizing: border-box;
 }
 
 .pixel-panel-wood {
   position: relative;
-  background: #251b14;
+  background-color: #261911;
+  background-image: linear-gradient(180deg, rgba(31, 20, 14, 0.94), rgba(22, 15, 10, 0.97));
   color: #fff4df;
-  border: 4px solid var(--wood-dark);
+  border-style: solid;
+  border-width: 12px;
   border-radius: 0 !important;
-  box-shadow:
-    inset 0 0 0 2px #5a3d24,
-    inset 0 0 0 4px #1c120c,
-    var(--pixel-shadow-md);
+  border-image-source: url('/ui/assets/ui/slices/wood-board.png');
+  border-image-slice: 85 84 103 84;
+  border-image-repeat: stretch;
+  box-shadow: inset 0 0 0 2px rgba(212, 155, 41, 0.5), var(--pixel-shadow-md);
   box-sizing: border-box;
 }
 
-.pixel-panel-parchment {
+.pixel-panel-special {
   position: relative;
-  background: var(--parchment-base);
-  color: var(--ink-primary);
-  border: 4px solid var(--wood-dark);
+  background-color: #242b35;
+  color: #f4efe6;
+  border-style: solid;
+  border-width: 14px;
   border-radius: 0 !important;
-  box-shadow:
-    inset 0 0 0 2px var(--gold-base),
-    inset 0 0 0 4px var(--wood-frame),
-    var(--pixel-shadow-md);
+  border-image-source: url('/ui/assets/ui/slices/paper-special.png');
+  border-image-slice: 44 55 43 55;
+  border-image-repeat: stretch;
+  box-shadow: inset 0 0 0 2px rgba(246, 195, 68, 0.35), var(--pixel-shadow-md);
   box-sizing: border-box;
 }
 
 .pixel-panel-stone {
   position: relative;
-  background: #34373d;
+  background: #2f333a;
   color: #f1f2f4;
-  border: 4px solid #1a1b1e;
+  border: 4px solid #16181c;
   border-radius: 0 !important;
   box-shadow:
     inset 0 0 0 2px #585d68,
-    inset 0 0 0 4px #232529,
+    inset 0 0 0 4px #1f2228,
     var(--pixel-shadow-md);
   box-sizing: border-box;
 }
 
 .pixel-panel--dark {
-  background: #251b14;
+  background-color: #221710;
   color: #fff4df;
-  border-color: #0e0906;
-  box-shadow:
-    inset 0 0 0 2px #5a3d24,
-    inset 0 0 0 4px #1c120c,
-    var(--pixel-shadow-md);
+  border: 4px solid #140d09;
+  box-shadow: inset 0 0 0 2px #5a3d24, var(--pixel-shadow-md);
 }
 
 .pixel-panel--inset {
-  background: var(--parchment-dark);
-  border: 3px solid var(--wood-dark);
-  box-shadow: inset 2px 2px 0 0 rgba(0, 0, 0, 0.25);
+  background-color: #36271c;
+  color: #f6e7c8;
+  border-style: solid;
+  border-width: 10px;
+  border-image-source: url('/ui/assets/ui/slices/kenney/brown_inlay.png');
+  border-image-slice: 14 fill;
+  border-image-repeat: round;
+  box-sizing: border-box;
 }
 
 /* ==============================================================================
- * PIXEL BUTTONS (Nút bấm 3D stepped có độ lún thật)
+ * REAL 3-SLICE FANTASY RIBBON HEADERS
+ * ============================================================================== */
+.pixel-ribbon,
+.pixel-banner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 34px;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff9ec;
+  text-shadow: 2px 2px 0 #1c120c;
+  border-style: solid;
+  border-width: 8px 28px;
+  border-image-source: url('/ui/assets/ui/slices/ribbon-red.png');
+  border-image-slice: 0 97 0 98 fill;
+  border-image-repeat: stretch;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.pixel-ribbon--blue {
+  border-image-source: url('/ui/assets/ui/slices/ribbon-blue.png');
+}
+
+.pixel-ribbon--red {
+  border-image-source: url('/ui/assets/ui/slices/ribbon-red.png');
+}
+
+.pixel-ribbon--gold {
+  color: #1c120c;
+  text-shadow: 1px 1px 0 rgba(255, 245, 210, 0.75);
+  border-image-source: url('/ui/assets/ui/slices/ribbon-yellow.png');
+}
+
+.pixel-ribbon--purple {
+  border-image-source: url('/ui/assets/ui/slices/ribbon-purple.png');
+}
+
+/* ==============================================================================
+ * TACTILE PIXEL BUTTONS (States: Normal, Hover, Pressed, Disabled, Focus-Visible)
  * ============================================================================== */
 .pixel-btn {
   position: relative;
@@ -138,60 +217,74 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 8px 18px;
   font-family: var(--font-display);
   font-size: 0.88rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--wood-dark);
+  color: #1c120c;
   background: var(--gold-bright);
-  border: 2px solid var(--wood-dark);
+  border: 3px solid var(--wood-dark);
   border-radius: 0 !important;
   cursor: pointer;
   user-select: none;
   box-sizing: border-box;
   box-shadow:
-    inset -2px -2px 0 0 var(--gold-shadow),
-    inset 2px 2px 0 0 var(--gold-highlight),
-    0 3px 0 0 var(--wood-dark);
+    inset -3px -3px 0 0 var(--gold-shadow),
+    inset 3px 3px 0 0 var(--gold-highlight),
+    0 4px 0 0 var(--wood-dark);
   transform: translateY(0);
-  transition: none !important;
+  transition: transform 0.06s steps(2, end), background-color 0.08s ease;
 }
 
-.pixel-btn:hover {
-  background: #ffd666;
+.pixel-btn:hover:not(:disabled):not(.is-disabled) {
+  background: #ffd86b;
   transform: translateY(1px);
   box-shadow:
-    inset -2px -2px 0 0 var(--gold-shadow),
-    inset 2px 2px 0 0 #ffffff,
-    0 2px 0 0 var(--wood-dark);
+    inset -3px -3px 0 0 var(--gold-shadow),
+    inset 3px 3px 0 0 #ffffff,
+    0 3px 0 0 var(--wood-dark);
 }
 
-.pixel-btn:active {
-  transform: translateY(3px);
+.pixel-btn:active:not(:disabled):not(.is-disabled),
+.pixel-btn.is-pressed:not(:disabled) {
+  transform: translateY(4px);
   box-shadow:
     inset -2px -2px 0 0 var(--gold-shadow),
     inset 2px 2px 0 0 var(--gold-highlight),
     0 0 0 0 var(--wood-dark);
 }
 
+.pixel-btn:focus-visible,
+.pixel-tile:focus-visible,
+.skill-slot:focus-visible,
+.nav-link-soft:focus-visible {
+  outline: 3px solid #ffe082;
+  outline-offset: 2px;
+}
+
 .pixel-btn:disabled,
 .pixel-btn.is-disabled {
-  background: #a3947f;
-  color: #55483a;
+  background: #9f9282 !important;
+  color: #42372c !important;
   cursor: not-allowed;
   transform: translateY(2px);
   box-shadow:
-    inset -2px -2px 0 0 #786955,
-    inset 2px 2px 0 0 #c2b39f,
-    0 2px 0 0 var(--wood-dark);
-  opacity: 0.85;
+    inset -2px -2px 0 0 #706457,
+    inset 2px 2px 0 0 #bdb2a4,
+    0 2px 0 0 var(--wood-dark) !important;
+  opacity: 0.82;
 }
 
-/* Variant: Danger / Attack Button */
-.pixel-btn--danger {
+.pixel-btn.is-loading {
+  cursor: wait;
+  opacity: 0.9;
+}
+
+.pixel-btn--danger,
+.pixel-btn--red {
   background: var(--hp-crimson);
   color: #ffffff;
   box-shadow:
@@ -200,34 +293,50 @@
     0 4px 0 0 var(--wood-dark);
 }
 
-.pixel-btn--danger:hover {
+.pixel-btn--danger:hover:not(:disabled),
+.pixel-btn--red:hover:not(:disabled) {
   background: #e64547;
-  box-shadow:
-    inset -3px -3px 0 0 var(--hp-shadow),
-    inset 3px 3px 0 0 #ff999b,
-    0 3px 0 0 var(--wood-dark);
 }
 
-/* Variant: Wood / Slate Secondary Button */
+.pixel-btn--blue,
+.pixel-btn--mana {
+  background: var(--mana-azure);
+  color: #ffffff;
+  box-shadow:
+    inset -3px -3px 0 0 var(--mana-shadow),
+    inset 3px 3px 0 0 var(--mana-highlight),
+    0 4px 0 0 var(--wood-dark);
+}
+
+.pixel-btn--blue:hover:not(:disabled),
+.pixel-btn--mana:hover:not(:disabled) {
+  background: #4b83ec;
+}
+
 .pixel-btn--wood {
   background: var(--wood-medium);
-  color: #fff1cf;
+  color: #fff2d4;
   box-shadow:
     inset -3px -3px 0 0 var(--wood-dark),
     inset 3px 3px 0 0 var(--wood-light),
     0 4px 0 0 var(--wood-dark);
 }
 
-.pixel-btn--wood:hover {
-  background: #6a492c;
+.pixel-btn--wood:hover:not(:disabled) {
+  background: #6d4c35;
+}
+
+.pixel-btn--emerald {
+  background: var(--xp-emerald);
+  color: #ffffff;
   box-shadow:
-    inset -3px -3px 0 0 var(--wood-dark),
-    inset 3px 3px 0 0 #8f653d,
-    0 3px 0 0 var(--wood-dark);
+    inset -3px -3px 0 0 var(--xp-shadow),
+    inset 3px 3px 0 0 var(--xp-highlight),
+    0 4px 0 0 var(--wood-dark);
 }
 
 /* ==============================================================================
- * PIXEL BADGES & CHIPS (Huy hiệu góc khía pixel)
+ * PIXEL BADGES & CHIPS
  * ============================================================================== */
 .pixel-badge {
   display: inline-flex;
@@ -235,7 +344,7 @@
   gap: 6px;
   padding: 4px 10px;
   font-family: var(--font-pixel);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--wood-dark);
@@ -264,7 +373,7 @@
 }
 
 /* ==============================================================================
- * PIXEL COMBAT GAUGE BARS (Thanh máu và năng lượng)
+ * PIXEL GAUGE BARS & KENNEY SKILL / QUEST SLOTS
  * ============================================================================== */
 .pixel-bar-wrap {
   display: flex;
@@ -276,18 +385,28 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-pixel);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--ink-primary);
 }
 
 .pixel-bar {
   position: relative;
   height: 18px;
-  background: #251b14;
+  background: #20150e;
   border: 3px solid var(--wood-dark);
   border-radius: 0 !important;
-  box-shadow: inset 1px 1px 0 0 rgba(0, 0, 0, 0.4);
+  box-shadow: inset 1px 1px 0 0 rgba(0, 0, 0, 0.55);
   overflow: hidden;
+}
+
+.pixel-bar--timber {
+  height: 22px;
+  border-style: solid;
+  border-width: 4px 10px;
+  border-image-source: url('/ui/assets/ui/slices/bigbar-track.png');
+  border-image-slice: 9 24 9 24 fill;
+  border-image-repeat: stretch;
+  background: #1a110b;
 }
 
 .pixel-bar__fill {
@@ -297,75 +416,91 @@
 }
 
 .pixel-bar__fill--hp {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--hp-crimson) 0,
-    var(--hp-crimson) 8px,
-    var(--hp-highlight) 8px,
-    var(--hp-highlight) 10px
-  );
+  background: repeating-linear-gradient(90deg, var(--hp-crimson) 0, var(--hp-crimson) 8px, var(--hp-highlight) 8px, var(--hp-highlight) 10px);
   box-shadow: inset 0 2px 0 0 var(--hp-highlight), inset 0 -2px 0 0 var(--hp-shadow);
 }
 
 .pixel-bar__fill--mana {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--mana-azure) 0,
-    var(--mana-azure) 8px,
-    var(--mana-highlight) 8px,
-    var(--mana-highlight) 10px
-  );
+  background: repeating-linear-gradient(90deg, var(--mana-azure) 0, var(--mana-azure) 8px, var(--mana-highlight) 8px, var(--mana-highlight) 10px);
   box-shadow: inset 0 2px 0 0 var(--mana-highlight), inset 0 -2px 0 0 var(--mana-shadow);
 }
 
 .pixel-bar__fill--xp {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--xp-emerald) 0,
-    var(--xp-emerald) 8px,
-    var(--xp-highlight) 8px,
-    var(--xp-highlight) 10px
-  );
+  background: repeating-linear-gradient(90deg, var(--xp-emerald) 0, var(--xp-emerald) 8px, var(--xp-highlight) 8px, var(--xp-highlight) 10px);
   box-shadow: inset 0 2px 0 0 var(--xp-highlight), inset 0 -2px 0 0 var(--xp-shadow);
 }
 
 .pixel-bar__fill--shield {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--shield-iron, #64748b) 0,
-    var(--shield-iron, #64748b) 8px,
-    var(--shield-highlight, #94a3b8) 8px,
-    var(--shield-highlight, #94a3b8) 10px
-  );
-  box-shadow: inset 0 2px 0 0 var(--shield-highlight, #94a3b8), inset 0 -2px 0 0 var(--shield-shadow, #334155);
+  background: repeating-linear-gradient(90deg, var(--shield-iron) 0, var(--shield-iron) 8px, var(--shield-highlight) 8px, var(--shield-highlight) 10px);
+  box-shadow: inset 0 2px 0 0 var(--shield-highlight), inset 0 -2px 0 0 var(--shield-shadow);
 }
 
 .pixel-bar__fill--rage {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--rage-amber, #ea580c) 0,
-    var(--rage-amber, #ea580c) 8px,
-    var(--rage-highlight, #fb923c) 8px,
-    var(--rage-highlight, #fb923c) 10px
-  );
-  box-shadow: inset 0 2px 0 0 var(--rage-highlight, #fb923c), inset 0 -2px 0 0 var(--rage-shadow, #9a3412);
+  background: repeating-linear-gradient(90deg, var(--rage-amber) 0, var(--rage-amber) 8px, var(--rage-highlight) 8px, var(--rage-highlight) 10px);
+  box-shadow: inset 0 2px 0 0 var(--rage-highlight), inset 0 -2px 0 0 var(--rage-shadow);
 }
 
-.pixel-btn--mana {
-  background: var(--mana-azure);
-  color: #ffffff;
-  box-shadow:
-    inset -3px -3px 0 0 var(--mana-shadow),
-    inset 3px 3px 0 0 var(--mana-highlight),
-    0 4px 0 0 var(--wood-dark);
+/* Knight Skill Slot (Kenney Ancient 9-slice) */
+.skill-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 10px;
+  background-color: #362519;
+  color: #fff4df;
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url('/ui/assets/ui/slices/kenney/brown.png');
+  border-image-slice: 16 fill;
+  border-image-repeat: round;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
 }
 
-.pixel-btn--mana:hover {
-  background: #4a82eb;
-  box-shadow:
-    inset -3px -3px 0 0 var(--mana-shadow),
-    inset 3px 3px 0 0 #85b0ff,
-    0 3px 0 0 var(--wood-dark);
+.skill-slot:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px var(--gold-base), 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.skill-slot.is-selected {
+  background-color: #4f3616;
+  box-shadow: 0 0 0 2px var(--gold-bright), 0 3px 0 rgba(0, 0, 0, 0.55);
+}
+
+.skill-slot:active:not(:disabled) {
+  border-image-source: url('/ui/assets/ui/slices/kenney/brown_pressed.png');
+  transform: translateY(2px);
+}
+
+.skill-slot:disabled,
+.skill-slot.is-cooldown {
+  border-image-source: url('/ui/assets/ui/slices/kenney/grey.png');
+  opacity: 0.68;
+  cursor: not-allowed;
+}
+
+.skill-slot__icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+/* Quest Card */
+.quest-card {
+  position: relative;
+  background-color: var(--parchment-light);
+  color: var(--ink-primary);
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: url('/ui/assets/ui/slices/kenney/tan.png');
+  border-image-slice: 16 fill;
+  border-image-repeat: round;
+  box-shadow: var(--pixel-shadow-sm);
 }
 
 /* Modal & Dialogs */
@@ -385,10 +520,14 @@
   width: 100%;
   background: #251b14;
   color: #fff4df;
-  border: 4px solid #1c120c;
-  box-shadow: inset 0 0 0 2px #d49b29, inset 0 0 0 4px #1c120c, 0 8px 0 rgba(0, 0, 0, 0.6);
-  padding: 24px 20px;
+  border-style: solid;
+  border-width: 16px;
+  border-image-source: url('/ui/assets/ui/slices/wood-board.png');
+  border-image-slice: 85 84 103 84 fill;
+  border-image-repeat: round;
+  padding: 20px;
   box-sizing: border-box;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
 }
 
 /* Inputs & Form Controls */
@@ -396,9 +535,9 @@
   width: 100%;
   box-sizing: border-box;
   padding: 10px 14px;
-  background: var(--parchment-light, #fff5df);
-  color: var(--ink-deep, #140e0a);
-  border: 3px solid var(--wood-dark, #1c120c);
+  background: var(--parchment-light);
+  color: var(--ink-deep);
+  border: 3px solid var(--wood-dark);
   border-radius: 0 !important;
   font-family: var(--font-body);
   font-size: 0.95rem;
@@ -408,33 +547,28 @@
 
 .pixel-input:focus {
   border-color: var(--gold-base);
-  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.25), 0 0 0 2px var(--gold-bright);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.25), var(--focus-ring);
 }
 
-/* ==============================================================================
- * RETRO NAVIGATION
- * ============================================================================== */
 .pixel-nav-link {
   position: relative;
   padding: 8px 14px;
-  font-family: var(--font-pixel);
-  font-size: 0.82rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
   color: var(--ink-primary);
-  text-transform: uppercase;
   border: 2px solid transparent;
   border-radius: 0 !important;
-  transition: none;
 }
 
 .pixel-nav-link:hover {
   background: var(--gold-highlight);
   border-color: var(--wood-dark);
-  box-shadow: 0 2px 0 0 var(--wood-dark);
+  box-shadow: var(--pixel-shadow-sm);
 }
 
 .pixel-nav-link.is-active {
   background: var(--gold-base);
-  color: #ffffff;
+  color: #1c120c;
   border-color: var(--wood-dark);
-  box-shadow: inset -2px -2px 0 0 var(--gold-shadow), inset 2px 2px 0 0 var(--gold-highlight), 0 2px 0 0 var(--wood-dark);
 }

@@ -1,0 +1,114 @@
+component,runtime_asset,source_pack,source_file,license_status,dimensions,notes
+Cursor:Action,assets/ui/cursors/cursor-action.png,Existing Repo (Tiny Swords Cursor_04),ui/cursors/cursor-action.png,EXISTING_REPO,64x64,Fixed P4-B swap: 4-corner target bracket
+Cursor:Forbidden,assets/ui/cursors/cursor-forbidden.png,Existing Repo (Tiny Swords Cursor_03),ui/cursors/cursor-forbidden.png,EXISTING_REPO,64x64,Fixed P4-B swap: prohibition circle
+Panel:BannerScroll,assets/ui/slices/banner-scroll.png,Existing Repo (Tiny Swords),ui/banners/banner.png,EXISTING_REPO,248x243,border-image-slice: 68 84 111 100 fill
+Panel:WoodBoard,assets/ui/slices/wood-board.png,Existing Repo (Tiny Swords),ui/table/woodtable.png,EXISTING_REPO,232x252,border-image-slice: 85 84 103 84 fill
+Panel:PaperRegular,assets/ui/slices/paper-regular.png,Existing Repo (Tiny Swords),ui/papers/regular-paper.png,EXISTING_REPO,168x153,border-image-slice: 44 52 45 52 fill
+Panel:PaperSpecial,assets/ui/slices/paper-special.png,Existing Repo (Tiny Swords),ui/papers/special-paper.png,EXISTING_REPO,174x151,border-image-slice: 44 55 43 55 fill
+Bar:BigTrack,assets/ui/slices/bigbar-track.png,Existing Repo (Tiny Swords),ui/bars/bigbar-base.png,EXISTING_REPO,112x51,3-slice HP/boss track slice 0 24 0 24 fill
+Bar:SmallTrack,assets/ui/slices/smallbar-track.png,Existing Repo (Tiny Swords),ui/bars/smallbar-base.png,EXISTING_REPO,94x19,3-slice mana/XP track slice 0 15 0 15 fill
+Button:BluePressed,assets/ui/slices/btn-blue-pressed.png,Existing Repo (Tiny Swords),ui/tiny/button-blue-pressed.png,EXISTING_REPO,164x149,border-image-slice: 36 50 49 50 fill
+Button:RedPressed,assets/ui/slices/btn-red-pressed.png,Existing Repo (Tiny Swords),ui/tiny/button-red-pressed.png,EXISTING_REPO,164x149,border-image-slice: 36 50 49 50 fill
+Ribbon:Blue,assets/ui/slices/ribbon-blue.png,Existing Repo (Tiny Swords big-ribbons),ui/banners/big-ribbons.png,EXISTING_REPO,259x103,3-slice title ribbon slice 0 97 0 98 fill
+Ribbon:Red,assets/ui/slices/ribbon-red.png,Existing Repo (Tiny Swords big-ribbons),ui/banners/big-ribbons.png,EXISTING_REPO,259x103,3-slice title ribbon slice 0 97 0 98 fill
+Ribbon:Yellow,assets/ui/slices/ribbon-yellow.png,Existing Repo (Tiny Swords big-ribbons),ui/banners/big-ribbons.png,EXISTING_REPO,259x103,3-slice title ribbon slice 0 97 0 98 fill
+Ribbon:Purple,assets/ui/slices/ribbon-purple.png,Existing Repo (Tiny Swords big-ribbons),ui/banners/big-ribbons.png,EXISTING_REPO,259x103,3-slice title ribbon slice 0 97 0 98 fill
+Ribbon:Steel,assets/ui/slices/ribbon-steel.png,Existing Repo (Tiny Swords big-ribbons),ui/banners/big-ribbons.png,EXISTING_REPO,259x103,3-slice title ribbon slice 0 97 0 98 fill
+Button:Blue,assets/ui/buttons/big-blue.png,Existing Repo (Tiny Swords),ui/buttons/big-blue.png,EXISTING_REPO,154x158,Direct existing repo asset
+Button:Red,assets/ui/buttons/big-red.png,Existing Repo (Tiny Swords),ui/buttons/big-red.png,EXISTING_REPO,154x158,Direct existing repo asset
+Bar:BigFill,assets/ui/bars/bigbar-fill.png,Existing Repo (Tiny Swords),ui/bars/bigbar-fill.png,EXISTING_REPO,64x64,Direct existing repo asset
+Bar:SmallFill,assets/ui/bars/smallbar-fill.png,Existing Repo (Tiny Swords),ui/bars/smallbar-fill.png,EXISTING_REPO,64x64,Direct existing repo asset
+Kenney9Slice:brown.png,assets/ui/slices/kenney/brown.png,Kenney Pixel UI Pack,9-Slice/Ancient/brown.png,CC0,48x48,16px 9-slice slot/card/tile border
+Kenney9Slice:brown_inlay.png,assets/ui/slices/kenney/brown_inlay.png,Kenney Pixel UI Pack,9-Slice/Ancient/brown_inlay.png,CC0,44x44,16px 9-slice slot/card/tile border
+Kenney9Slice:brown_pressed.png,assets/ui/slices/kenney/brown_pressed.png,Kenney Pixel UI Pack,9-Slice/Ancient/brown_pressed.png,CC0,48x48,16px 9-slice slot/card/tile border
+Kenney9Slice:tan.png,assets/ui/slices/kenney/tan.png,Kenney Pixel UI Pack,9-Slice/Ancient/tan.png,CC0,48x48,16px 9-slice slot/card/tile border
+Kenney9Slice:tan_inlay.png,assets/ui/slices/kenney/tan_inlay.png,Kenney Pixel UI Pack,9-Slice/Ancient/tan_inlay.png,CC0,44x44,16px 9-slice slot/card/tile border
+Kenney9Slice:tan_pressed.png,assets/ui/slices/kenney/tan_pressed.png,Kenney Pixel UI Pack,9-Slice/Ancient/tan_pressed.png,CC0,48x48,16px 9-slice slot/card/tile border
+Kenney9Slice:grey.png,assets/ui/slices/kenney/grey.png,Kenney Pixel UI Pack,9-Slice/Ancient/grey.png,CC0,48x48,16px 9-slice slot/card/tile border
+Kenney9Slice:grey_pressed.png,assets/ui/slices/kenney/grey_pressed.png,Kenney Pixel UI Pack,9-Slice/Ancient/grey_pressed.png,CC0,48x48,16px 9-slice slot/card/tile border
+Icon:icon1.png,assets/ui/kibyra/icon1.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon1.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Play arrow icon
+Icon:icon2.png,assets/ui/kibyra/icon2.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon2.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Cancel red cross icon
+Icon:icon3.png,assets/ui/kibyra/icon3.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon3.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Settings gear icon
+Icon:icon4.png,assets/ui/kibyra/icon4.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon4.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Knight helm / Hero badge
+Icon:icon5.png,assets/ui/kibyra/icon5.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon5.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Info / Lexicon hint badge
+Icon:icon10.png,assets/ui/kibyra/icon10.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon10.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Mana / Blue elixir flask
+Icon:icon11.png,assets/ui/kibyra/icon11.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon11.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Stamina / Emerald flask
+Icon:icon12.png,assets/ui/kibyra/icon12.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon12.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Gold coins pouch
+Icon:icon14.png,assets/ui/kibyra/icon14.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon14.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Sacred recovery potion
+Icon:icon17.png,assets/ui/kibyra/icon17.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon17.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Knight slash broadsword
+Icon:icon18.png,assets/ui/kibyra/icon18.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon18.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Heavy cleavage battleaxe
+Icon:icon19.png,assets/ui/kibyra/icon19.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon19.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Royal heraldic shield
+Icon:icon20.png,assets/ui/kibyra/icon20.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon20.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Iron buckler shield
+Icon:icon23.png,assets/ui/kibyra/icon23.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon23.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Paladin war helm
+Icon:icon25.png,assets/ui/kibyra/icon25.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon25.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Crown / Mastery seal
+Icon:icon26.png,assets/ui/kibyra/icon26.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon26.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Crossed swords / Arena battle
+Icon:icon27.png,assets/ui/kibyra/icon27.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon27.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Arcane / Lexical staff
+Icon:icon28.png,assets/ui/kibyra/icon28.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon28.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Rogue blade
+Icon:icon30.png,assets/ui/kibyra/icon30.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon30.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Star mastery badge
+Icon:icon32.png,assets/ui/kibyra/icon32.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon32.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Ancient lexicon tome / Volcard
+Icon:icon33.png,assets/ui/kibyra/icon33.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon33.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Adventure compass
+Icon:icon35.png,assets/ui/kibyra/icon35.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon35.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Kingdom quest map
+Icon:icon36.png,assets/ui/kibyra/icon36.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon36.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Guild banner flag
+Icon:icon37.png,assets/ui/kibyra/icon37.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon37.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Quill & quiz scroll
+Icon:icon40.png,assets/ui/kibyra/icon40.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon40.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Kingdom citadel / Home
+Icon:icon42.png,assets/ui/kibyra/icon42.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon42.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Forge anvil / Skills
+Icon:icon53.png,assets/ui/kibyra/icon53.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon53.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Royal Academy trophy
+Icon:icon57.png,assets/ui/kibyra/icon57.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon57.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Ember / Fire sigil
+Icon:icon58.png,assets/ui/kibyra/icon58.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon58.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Frost ward / Ice shield
+Icon:icon59.png,assets/ui/kibyra/icon59.png,Free Medieval Fantasy UI Pack (Kibyra),Free_Medieval_Fantasy_UI_Pack/UI Icons/icon59.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,32x32,Storm judgment / Lightning crest
+VFX:SwordSlashClean,assets/effects/vfx/fx-slash-clean.png,Sword Slash Pixel FX v1 (Pixelbolt),sword-slash-pixel-fx-v1/sheets-no-halo/fx-slash-clean.png,CC0,640x256,"80x64 frames (no-halo): slash 8f, slash-down 8f, slash-spin 10f, hit 6f"
+VFX:SwordSlashAtlas,assets/effects/vfx/fx-slash-clean.atlas.json,Sword Slash Pixel FX v1 (Pixelbolt),sword-slash-pixel-fx-v1/sheets-no-halo/fx-slash-clean.atlas.json,CC0,-,Frame atlas metadata for fx-slash-clean.png
+VFX:SwordSlashHalo,assets/effects/vfx/fx-slash.png,Sword Slash Pixel FX v1 (Pixelbolt),sword-slash-pixel-fx-v1/sheets/fx-slash.png,CC0,640x256,"80x64 frames (dark-bg halo): slash 8f, slash-down 8f, slash-spin 10f, hit 6f"
+Audio:SwordSwing,assets/audio/fx-slash-swing.wav,Sword Slash Pixel FX v1 (Pixelbolt),sword-slash-pixel-fx-v1/sounds/fx-slash-swing.wav,CC0,-,"Muted by default, user-toggleable SFX"
+VFX:hit_spark_ember.png,assets/effects/vfx/hit_spark_ember.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/hit_spark_ember.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:hit_spark_frost.png,assets/effects/vfx/hit_spark_frost.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/hit_spark_frost.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:hit_spark_arcane.png,assets/effects/vfx/hit_spark_arcane.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/hit_spark_arcane.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:impact_ring_ember.png,assets/effects/vfx/impact_ring_ember.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/impact_ring_ember.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:impact_ring_frost.png,assets/effects/vfx/impact_ring_frost.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/impact_ring_frost.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:impact_ring_arcane.png,assets/effects/vfx/impact_ring_arcane.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/impact_ring_arcane.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:slash_arc_ember.png,assets/effects/vfx/slash_arc_ember.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/slash_arc_ember.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:slash_arc_frost.png,assets/effects/vfx/slash_arc_frost.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/slash_arc_frost.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:slash_arc_arcane.png,assets/effects/vfx/slash_arc_arcane.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/slash_arc_arcane.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:heal_plus_frost.png,assets/effects/vfx/heal_plus_frost.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/heal_plus_frost.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:heal_plus_arcane.png,assets/effects/vfx/heal_plus_arcane.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/heal_plus_arcane.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:parry_flash_frost.png,assets/effects/vfx/parry_flash_frost.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/parry_flash_frost.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:parry_flash_ember.png,assets/effects/vfx/parry_flash_ember.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/parry_flash_ember.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:dash_dust_mono.png,assets/effects/vfx/dash_dust_mono.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/dash_dust_mono.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:explosion_ember.png,assets/effects/vfx/explosion_ember.png,Tiny Pixel FX Vol.1,tiny-pixel-fx-vol1/sheets_32px/explosion_ember.png,CC0,256x32,32x32 8-frame pixel VFX sheet (14fps)
+VFX:campfire_64x64.png,assets/effects/vfx/campfire_64x64.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/01_campfire/64x64/campfire_64x64_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,768x64,"World campfire ambient loop (12f, 12fps)"
+VFX:torch_flame_32x32.png,assets/effects/vfx/torch_flame_32x32.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/02_torch_flame/32x32/torch_flame_32x32_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,256x32,"Wall torch flame loop (8f, 12fps)"
+VFX:fire_explosion_64x64.png,assets/effects/vfx/fire_explosion_64x64.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/03_fire_explosion/64x64/fire_explosion_64x64_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,768x64,"Heavy Slash / Crit fire burst (12f, 12fps)"
+VFX:ice_spikes_64x64.png,assets/effects/vfx/ice_spikes_64x64.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/05_ice_spikes/64x64/ice_spikes_64x64_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,640x64,"Frost ward / Ice spike burst (10f, 12fps)"
+VFX:thunder_burst_64x64.png,assets/effects/vfx/thunder_burst_64x64.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/11_thunder_burst/64x64/thunder_burst_64x64_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,640x64,"Lexical Judgment lightning burst (10f, 12fps)"
+VFX:acid_splash_64x64.png,assets/effects/vfx/acid_splash_64x64.png,Free Pixel Fire & Elemental Effects v1.0.1 (Mira Forge),Free_Pixel_Fire_and_Elemental_Effects/effects/14_acid_splash/64x64/acid_splash_64x64_sheet.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,640x64,"Slime acid impact burst (10f, 12fps)"
+World:TallForest:forest-preview.png,assets/backgrounds/worlds/tall-forest/forest-preview.png,Tall Forest (Ansimuz),Tall Forest Files/Assets/Previews/forest.png,CC0,368x240,Forest parallax biome layer
+World:TallForest:back.png,assets/backgrounds/worlds/tall-forest/back.png,Tall Forest (Ansimuz),Tall Forest Files/Assets/Layers/back.png,CC0,144x240,Forest parallax biome layer
+World:TallForest:far.png,assets/backgrounds/worlds/tall-forest/far.png,Tall Forest (Ansimuz),Tall Forest Files/Assets/Layers/far.png,CC0,176x240,Forest parallax biome layer
+World:TallForest:middle.png,assets/backgrounds/worlds/tall-forest/middle.png,Tall Forest (Ansimuz),Tall Forest Files/Assets/Layers/middle.png,CC0,192x240,Forest parallax biome layer
+World:MountainDusk:mountain-dusk-a.png,assets/backgrounds/worlds/mountain-dusk/mountain-dusk-a.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Previews/Mountain-Dusk.png,CC0,320x240,Mountain dusk biome layer
+World:MountainDusk:sky.png,assets/backgrounds/worlds/mountain-dusk/sky.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/sky.png,CC0,320x240,Mountain dusk biome layer
+World:MountainDusk:far-mountains.png,assets/backgrounds/worlds/mountain-dusk/far-mountains.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/far-mountains.png,CC0,160x240,Mountain dusk biome layer
+World:MountainDusk:mountains.png,assets/backgrounds/worlds/mountain-dusk/mountains.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/mountains.png,CC0,320x240,Mountain dusk biome layer
+World:MountainDusk:far-clouds.png,assets/backgrounds/worlds/mountain-dusk/far-clouds.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/far-clouds.png,CC0,128x240,Mountain dusk biome layer
+World:MountainDusk:near-clouds.png,assets/backgrounds/worlds/mountain-dusk/near-clouds.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/near-clouds.png,CC0,144x240,Mountain dusk biome layer
+World:MountainDusk:trees.png,assets/backgrounds/worlds/mountain-dusk/trees.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version A/Layers/trees.png,CC0,240x240,Mountain dusk biome layer
+World:MountainDusk:mountain-dusk-b.png,assets/backgrounds/worlds/mountain-dusk/mountain-dusk-b.png,Super Mountain Dusk (Ansimuz),Super Mountain Dusk Files/Assets/version B/preview.png,CC0,320x240,Mountain dusk biome layer
+World:Town:background.png,assets/backgrounds/worlds/gothicvania-town/background.png,GothicVania Town (Ansimuz),GothicVania-town-files/PNG/environment/layers/background.png,CC0,384x288,Fantasy kingdom town backdrop
+World:Town:middleground.png,assets/backgrounds/worlds/gothicvania-town/middleground.png,GothicVania Town (Ansimuz),GothicVania-town-files/PNG/environment/layers/middleground.png,CC0,384x288,Fantasy kingdom town backdrop
+World:Town:environment-preview.png,assets/backgrounds/worlds/gothicvania-town/environment-preview.png,GothicVania Town (Ansimuz),GothicVania-town-files/PNG/environment/environment-preview.png,CC0,1536x288,Fantasy kingdom town backdrop
+World:Town:street-lamp.png,assets/backgrounds/worlds/gothicvania-town/street-lamp.png,GothicVania Town (Ansimuz),GothicVania-town-files/PNG/environment/props-sliced/street-lamp.png,CC0,35x108,Fantasy kingdom town backdrop
+World:Town:sign.png,assets/backgrounds/worlds/gothicvania-town/sign.png,GothicVania Town (Ansimuz),GothicVania-town-files/PNG/environment/props-sliced/sign.png,CC0,37x45,Fantasy kingdom town backdrop
+World:Waterfall:Sheet,assets/backgrounds/worlds/waterfall/waterfall_spritesheet.png,Pixel Art Waterfall v1.0,Pixel_Art_Waterfall/waterfall_spritesheet.png,PERMITTED_WITH_ATTRIBUTION,2020x640,"Mandatory attribution: Waterfall pixel art by Burcu Sak (5f 404x640, 210ms/frame)"
+World:Waterfall:Meta,assets/backgrounds/worlds/waterfall/animation.json,Pixel Art Waterfall v1.0,Pixel_Art_Waterfall/animation.json,PERMITTED_WITH_ATTRIBUTION,-,Frame timing metadata (210ms/f)
+Monster:Slime:idle.png,assets/monsters/slime/idle.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,128x32,Extracted from left-facing 32x32 row y=96 (4f)
+Monster:Slime:run.png,assets/monsters/slime/run.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,192x32,Extracted from left-facing 32x32 row y=224 (6f)
+Monster:Slime:attack.png,assets/monsters/slime/attack.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,192x32,Extracted from left-facing 32x32 row y=352 (6f)
+Monster:Slime:hit.png,assets/monsters/slime/hit.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,96x32,Extracted from left-facing 32x32 row y=608 (3f)
+Monster:Slime:death.png,assets/monsters/slime/death.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,256x32,Extracted from left-facing 32x32 row y=736 (8f)
+Portrait:Slime,assets/ui/avatars/portrait-boss-slime.png,Top-Down Monsters LITE (FREE) v1,spritesheets/slime.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,48x48,Front-facing HUD portrait derived from idle_down frame 0
+Monster:Skeleton:idle.png,assets/monsters/skeleton/idle.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,128x32,Extracted from left-facing 32x32 row y=96 (4f)
+Monster:Skeleton:run.png,assets/monsters/skeleton/run.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,192x32,Extracted from left-facing 32x32 row y=224 (6f)
+Monster:Skeleton:attack.png,assets/monsters/skeleton/attack.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,192x32,Extracted from left-facing 32x32 row y=352 (6f)
+Monster:Skeleton:hit.png,assets/monsters/skeleton/hit.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,96x32,Extracted from left-facing 32x32 row y=608 (3f)
+Monster:Skeleton:death.png,assets/monsters/skeleton/death.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,256x32,Extracted from left-facing 32x32 row y=736 (8f)
+Portrait:Skeleton,assets/ui/avatars/portrait-boss-skeleton.png,Top-Down Monsters LITE (FREE) v1,spritesheets/skeleton.png,PERMITTED_INTEGRATION_NO_RAW_REDISTRIB,48x48,Front-facing HUD portrait derived from idle_down frame 0

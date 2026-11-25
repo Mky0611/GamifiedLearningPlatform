@@ -34,6 +34,7 @@ function resolvePath(urlPath){
   if(clean === '/app/code-puzzle') return path.join(ROOT,'src/pages/code-puzzle.html');
   if(clean === '/app/volcard') return path.join(ROOT,'src/pages/volcard.html');
   if(clean === '/app/account') return path.join(ROOT,'src/pages/account.html');
+  if(clean === '/app/typography') return path.join(ROOT,'src/pages/typography-specimen.html');
   if(clean.startsWith('/ui/')) return path.join(ROOT, clean.slice(4));
   if(clean.startsWith('/assets/')) return path.join(ROOT, clean.slice(1));
   if(clean.startsWith('/src/')) return path.join(ROOT, clean.slice(1));

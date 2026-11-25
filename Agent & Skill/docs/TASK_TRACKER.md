@@ -3,7 +3,7 @@
 **Trạng thái cập nhật:** 2026-11-25  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh hiện tại:** `feature/p4b-fantasy-pixel-redesign`  
+**Nhánh hiện tại:** `feature/p4b2-kingdom-of-words`
 
 ---
 
@@ -12,26 +12,25 @@
 | Giai đoạn | Nội dung trọng tâm | Mức chứng nhận | Chi tiết & Ghi chú |
 | :---: | :--- | :---: | :--- |
 | **SEC** | Security Post-Audit & Credential Sanitization | **STATIC PASS** | Scanner sạch working tree; không chứa secret mới trong mã nguồn. |
-| **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật ở P4-B; Backend runtime live SQL `NOT TESTED` trong phiên này. |
-| **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS (3/3) / STATIC REVIEW** | DB seed audit (2,098 rows); Importer DRY RUN + `VolcardServiceImpl`/`LexRaidServiceImpl` giữ nguyên. |
-| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS (20/20)** | Java 21 Mockito unit tests pass ở P3 (`Pessimistic Locking`, Anti-Double-Reward). Live SQL concurrency `NOT TESTED`. |
-| **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS (P4-A)** | `probe_deployment.py` đạt 16/16 HTTP 200 OK trên URL P4-A; routing clean, `/api/**` trả 404 kích hoạt fallback. |
-| **P4-B** | Visual Acceptance, Asset Normalization & Browser QA | **STATIC PASS (43/43) & BROWSER PASS** | Audit 316 assets (`123 actual_renamed`), logo emblem+mark tách sạch, typography specimen, Volcard fit, Battle 9/9 viewports `fit=true` & `canvasClipped=false`, XSS-safe `renderStatus()`, Canvas fallback OK. |
+| **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật; Backend live SQL `NOT TESTED`. |
+| **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS (3/3) / STATIC REVIEW** | DB seed audit (2,098 rows); giữ nguyên dịch vụ & dữ liệu. |
+| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS (20/20)** | Java 21 Mockito tests pass ở P3; không sửa công thức/schema ở P4-B.2. |
+| **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS (P4-A)** | `vercel.json` routing clean, `/api/**` 404 kích hoạt Preview fallback. |
+| **P4-B** | Visual Acceptance, Asset Normalization & Browser QA | **STATIC PASS (43/43) & BROWSER PASS** | Audit assets, logo/nav, Volcard fit, Battle 9/9 viewports, XSS-safe DOM. |
+| **P4-B.2** | Kingdom of Words — Asset-Driven Pixel RPG, Skills, VFX & World Env | **STATIC PASS & BROWSER PASS (0 failures)** | Milestones A–H hoàn tất: curated 113 runtime assets, stitched 9-slice, fixed cursors, `WorldEnvironment`, `BattleScene` FSM + pooled VFX, 6 Knight Skills Preview, Slime & Skeleton Preview, 9/9 viewports + 9/9 pages PASS trên Chrome thật. |
 | **P5** | Docker, CI/CD, Containerized Deployment | `TODO` | Chưa thực hiện. |
 
 ---
 
-## 2. CHI TIẾT CÁC TASKS P4-B VISUAL ACCEPTANCE & ASSET CORRECTION
+## 2. CHI TIẾT MILESTONES P4-B.2
 
-| Task | Nội dung | Bằng chứng | Kết quả thực tế |
-| :--- | :--- | :--- | :--- |
-| **Task 1** | Sửa phân loại QA trung thực (`STATIC` vs `HTTP` vs `BROWSER` vs `NOT TESTED`) | `QA_REPORT.md`, `P4B_VISUAL_QA_REPORT.md`, `TASK_TRACKER.md`, `CURRENT_STATE.md` | **DONE** |
-| **Task 2** | Đổi tên 123 assets chuẩn semantic (`git mv`), phân loại rõ 316 assets, không xóa file pending/compat | `docs/P4B_ASSET_RENAME_MAP.csv`, `docs/p4b_actual_renames.json`, `raid-config.js` | **DONE** (`actual_renamed=123`) |
-| **Task 3** | Sửa pipeline `audit_assets.py` loại thư mục rác, chuyển contact sheets sang `test_output/asset_audit/` | `src/main/resources/tools/audit_assets.py`, `git rm -rf FrontEnd/assets/qa_audit` | **DONE** (`STATIC PASS`) |
-| **Task 4** | Cắt tách `logo-mark.png` (`192x192`), `favicon.png` (`64x64`), thống nhất nav 5 link & contrast drawer | `optimize_logo.py`, `base.css`, 9 trang HTML | **DONE** (`BROWSER PASS`) |
-| **Task 5** | Typography specimen (`/app/typography`), kiểm tra dấu tiếng Việt & fallback trong Chromium | `typography-specimen.html`, `P4B_TYPOGRAPHY_RESEARCH.md` | **DONE** (`BROWSER PASS`) |
-| **Task 6** | Volcard word fit (gỡ ellipsis/nowrap, xếp dọc TTS, auto-fit `POLYMORPHISM` & `CONTINUOUS INTEGRATION`) | `volcard.css`, `volcard.js` | **DONE** (`BROWSER PASS`) |
-| **Task 7** | Battle Visual QA 9 viewports, sửa cắt canvas trên 768/1024/1920, test Phaser + `?renderer=canvas` | `minigame.css`, `battle-scene.js`, `raid-phaser-main.js` | **DONE** (`9/9 BROWSER PASS`) |
-| **Task 8** | Bỏ `<span` raw HTML shortcut trong `minigame.js` `renderStatus()`, render DOM an toàn | `src/main/resources/FrontEnd/assets/js/minigame.js` | **DONE** (`BROWSER PASS`) |
-| **Task 9** | Automation Headless Chromium toàn diện (`chromium_p4b_acceptance.js`), ảnh chụp & DOM rects thật | `Agent & Skill/scripts/chromium_p4b_acceptance.js`, `test_output/p4b_browser/` | **DONE** (`BROWSER PASS`) |
-| **Task 10** | Commit có cấu trúc, push `feature/p4b-fantasy-pixel-redesign`, deploy Vercel Preview (NO `--prod`) | Git + Vercel CLI Preview URL | **IN PROGRESS** |
+| Milestone | Nội dung | Bằng chứng | Kết quả |
+| :---: | :--- | :--- | :---: |
+| **B.2A** | Asset audit (`UI Extra`), license verification, fixed swapped cursors, manifest CSV/JSON | `docs/P4B2_ASSET_MANIFEST.json`, `docs/P4B2_COMPONENT_ASSET_MAP.csv`, `curate_p4b2_assets.py` | **DONE** |
+| **B.2B** | Asset-driven Fantasy Design System, contiguous 9-slice/3-slice CSS, `Lora` + `Pixelify Sans` + `Be Vietnam Pro`, Adventure Guild Nav | `pixel-rpg.css`, `base.css`, `typography-specimen.html` | **DONE** |
+| **B.2C** | Shared Animated World Environment System (`village`, `forest`, `mountain-dusk`, `academy`, `gate`, `waterfall`) | `world-environment.js` | **DONE** |
+| **B.2D** | Knight Animation Engine FSM (`IDLE`..`VICTORY`), `Warrior_Attack2`, Pooled VFX, Canvas fallback parity | `battle-scene.js`, `boot-scene.js`, `raid-config.js`, `raid-phaser-embed.js` | **DONE** |
+| **B.2E** | 6 Knight Skills (Preview Mode) + `Verdant Slime` & `Cursed Skeleton` Preview + Backend Reviewer compatibility check | `minigame.js`, `docs/P4B2_DECISIONS.md` | **DONE** |
+| **B.2F** | All 9 Pages Redesign, compact Royal Academy hero, English/IT fallback quiz questions, `320x568` & `1440x900` layout fit | `home.*`, `volcard.html`, `account.html`, `quiz.html`, `games-lite.*`, `auth.*`, `minigame.*` | **DONE** |
+| **B.2G** | Performance hygiene (removed heavy `background.png` & multi-MB `map*.gif` page refs, route-scoped lightweight assets) | Static asset audit (`0` missing) | **DONE** |
+| **B.2H** | Real Headless Chromium QA (`0` failures), docs sync, Git commit/push & Vercel Preview deploy (NO `--prod`) | `chromium_p4b2_acceptance.js`, `docs/P4B2_QA_REPORT.md` | **DONE / DEPLOYING PREVIEW** |

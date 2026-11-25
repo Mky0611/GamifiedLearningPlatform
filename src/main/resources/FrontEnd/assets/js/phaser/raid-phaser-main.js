@@ -1,7 +1,7 @@
-(function(){
-  async function mount(mountEl, initialState){
+(function () {
+  async function mount(mountEl, initialState) {
     if (!window.Phaser || !window.RaidBootScene || !window.RaidBattleScene || !window.RaidUIScene) {
-      return { renderer: 'canvas-fallback', errorText: 'Phaser runtime chưa sẵn sàng.', setState(){}, destroy(){} };
+      return { renderer: 'canvas-fallback', errorText: 'Phaser runtime chưa sẵn sàng.', setState() {}, destroy() {} };
     }
 
     const cfg = window.RaidPhaserConfig;
@@ -27,19 +27,19 @@
       scene: [window.RaidBootScene, window.RaidBattleScene, window.RaidUIScene]
     });
 
-    const applyWhenReady = (callback)=>{
-      const tryRun = ()=>{
+    const applyWhenReady = (callback) => {
+      const tryRun = () => {
         const battle = game.scene.getScene('BattleScene');
         const ui = game.scene.getScene('UIScene');
         if (battle && ui && game.scene.isActive('BattleScene') && game.scene.isActive('UIScene')) {
           return callback();
         }
-        setTimeout(tryRun, 60);
+        setTimeout(tryRun, 50);
       };
       tryRun();
     };
 
-    applyWhenReady(()=>{
+    applyWhenReady(() => {
       const battle = game.scene.getScene('BattleScene');
       const ui = game.scene.getScene('UIScene');
       battle.events.emit('set-battle-state', bootState);
@@ -49,19 +49,25 @@
     return {
       renderer: 'phaser',
       errorText: '',
-      setState(next){
+      setState(next) {
         const battle = game.scene.getScene('BattleScene');
         const ui = game.scene.getScene('UIScene');
         if (battle) {
           battle.events.emit('set-battle-state', next || {});
-          if (next && next.playAttack) battle.events.emit('play-attack-sequence', next);
+          if (next && next.playSkill) battle.events.emit('play-skill-sequence', next);
+          else if (next && next.playAttack) battle.events.emit('play-attack-sequence', next);
           if (next && next.playBossTurn) battle.events.emit('play-boss-turn-sequence', next);
           if (next && next.playBossDeath) battle.events.emit('play-boss-death-sequence', next);
           if (next && next.playBossSpawn) battle.events.emit('play-boss-spawn-sequence', next);
+          if (next && next.resetActors) battle.events.emit('reset-actors');
         }
         if (ui) ui.events.emit('set-ui-state', next || {});
       },
-      destroy(){ game.destroy(true); mountEl.innerHTML = ''; window.__RAID_INITIAL_STATE__ = null; }
+      destroy() {
+        game.destroy(true);
+        mountEl.innerHTML = '';
+        window.__RAID_INITIAL_STATE__ = null;
+      }
     };
   }
 

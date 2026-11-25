@@ -1,0 +1,14 @@
+{
+  "frame_width": 404,
+  "frame_height": 640,
+  "frame_count": 5,
+  "durations_ms": [
+    210,
+    210,
+    210,
+    210,
+    210
+  ],
+  "layout": "horizontal",
+  "loop": true
+}

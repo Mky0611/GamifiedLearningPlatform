@@ -36,16 +36,21 @@
     currentCoreIndex: 0,
     currentBossDetails: null,
     transitioning: false,
-    isSubmitting: false
+    isSubmitting: false,
+    previewMana: 4,
+    maxPreviewMana: 6,
+    skillCooldowns: {},
+    activeSkillId: null,
+    soundEnabled: false
   };
 
   const monsterFrames = Object.fromEntries(
     Object.entries((window.RaidPhaserConfig && window.RaidPhaserConfig.bosses) || {}).map(([key, value]) => [
       key,
       {
-        idle: value.idle.frames,
-        attack: value.attack.frames,
-        hit: value.hit.frames
+        idle: Array.isArray(value.idle?.frames) ? value.idle.frames : (value.portrait ? [value.portrait] : []),
+        attack: Array.isArray(value.attack?.frames) ? value.attack.frames : (value.portrait ? [value.portrait] : []),
+        hit: Array.isArray(value.hit?.frames) ? value.hit.frames : (value.portrait ? [value.portrait] : [])
       }
     ])
   );
@@ -60,6 +65,8 @@
     totem3: 'Totem Head III',
     seashell: 'Seashell',
     cannon: 'Cannon',
+    slime: 'Verdant Slime (Preview)',
+    skeleton: 'Cursed Skeleton (Preview)'
   };
 
   const bossLore = {
@@ -107,6 +114,16 @@
       title: 'Cannon Golem',
       desc: 'Một cỗ máy chiến tranh cổ đại chạy bằng năng lượng lõi lửa. Họng pháo khổng lồ sẵn sàng nã đạn quét sạch đấu trường.',
       element: 'TECH'
+    },
+    slime: {
+      title: 'Verdant Slime (Preview)',
+      desc: 'Tinh linh nhớt rừng thẳm mang tinh thể cổ ngữ. Xuất hiện trong chế độ xem trước P4-B.2 để thử nghiệm hoạt ảnh và hiệu ứng chiến đấu.',
+      element: 'TOXIN'
+    },
+    skeleton: {
+      title: 'Cursed Skeleton (Preview)',
+      desc: 'Bộ xương kỵ sĩ canh giữ pháo đài cổ. Xuất hiện trong chế độ xem trước P4-B.2 với hiệu ứng chém và đỡ đòn.',
+      element: 'SHADOW'
     }
   };
 
@@ -533,11 +550,11 @@
 
   function fillBars(){
     const boss = state.stage?.boss || {};
-    const maxHp = Number(boss.baseHp || 100);
-    const maxShield = Number(boss.baseShield || 30);
-    const maxRage = Number(boss.rageThreshold || 20);
     const hp = Math.max(0, state.bossHp);
+    const maxHp = Math.max(Number(boss.baseHp || 100), hp);
     const shield = Math.max(0, state.bossShield);
+    const maxShield = Math.max(Number(boss.baseShield || 30), shield, 1);
+    const maxRage = Number(boss.rageThreshold || 20);
     const rage = Math.max(0, state.rage);
 
     document.getElementById('bossName').textContent = state.currentBossDetails?.name || boss.name || 'Boss';
@@ -1292,6 +1309,123 @@
       state.raidSessionId = null;
     }
 
+    function renderSkillBar(){
+      const bar = document.getElementById('knightSkillBar');
+      if(!bar) return;
+      const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+      const cdHtml = (s) => {
+        const cd = Number(state.skillCooldowns[s.id] || 0);
+        return cd > 0 ? `<span class="skill-preview-chip__cd">CD:${cd}T</span>` : (s.manaCost > 0 ? `<span class="skill-preview-chip__cd">${s.manaCost}MP</span>` : '');
+      };
+      bar.innerHTML = `
+        <div class="skill-bar-preview__meta">
+          <span class="skill-mp-pill" title="Preview Skill Mana (không ghi DB)">MP ${state.previewMana}/${state.maxPreviewMana}</span>
+          <button class="skill-sound-toggle ${state.soundEnabled ? 'is-on' : ''}" id="raidSoundBtn" type="button" title="${state.soundEnabled ? 'Tắt âm thanh VFX' : 'Bật âm thanh VFX (Mặc định tắt)'}" aria-label="Bật tắt âm thanh"><i class="bi ${state.soundEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}"></i></button>
+        </div>
+        ${skills.map((s) => {
+          const cd = Number(state.skillCooldowns[s.id] || 0);
+          const noMana = s.manaCost > state.previewMana;
+          const active = state.activeSkillId === s.id;
+          return `<button class="skill-preview-chip ${active ? 'is-active' : ''}" data-skill-id="${s.id}" type="button" title="${window.appApi.escapeHtml(s.desc)}" ${(cd > 0 || noMana) ? 'disabled' : ''}>
+            <img src="${s.icon}" alt="">
+            <span class="skill-preview-chip__label">${window.appApi.escapeHtml(s.name)}</span>
+            ${cdHtml(s)}
+          </button>`;
+        }).join('')}`;
+
+      bar.querySelectorAll('[data-skill-id]').forEach((btn) => {
+        btn.addEventListener('click', () => castKnightSkill(btn.dataset.skillId));
+      });
+      const sndBtn = document.getElementById('raidSoundBtn');
+      if (sndBtn) {
+        sndBtn.addEventListener('click', () => {
+          state.soundEnabled = !state.soundEnabled;
+          renderSkillBar();
+        });
+      }
+    }
+
+    function playSwingSfx(){
+      if (!state.soundEnabled || typeof Audio === 'undefined') return;
+      try {
+        const audio = new Audio('/ui/assets/audio/fx-slash-swing.wav');
+        audio.volume = 0.25;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    function castKnightSkill(skillId){
+      const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+      const skill = skills.find((s) => s.id === skillId);
+      if (!skill || state.transitioning) return;
+      if (Number(state.skillCooldowns[skill.id] || 0) > 0) {
+        renderStatus(`${skill.name} đang hồi chiêu (${state.skillCooldowns[skill.id]} lượt).`, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
+        return;
+      }
+      if (skill.manaCost > state.previewMana) {
+        renderStatus(`Chưa đủ Preview Mana (${state.previewMana}/${skill.manaCost}). Ghép từ hợp lệ để hồi MP!`, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
+        return;
+      }
+
+      state.previewMana = Math.max(0, state.previewMana - skill.manaCost);
+      if (skill.cooldown > 0) state.skillCooldowns[skill.id] = skill.cooldown;
+      state.activeSkillId = skill.id;
+      playSwingSfx();
+      syncRendererState({ playSkill: true, skillMeta: skill });
+      setHeroMode(skill.heroAnim === 'guard' ? 'guard' : 'attack', 650);
+
+      // Client-only preview feedback (never alters SQL Server / P3 XP or coins)
+      if (!state.raidSessionId) {
+        if (skill.id === 'sacred_recovery') {
+          state.playerHp = Math.min(100, state.playerHp + 18);
+        } else if (skill.id === 'royal_guard') {
+          state.playerHp = Math.min(100, state.playerHp + 6);
+        } else {
+          const previewDmg = skill.id === 'lexical_judgment' ? 22 : (skill.id === 'blade_storm' ? 18 : 14);
+          if (state.bossShield > 0) {
+            const spill = Math.max(0, previewDmg - state.bossShield);
+            state.bossShield = Math.max(0, state.bossShield - previewDmg);
+            state.bossHp = Math.max(1, state.bossHp - spill);
+          } else {
+            state.bossHp = Math.max(1, state.bossHp - previewDmg);
+          }
+        }
+        fillBars();
+      }
+      renderSkillBar();
+      renderStatus(`${skill.name}: ${skill.desc} (Preview Mode · không ghi DB)`, 'success', { badge: 'SKILL PREVIEW', isPreview: true });
+    }
+
+    function tickSkillCooldowns(){
+      Object.keys(state.skillCooldowns).forEach((k) => {
+        if (state.skillCooldowns[k] > 0) state.skillCooldowns[k] -= 1;
+      });
+      state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 1);
+      renderSkillBar();
+    }
+
+    function cyclePreviewBoss(){
+      const cfg = window.RaidPhaserConfig || {};
+      const order = cfg.previewBossOrder || cfg.bossOrder || ['crabby', 'slime', 'skeleton'];
+      const curIdx = order.indexOf(state.bossTheme);
+      const nextTheme = order[(curIdx + 1) % order.length];
+      state.bossTheme = nextTheme;
+      const meta = cfg.bosses?.[nextTheme];
+      const lore = bossLore[nextTheme];
+      state.currentBossDetails = {
+        name: meta?.label || themeLabel[nextTheme] || nextTheme,
+        element: lore?.element || 'SHADOW'
+      };
+      if (window.WorldEnvironment) {
+        const biome = nextTheme === 'slime' ? 'forest' : (nextTheme === 'crabby' || nextTheme === 'seashell' ? 'waterfall' : 'mountain-dusk');
+        window.WorldEnvironment.setBiome(biome);
+      }
+      syncRendererState({ bossTheme: nextTheme, biome: nextTheme === 'slime' ? 'forest' : 'dusk', resetActors: true });
+      playFrameMonster(nextTheme, 'idle');
+      fillBars();
+      renderStatus(`Boss Preview: ${state.currentBossDetails.name}`, 'success', { badge: 'MONSTER PREVIEW', isPreview: true });
+    }
+
     await mountRaidRenderer(true);
     syncRendererState();
     setTimeout(()=>syncRendererState(), 80);
@@ -1299,15 +1433,17 @@
     renderCore();
     renderObjectives();
     renderRecent();
+    renderSkillBar();
     fillBars();
     renderBoard(true);
     playFrameMonster(state.bossTheme, 'idle');
     tickTimer();
 
-    document.getElementById('submitWordBtn').onclick = submitWord;
-    document.getElementById('guessCoreBtn').onclick = guessCoreWord;
+    document.getElementById('submitWordBtn').onclick = () => { playSwingSfx(); tickSkillCooldowns(); return submitWord(); };
+    document.getElementById('guessCoreBtn').onclick = () => { playSwingSfx(); return guessCoreWord(); };
     document.getElementById('clearPathBtn').onclick = ()=>resetSelection();
     document.getElementById('finishBattleBtn').onclick = ()=>finishBattle(false);
+    document.getElementById('cycleBossPreviewBtn')?.addEventListener('click', cyclePreviewBoss);
 
     // Initialize boss info modal
     const bossInfoBtn = document.getElementById('bossInfoBtn');
@@ -1356,6 +1492,11 @@
         getBossShield: () => state.bossShield,
         getPlayerHp: () => state.playerHp,
         getTurn: () => state.turn,
+        getBossTheme: () => state.bossTheme,
+        getSkillState: () => ({ previewMana: state.previewMana, cooldowns: { ...state.skillCooldowns }, activeSkillId: state.activeSkillId, soundEnabled: state.soundEnabled }),
+        castSkill: (skillId) => castKnightSkill(skillId),
+        cycleBossPreview: () => cyclePreviewBoss(),
+        resetSceneActors: () => syncRendererState({ resetActors: true }),
         getRenderer: () => state.renderer?.renderer || null,
         setLoadoutAndBoss: ({ unitCode, bossTheme } = {}) => {
           if (unitCode) state.unitCode = unitCode;

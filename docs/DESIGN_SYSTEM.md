@@ -1,8 +1,13 @@
-# PURE FANTASY PIXEL RPG DESIGN SYSTEM — LEX RAID
+# PURE FANTASY PIXEL RPG DESIGN SYSTEM — LEX RAID ("KINGDOM OF WORDS")
 
-**Phiên bản:** 2.1.0 (Phase P4-B Visual Acceptance Update)  
-**Trạng thái:** `STATIC PASS (43/43)` & `BROWSER PASS (Chromium 9 Viewports / 9 Pages)`  
-**Mục tiêu:** Ngôn ngữ thiết kế **Pure Fantasy Pixel RPG** kết hợp công thái học retro, tương phản đạt chuẩn, asset tách gọn (`logo-mark.png` `42.78 KB`, `favicon.png` `8.34 KB`, portraits `< 15 KB`), và hiển thị hoàn chỉnh trên mọi độ phân giải từ `320x568` đến `1920x1080`.
+**Phiên bản:** 3.0.0 (Phase P4-B.2 Asset-Driven Fantasy Update)  
+**Trạng thái:** `STATIC PASS (43/43)` & `BROWSER PASS (Chromium 9 Viewports / 9 Pages / 0 Failures)`  
+**Mục tiêu:** Hệ thống UI 9-slice/3-slice ghép từ asset pixel thật (`Tiny Swords` slices + `Kenney Ancient` + `Kibyra` UI icons), kết hợp `Lora` + `Pixelify Sans` + `Be Vietnam Pro` + `JetBrains Mono`, World Environment động nhẹ nhàng, và tối ưu hiển thị từ `320x568` đến `1920x1080`.
+
+### Bổ sung P4-B.2 (Asset-Driven Components & Biomes)
+- **Contiguous 9-Slice/3-Slice (`assets/ui/slices/`):** `paper-regular.png`, `wood-board.png`, `banner-scroll.png`, `paper-special.png`, `ribbon-{blue,red,yellow,purple,steel}.png`, `bigbar-track.png`, `smallbar-track.png`, và `kenney/{brown,tan,grey}*.png` dùng CSS `border-image-repeat: stretch` tránh vân lặp lưới.
+- **Adventure Guild Navbar:** Bộ 5 icon `Kibyra 32x32` (`icon40`, `icon26`, `icon32`, `icon37`, `icon4`) kết hợp `logo-mark.png` (`42x42` desktop / `32x32` <= 720px).
+- **World Environments (`world-environment.js`):** Ánh xạ biome theo trang (`village`, `mountain-dusk`, `forest`, `academy`, `gate`, `waterfall`), tạm dừng tự động theo `document.hidden` và `prefers-reduced-motion`.
 
 ---
 
