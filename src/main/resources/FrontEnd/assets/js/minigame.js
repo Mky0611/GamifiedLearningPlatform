@@ -53,7 +53,14 @@
     hintCharges: 3,
     hintsUsedCount: 0,
     boardSeedOffset: 0,
-    discoveredWords: []
+    discoveredWords: [],
+    playMode: 'campaign',
+    wavePlan: [],
+    waveTurn: 1,
+    bossMaxHp: 100,
+    bossMaxShield: 30,
+    bossStatuses: {},
+    timerPaused: false
   };
 
   function isQaEnvironment(){
@@ -474,13 +481,130 @@
     return Boolean(window.LexRaidBalance && window.LexRaidBalance.isEnglishLexiconWord(normalized));
   }
 
+  function getEffectiveChapterRules(){
+    const chapterNo = Number(state.stage?.chapterNo || 1);
+    if (window.LexRaidBalance && typeof window.LexRaidBalance.getChapterRules === 'function') {
+      return window.LexRaidBalance.getChapterRules(chapterNo, state.playMode);
+    }
+    return {
+      mode: state.playMode,
+      chapterNo,
+      timeSec: state.playMode === 'practice' ? 0 : (chapterNo === 1 ? 45 : 35),
+      freeHints: state.playMode === 'practice' ? 99 : (chapterNo === 1 ? 3 : 2),
+      bossAtkBase: chapterNo === 1 ? 6 : 8,
+      shieldFactor: chapterNo === 1 ? 0.75 : 1.0,
+      traitsUnlocked: chapterNo >= 2
+    };
+  }
+
   function parseStageChip(){
     const stage = state.stage || {};
+    const rules = getEffectiveChapterRules();
+    const timerChip = rules.timeSec > 0 ? `${rules.timeSec}s / turn` : 'Practice ∞';
     document.getElementById('stageChipRow').innerHTML = `
       <span class="raid-chip">Chapter ${stage.chapterNo || 1}</span>
       <span class="raid-chip">${stage.boardRows || 5} x ${stage.boardCols || 5}</span>
-      <span class="raid-chip">${stage.timePerRoundSec || 20}s / turn</span>
+      <span class="raid-chip">${timerChip}</span>
       <span class="raid-chip">${window.appApi.escapeHtml(stage.difficulty || 'NORMAL')}</span>`;
+  }
+
+  function getCurrentWaveEntry(){
+    if (!Array.isArray(state.wavePlan) || !state.wavePlan.length) return null;
+    return state.wavePlan[Math.min(state.wavePlan.length - 1, Math.max(0, (state.waveIndex || 1) - 1))];
+  }
+
+  function renderBossTelegraphAndStatuses(){
+    const wave = getCurrentWaveEntry();
+    const telEl = document.getElementById('bossTelegraphText');
+    if (telEl) {
+      if (state.bossStatuses?.stun > 0) {
+        telEl.textContent = 'Choáng: Quái vật mất lượt phản công sắp tới!';
+      } else if (state.bossPhase >= 2) {
+        telEl.textContent = `Phase 2! ${wave?.telegraph || 'Thủ lĩnh tung đòn mạnh!'}`;
+      } else {
+        telEl.textContent = wave?.telegraph || 'Sẵn sàng công kích';
+      }
+    }
+    const statusEl = document.getElementById('bossStatusPills');
+    if (statusEl) {
+      const chips = [];
+      if (state.bossStatuses?.burn > 0) chips.push(`<span class="status-pill status-pill--burn">Thiêu đốt (${state.bossStatuses.burn})</span>`);
+      if (state.bossStatuses?.frost > 0) chips.push(`<span class="status-pill status-pill--frost">Băng giá (${state.bossStatuses.frost})</span>`);
+      if (state.bossStatuses?.stun > 0) chips.push(`<span class="status-pill status-pill--stun">Choáng (${state.bossStatuses.stun})</span>`);
+      if (state.royalGuardActive) chips.push('<span class="status-pill status-pill--guard">Khiên Hoàng Gia</span>');
+      statusEl.innerHTML = chips.join('');
+    }
+  }
+
+  function initEncounterPlan(){
+    if (state.raidSessionId || !window.LexRaidEncounters) {
+      state.totalWaves = state.raidSessionId ? Math.max(1, getCoreWordEntries().length || 1) : 5;
+      return;
+    }
+    const ch = Number(state.stage?.chapterNo || 1);
+    const seed = Number(state.stage?.stageId || 1) * 97 + ch * 31;
+    state.wavePlan = window.LexRaidEncounters.generateFiveWavePlan({
+      chapterNo: ch,
+      seed,
+      chapterBossTheme: detectBossTheme()
+    });
+    state.totalWaves = state.wavePlan.length || 5;
+  }
+
+  function applyWaveEncounter(waveNumber, isInitial = false){
+    if (state.raidSessionId) return;
+    const plan = state.wavePlan;
+    if (!Array.isArray(plan) || !plan.length) return;
+    const idx = Math.max(1, Math.min(plan.length, Number(waveNumber || 1)));
+    const entry = plan[idx - 1];
+    state.waveIndex = idx;
+    state.waveTurn = 1;
+    state.bossTheme = entry.theme;
+    state.bossRarity = entry.rarity;
+    state.bossPhase = 1;
+    state.bossStatuses = {};
+
+    const rules = getEffectiveChapterRules();
+    const baseHp = Number(state.stage?.boss?.baseHp || 100);
+    const baseShield = Number(state.stage?.boss?.baseShield || 30);
+    state.bossMaxHp = Math.max(60, Math.round(baseHp * entry.hpScale));
+    state.bossMaxShield = Math.max(10, Math.round(baseShield * entry.shieldScale * rules.shieldFactor));
+    state.bossHp = state.bossMaxHp;
+    state.bossShield = state.bossMaxShield;
+
+    const meta = window.RaidPhaserConfig?.bosses?.[entry.theme];
+    const lore = bossLore[entry.theme];
+    state.currentBossDetails = {
+      name: `${meta?.label || themeLabel[entry.theme] || 'Boss'}`,
+      element: lore?.element || 'SHADOW'
+    };
+    if (!isInitial) {
+      renderStatus(`Đợt ${idx}/${state.totalWaves}: ${state.currentBossDetails.name} (${entry.label}) xuất trận!`, 'warning');
+    }
+  }
+
+  function setPlayMode(nextMode){
+    const mode = nextMode === 'practice' ? 'practice' : 'campaign';
+    state.playMode = mode;
+    const campaignBtn = document.getElementById('modeCampaignBtn');
+    const practiceBtn = document.getElementById('modePracticeBtn');
+    const modeBadge = document.getElementById('raidModeBadge');
+    if (campaignBtn) campaignBtn.classList.toggle('is-active', mode === 'campaign');
+    if (practiceBtn) practiceBtn.classList.toggle('is-active', mode === 'practice');
+    if (modeBadge) {
+      modeBadge.innerHTML = mode === 'practice'
+        ? '<i class="bi bi-cup-hot-fill"></i> Practice Mode · Học thư giãn'
+        : '<i class="bi bi-shield-shaded"></i> Campaign · Boss Hunt';
+    }
+    const rules = getEffectiveChapterRules();
+    state.hintCharges = rules.freeHints;
+    updateHintControls();
+    parseStageChip();
+    tickTimer(true);
+    renderStatus(mode === 'practice'
+      ? 'Practice Mode: không giới hạn thời gian · mở rộng gợi ý học từ vựng (không tính thưởng xếp hạng).'
+      : `Campaign Mode · Chapter ${rules.chapterNo}: ${rules.timeSec}s mỗi lượt.`,
+      mode === 'practice' ? 'success' : 'warning');
   }
 
   function detectBossTheme(){
@@ -751,9 +875,9 @@
   function fillBars(){
     const boss = state.stage?.boss || {};
     const hp = Math.max(0, state.bossHp);
-    const maxHp = Math.max(Number(boss.baseHp || 100), hp);
+    const maxHp = Math.max(Number(state.bossMaxHp || boss.baseHp || 100), hp);
     const shield = Math.max(0, state.bossShield);
-    const maxShield = Math.max(Number(boss.baseShield || 30), shield, 1);
+    const maxShield = Math.max(Number(state.bossMaxShield || boss.baseShield || 30), shield, 1);
     const maxRage = Number(boss.rageThreshold || 20);
     const rage = Math.max(0, state.rage);
 
@@ -830,6 +954,7 @@
     if (waveEl) waveEl.textContent = waveText;
     const waveHudEl = document.getElementById('waveHudValue');
     if (waveHudEl) waveHudEl.textContent = `W${state.waveIndex || 1}/${state.totalWaves || 5}`;
+    renderBossTelegraphAndStatuses();
   }
 
   function renderCore(){
@@ -1027,17 +1152,42 @@
     }
   }
 
-  function tickTimer(){
+  function pauseTimer(paused){
+    state.timerPaused = Boolean(paused);
+    if (state.timerPaused) {
+      clearInterval(state.timer);
+      state.timer = null;
+      return;
+    }
+    if (!state.finished && !state.transitioning) {
+      tickTimer(false);
+    }
+  }
+
+  function tickTimer(resetDuration = true){
     clearInterval(state.timer);
-    state.timeLeft = Number(state.stage?.timePerRoundSec || 20);
-    const timeFormatted = `00:${String(state.timeLeft).padStart(2,'0')}`;
-    document.getElementById('timerValue').textContent = timeFormatted;
+    state.timer = null;
+    if (state.finished || state.transitioning || state.timerPaused) return;
+    const rules = getEffectiveChapterRules();
+    const timerEl = document.getElementById('timerValue');
     const timerHud = document.getElementById('timerHudValue');
-    if (timerHud) timerHud.textContent = timeFormatted;
+    if (rules.timeSec <= 0) {
+      state.timeLeft = 0;
+      if (timerEl) timerEl.textContent = '∞';
+      if (timerHud) timerHud.textContent = '∞';
+      return;
+    }
+    if (resetDuration || !Number.isFinite(state.timeLeft) || state.timeLeft <= 0) {
+      state.timeLeft = rules.timeSec;
+    }
+    const formatSecs = (s) => `00:${String(Math.max(0, s)).padStart(2, '0')}`;
+    if (timerEl) timerEl.textContent = formatSecs(state.timeLeft);
+    if (timerHud) timerHud.textContent = formatSecs(state.timeLeft);
     state.timer = setInterval(()=>{
+      if (state.timerPaused || state.transitioning || state.finished) return;
       state.timeLeft -= 1;
-      const formatted = `00:${String(Math.max(0, state.timeLeft)).padStart(2,'0')}`;
-      document.getElementById('timerValue').textContent = formatted;
+      const formatted = formatSecs(state.timeLeft);
+      if (timerEl) timerEl.textContent = formatted;
       if (timerHud) timerHud.textContent = formatted;
       if(state.timeLeft <= 0){
         clearInterval(state.timer);
@@ -1046,14 +1196,82 @@
     }, 1000);
   }
 
+  function checkAndTriggerBossPhase2(){
+    if (state.raidSessionId || state.bossPhase >= 2 || state.bossHp <= 0) return false;
+    const wave = getCurrentWaveEntry();
+    const halfHp = Math.floor(Math.max(1, state.bossMaxHp) * 0.5);
+    const eligible = state.bossRarity === 'CHAPTER_BOSS' || state.bossRarity === 'GUARDIAN' || (wave && wave.traitsActive);
+    if (eligible && state.bossHp <= halfHp) {
+      state.bossPhase = 2;
+      state.bossShield = Math.min(state.bossMaxShield + 15, state.bossShield + 12);
+      state.rage = Math.min(999, state.rage + 4);
+      renderStatus(`${themeLabel[state.bossTheme] || 'Boss'} bước vào Phase 2! (+12 Shield)`, 'warning');
+      return true;
+    }
+    return false;
+  }
+
   function bossTurn(message){
     if (state.finished) return;
     state.turn += 1;
+    state.waveTurn += 1;
+    const wave = getCurrentWaveEntry();
+    const rules = getEffectiveChapterRules();
+
+    // Burn status damage ticks cleanly in Preview Mode
+    let extraNote = '';
+    if (!state.raidSessionId && state.bossStatuses?.burn > 0) {
+      const burnDmg = 7;
+      state.bossHp = Math.max(1, state.bossHp - burnDmg);
+      state.bossStatuses.burn -= 1;
+      extraNote += ` (Thiêu đốt -${burnDmg} HP)`;
+    }
+
+    // Stun skips enemy counter-attack turn
+    if (!state.raidSessionId && state.bossStatuses?.stun > 0) {
+      state.bossStatuses.stun -= 1;
+      if (state.bossStatuses.frost > 0) state.bossStatuses.frost -= 1;
+      fillBars();
+      renderObjectives();
+      renderStatus(`Boss bị Choáng, bỏ qua lượt phản công!${extraNote}`, 'success');
+      resetSelection();
+      tickTimer(true);
+      return;
+    }
+
     state.rage = Math.min(999, state.rage + 3);
-    let bossDmg = 8;
+    let bossDmg = state.raidSessionId
+      ? 8
+      : Math.max(4, Math.round(rules.bossAtkBase * (wave?.atkScale || 1)));
     let finalMessage = message;
+
+    if (!state.raidSessionId && wave?.traitsActive && window.LexRaidEncounters) {
+      const trait = window.LexRaidEncounters.getMonsterTrait(state.bossTheme);
+      if (trait && typeof trait.onBossTurn === 'function') {
+        const traitFx = trait.onBossTurn({
+          waveTurn: state.waveTurn,
+          phase: state.bossPhase,
+          hasBurn: Boolean(state.bossStatuses?.burn > 0)
+        });
+        if (traitFx) {
+          if (traitFx.addShield) state.bossShield = Math.min(state.bossMaxShield + 20, state.bossShield + traitFx.addShield);
+          if (traitFx.healHp && state.bossHp > 0) state.bossHp = Math.min(state.bossMaxHp, state.bossHp + traitFx.healHp);
+          if (traitFx.addRage) state.rage = Math.min(999, state.rage + traitFx.addRage);
+          if (traitFx.dmgMultiplier) bossDmg = Math.max(4, Math.round(bossDmg * traitFx.dmgMultiplier));
+          if (traitFx.note) extraNote += ` · ${traitFx.note}`;
+        }
+      }
+    }
+
+    if (!state.raidSessionId && state.bossStatuses?.frost > 0) {
+      bossDmg = Math.max(2, Math.round(bossDmg * 0.7));
+      state.bossStatuses.frost -= 1;
+      extraNote += ' · Băng giá giảm 30% sát thương địch';
+    }
+
     if (!state.raidSessionId && state.royalGuardActive) {
       const pct = Math.min(90, Math.max(0, Number(state.royalGuardMitigationPct || 75)));
+      const rawBossDmg = bossDmg;
       bossDmg = Math.max(1, Math.round(bossDmg * (1 - pct / 100)));
       const reflect = Math.max(0, Number(state.royalGuardReflect || 6));
       state.royalGuardActive = false;
@@ -1068,7 +1286,7 @@
           state.bossHp = Math.max(1, state.bossHp - reflect);
         }
       }
-      finalMessage = `${message} Royal Guard chặn đòn (-${bossDmg} HP thay vì -8${reflect ? `, phản ${reflect} băng` : ''}).`;
+      finalMessage = `${message} Royal Guard chặn đòn (-${bossDmg} HP thay vì -${rawBossDmg}${reflect ? `, phản ${reflect} băng` : ''}).`;
     }
     state.playerHp = Math.max(0, state.playerHp - bossDmg);
     syncRendererState({ playBossTurn: true });
@@ -1076,14 +1294,15 @@
     playFrameMonster(state.bossTheme, 'attack', 750);
     fillBars();
     renderObjectives();
-    renderStatus(finalMessage);
+    renderStatus(`${finalMessage}${extraNote}`);
     if (typeof renderSkillBar === 'function') renderSkillBar();
-    if(state.playerHp <= 0 || state.turn > (state.stage?.turnLimit || 5)){
+    const maxTurns = state.playMode === 'practice' ? 99 : Math.max(Number(state.stage?.turnLimit || 5), 10);
+    if(state.playerHp <= 0 || state.turn > maxTurns){
       finishBattle(false);
       return;
     }
     resetSelection();
-    tickTimer();
+    tickTimer(true);
     syncSession();
   }
 
@@ -1239,41 +1458,36 @@
     state.transitioning = true;
     clearInterval(state.timer);
     
-    // Play death sequence on Phaser
     updateRaidRenderer({ playBossDeath: true });
     playFrameMonster(state.bossTheme, 'hit', 500);
-    renderStatus("Quái vật đã bị tiêu diệt! Đợt tiếp theo sắp xuất hiện...", "success");
+    renderStatus(`Đợt ${state.waveIndex}/${state.totalWaves} hoàn tất! Quái vật tiếp theo đang tiến vào...`, "success");
 
-    // Wait 1.5 seconds for death animation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 950));
 
-    // Select new boss theme & details
-    state.bossTheme = getRandomBossTheme(state.bossTheme);
-    state.currentBossDetails = randomBosses.filter(b => b.name !== state.currentBossDetails?.name)[Math.floor(Math.random() * (randomBosses.length - 1))];
-    
-    // Reset HP & Shield
-    state.bossHp = Number(state.stage?.boss?.baseHp || 100);
-    state.bossShield = Number(state.stage?.boss?.baseShield || 30);
+    if (!state.raidSessionId && state.wavePlan.length) {
+      const nextWave = Math.min(state.totalWaves, (state.waveIndex || 1) + 1);
+      applyWaveEncounter(nextWave, false);
+    } else {
+      state.waveIndex = Math.min(state.totalWaves, (state.waveIndex || 1) + 1);
+      state.bossTheme = getRandomBossTheme(state.bossTheme);
+      state.bossHp = Number(state.stage?.boss?.baseHp || 100);
+      state.bossShield = Number(state.stage?.boss?.baseShield || 30);
+    }
 
-    // Rebuild board for the new core word
-    rebuildBoardForActiveCoreWord();
-
-    // Spawn the new boss on Phaser
-    updateRaidRenderer({ playBossSpawn: true, bossTheme: state.bossTheme });
+    rebuildBoardForActiveCoreWord(true);
+    updateRaidRenderer({ playBossSpawn: true, bossTheme: state.bossTheme, bossRarity: state.bossRarity, waveIndex: state.waveIndex });
     playFrameMonster(state.bossTheme, 'idle');
 
-    // Reset selection and refresh UI
     state.selected = [];
     fillBars();
     renderCore();
     renderObjectives();
     renderBoard(true);
 
-    // Sync state with backend
     await syncSession();
 
     state.transitioning = false;
-    tickTimer();
+    tickTimer(true);
   }
 
   async function triggerBossDeathAndVictory() {
@@ -1406,12 +1620,25 @@
           state.revealedIndexes = moved ? [] : Array.from({ length: word.length }, (_, index) => index);
         } else {
           wordCategory = isTopicMatch ? 'TOPIC' : 'GLOBAL';
+          const wave = getCurrentWaveEntry();
+          if (wave?.traitsActive && window.LexRaidEncounters) {
+            const trait = window.LexRaidEncounters.getMonsterTrait(state.bossTheme);
+            if (trait && typeof trait.modifyIncomingDamage === 'function') {
+              damageDealt = trait.modifyIncomingDamage({
+                damage: damageDealt,
+                isTopicWord: isTopicMatch,
+                wordLength: word.length,
+                turn: state.turn
+              });
+            }
+          }
           state.score += Math.max(10, word.length * 8 + (isTopicMatch ? 8 : 0));
           state.combo = nextCombo;
           if (isTopicMatch) state.topicCount += 1;
           if(word.length >= 5) state.longWord += 1;
           state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + manaGain);
-          if(state.bossShield > 0){
+          const bypassShield = Boolean(wave?.traitsActive && word.length >= 5 && window.LexRaidEncounters?.getMonsterTrait(state.bossTheme)?.bypassShieldIfLong);
+          if(state.bossShield > 0 && !bypassShield){
             const remainingShield = Math.max(0, state.bossShield - damageDealt);
             const spill = Math.max(0, damageDealt - state.bossShield);
             state.bossShield = remainingShield;
@@ -1419,6 +1646,7 @@
           }else{
             state.bossHp = Math.max(0, state.bossHp - damageDealt);
           }
+          checkAndTriggerBossPhase2();
         }
       }
 
@@ -1456,8 +1684,9 @@
       renderRecent();
       if (typeof renderSkillBar === 'function') renderSkillBar();
 
+      const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
       if(coreSolved) {
-        if (movedCoreFromSubmit) {
+        if (movedCoreFromSubmit || hasMorePreviewWaves) {
           triggerBossDeathAndNextWave();
         } else {
           triggerBossDeathAndVictory();
@@ -1467,7 +1696,7 @@
 
       if(state.bossHp <= 0){
         const moved = advanceCoreWord();
-        if(moved){
+        if(moved || hasMorePreviewWaves){
           triggerBossDeathAndNextWave();
         }else{
           triggerBossDeathAndVictory();
@@ -1480,7 +1709,7 @@
         : (wordCategory === 'CORE' ? 'Core Word!' : 'Từ tiếng Anh');
       renderStatus(`${word} (${categoryTag}) · ${damageDealt} DMG · +${manaGain} MP`, 'success');
       renderBoard(false);
-      tickTimer();
+      tickTimer(true);
       syncSession();
     } finally {
       state.isSubmitting = false;
@@ -1508,7 +1737,8 @@
             guessedWord: guess
           });
         }catch(error){
-          backendResult = null;
+          renderStatus(error?.message || 'Lỗi kết nối máy chủ khi đoán Core Word.');
+          return;
         }
       }
 
@@ -1549,7 +1779,7 @@
       }
 
       if(guess === target){
-        state.score += 40;
+        state.score += 80;
         state.bossHp = 0;
         state.bossShield = 0;
         syncRendererState({ playAttack: true });
@@ -1557,19 +1787,22 @@
         playFrameMonster(state.bossTheme, 'hit', 500);
 
         const moved = advanceCoreWord();
-        state.guessed = !moved;
-        state.revealedIndexes = moved ? [] : Array.from({ length: target.length }, (_, index) => index);
+        const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
+        state.guessed = !moved && !hasMorePreviewWaves;
+        state.revealedIndexes = (moved || hasMorePreviewWaves) ? [] : Array.from({ length: target.length }, (_, index) => index);
 
         fillBars();
         renderCore();
         renderObjectives();
-        
-        if(moved){
+
+        if(moved || hasMorePreviewWaves){
+          renderStatus('Lexical Judgment! Core Word khai mở đòn kết liễu quái vật!', 'success');
           triggerBossDeathAndNextWave();
         }else{
           triggerBossDeathAndVictory();
         }
-      }else{
+        return;
+      } else {
         renderStatus('Sai core word, path reset và boss phản công.');
         bossTurn('Đoán sai core word, boss phản công.');
       }
@@ -1797,14 +2030,15 @@
 
     document.getElementById('stageTitle').textContent = state.stage.name || 'Lex Raid';
     document.getElementById('stageSubtitle').textContent = state.stage.description || 'Boss Hunt';
-    parseStageChip();
     state.bossTheme = detectBossTheme();
     state.currentBossDetails = {
       name: state.stage?.boss?.name || 'Raincap Warden',
       element: state.stage?.boss?.elementType || 'SHADOW'
     };
-    state.bossHp = Number(state.stage?.boss?.baseHp || 100);
-    state.bossShield = Number(state.stage?.boss?.baseShield || 30);
+    state.bossMaxHp = Number(state.stage?.boss?.baseHp || 100);
+    state.bossMaxShield = Number(state.stage?.boss?.baseShield || 30);
+    state.bossHp = state.bossMaxHp;
+    state.bossShield = state.bossMaxShield;
 
     if(!applyBoardFromPayload(state.runtime?.board)){
       state.board = buildFallbackBoard(getActiveCoreWord(), state.stage.boardRows || 5, state.stage.boardCols || 5);
@@ -1818,6 +2052,8 @@
         if(session) {
           state.bossHp = Number(session.bossHpRemaining ?? state.bossHp);
           state.bossShield = Number(session.bossShieldRemaining ?? state.bossShield);
+          state.bossMaxHp = Math.max(state.bossMaxHp, state.bossHp);
+          state.bossMaxShield = Math.max(state.bossMaxShield, state.bossShield);
         }
       } else {
         state.raidSessionId = null;
@@ -1825,6 +2061,13 @@
     }catch(error){
       state.raidSessionId = null;
     }
+
+    initEncounterPlan();
+    if (!state.raidSessionId) {
+      applyWaveEncounter(1, true);
+    }
+    state.hintCharges = getEffectiveChapterRules().freeHints;
+    parseStageChip();
 
     await mountRaidRenderer(true);
     syncRendererState();
@@ -1837,7 +2080,8 @@
     fillBars();
     renderBoard(true);
     playFrameMonster(state.bossTheme, 'idle');
-    tickTimer();
+    // Start turn timer only after interactive board is mounted and rendered
+    tickTimer(true);
 
     document.getElementById('submitWordBtn').onclick = () => { playSwingSfx(); return submitWord(); };
     document.getElementById('guessCoreBtn').onclick = () => { playSwingSfx(); return guessCoreWord(); };
@@ -1847,6 +2091,8 @@
     document.getElementById('hintMeaningBtn')?.addEventListener('click', useMeaningHint);
     document.getElementById('hintRevealBtn')?.addEventListener('click', useRevealLetterHint);
     document.getElementById('boardRefreshBtn')?.addEventListener('click', refreshSolvableBoard);
+    document.getElementById('modeCampaignBtn')?.addEventListener('click', () => setPlayMode('campaign'));
+    document.getElementById('modePracticeBtn')?.addEventListener('click', () => setPlayMode('practice'));
     updateHintControls();
 
     // Initialize boss info modal
@@ -1873,16 +2119,19 @@
         }
 
         bossInfoModal.classList.add('is-open');
+        pauseTimer(true);
       };
     }
 
     if (bossInfoModal && closeBossInfoBtn) {
       closeBossInfoBtn.onclick = () => {
         bossInfoModal.classList.remove('is-open');
+        pauseTimer(false);
       };
       bossInfoModal.onclick = (e) => {
         if (e.target === bossInfoModal) {
           bossInfoModal.classList.remove('is-open');
+          pauseTimer(false);
         }
       };
     }
@@ -1933,7 +2182,32 @@
         useHintMeaning: () => useMeaningHint(),
         useHintReveal: () => useRevealLetterHint(),
         refreshBoard: () => refreshSolvableBoard(),
-        speakWord: (w) => speakEnglishWord(w)
+        speakWord: (w) => speakEnglishWord(w),
+        setPlayMode: (m) => setPlayMode(m),
+        getPlayMode: () => state.playMode,
+        getChapterRules: () => getEffectiveChapterRules(),
+        getWaveState: () => ({
+          waveIndex: state.waveIndex,
+          totalWaves: state.totalWaves,
+          bossRarity: state.bossRarity,
+          bossPhase: state.bossPhase,
+          bossTheme: state.bossTheme,
+          wavePlanThemes: state.wavePlan.map((w) => ({ waveIndex: w.waveIndex, theme: w.theme, rarity: w.rarity }))
+        }),
+        setChapterPreview: (ch) => {
+          if (state.raidSessionId) return;
+          if (!state.stage) state.stage = {};
+          state.stage.chapterNo = Number(ch || 1);
+          initEncounterPlan();
+          applyWaveEncounter(1, true);
+          state.hintCharges = getEffectiveChapterRules().freeHints;
+          updateHintControls();
+          parseStageChip();
+          syncRendererState();
+          fillBars();
+          tickTimer(true);
+        },
+        advanceWaveForTest: () => triggerBossDeathAndNextWave()
       };
     }
   }
