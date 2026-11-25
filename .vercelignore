@@ -1,0 +1,20 @@
+UI Extra/
+UI Extra.zip
+target/
+test_output/
+.git/
+.idea/
+.mvn/
+.venv/
+src/main/java/
+src/test/
+src/main/resources/application*.properties
+src/main/resources/tools/
+Agent & Skill/
+docs/
+pom.xml
+script_GPL_v2.sql
+preview-server.js
+P0_QA_AUDIT.md
+*.md
+*.csv
