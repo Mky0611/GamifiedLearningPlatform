@@ -18,9 +18,19 @@
     VICTORY: 'VICTORY'
   };
 
+  function isQaEnvironment() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isLoopback = host === '127.0.0.1' || host === 'localhost' || host === '::1';
+    if (!isLoopback) return false;
+    return new URLSearchParams(window.location.search || '').get('qa') === '1';
+  }
+
   class BattleScene extends Phaser.Scene {
     constructor() {
       super('BattleScene');
+      const initial = window.__RAID_INITIAL_STATE__ || {};
+      window.__RAID_INITIAL_STATE__ = null;
       this.battleState = {
         unitCode: 'warrior',
         bossTheme: 'crabby',
@@ -28,7 +38,7 @@
         bossMode: 'idle',
         biome: 'dusk',
         errorText: '',
-        ...(window.__RAID_INITIAL_STATE__ || {})
+        ...initial
       };
       this.fsmState = STATES.IDLE;
       this.hero = null;
@@ -41,23 +51,47 @@
       this.activeTimers = new Set();
       this.vfxPool = [];
       this.lastAnimCombo = 0;
+      this._actionToken = 0;
+      this._heroAnimHooks = [];
 
-      // Global scene readout hook for deterministic Playwright/Chromium QA
-      window.__LEX_RAID_SCENE_STATE__ = () => ({
-        fsmState: this.fsmState,
-        unitCode: this.battleState.unitCode,
-        bossTheme: this.battleState.bossTheme,
-        heroMode: this.battleState.heroMode,
-        bossMode: this.battleState.bossMode,
-        isBossDying: this.isBossDying,
-        heroX: this.hero ? Math.round(this.hero.x) : null,
-        heroY: this.hero ? Math.round(this.hero.y) : null,
-        bossX: this.boss ? Math.round(this.boss.x) : null,
-        bossY: this.boss ? Math.round(this.boss.y) : null,
-        activeVfxCount: this.vfxPool.filter((s) => s.visible).length,
-        poolSize: this.vfxPool.length,
-        pendingTimers: this.activeTimers.size
-      });
+      // Read-only scene state getter strictly in local QA environment (?qa=1 on loopback)
+      if (isQaEnvironment()) {
+        window.__LEX_RAID_SCENE_STATE__ = () => ({
+          fsmState: this.fsmState,
+          unitCode: this.battleState.unitCode,
+          bossTheme: this.battleState.bossTheme,
+          heroMode: this.battleState.heroMode,
+          bossMode: this.battleState.bossMode,
+          isBossDying: this.isBossDying,
+          heroX: this.hero ? Math.round(this.hero.x) : null,
+          heroY: this.hero ? Math.round(this.hero.y) : null,
+          bossX: this.boss ? Math.round(this.boss.x) : null,
+          bossY: this.boss ? Math.round(this.boss.y) : null,
+          activeVfxCount: this.vfxPool.filter((s) => s.visible).length,
+          poolSize: this.vfxPool.length,
+          pendingTimers: this.activeTimers.size,
+          actionToken: this._actionToken
+        });
+      }
+    }
+
+    isBusy() {
+      return this.isInLockedCombatState() || this.fsmState === STATES.GUARD || this.isBossDying;
+    }
+
+    clearHeroAnimListeners() {
+      if (this.hero && this._heroAnimHooks.length) {
+        for (const { event, fn } of this._heroAnimHooks) {
+          this.hero.off(event, fn);
+        }
+      }
+      this._heroAnimHooks = [];
+    }
+
+    onHeroAnimEvent(event, fn) {
+      if (!this.hero) return;
+      this.hero.on(event, fn);
+      this._heroAnimHooks.push({ event, fn });
     }
 
     create() {
@@ -94,19 +128,48 @@
         }
       };
       document.addEventListener('visibilitychange', this._onVisibility);
+
+      this._onScaleResize = () => {
+        this.cameras.main.roundPixels = true;
+        const base = this.getBaseCoords();
+        if (this.hero) {
+          this.hero.y = base.heroY;
+          if (!this.isInLockedCombatState() && this.fsmState !== STATES.GUARD) {
+            this.hero.x = base.heroX;
+          }
+          if (this.heroShadow) this.heroShadow.setPosition(this.hero.x, base.heroY + 2);
+        }
+        if (this.boss && !this.isBossDying) {
+          this.boss.y = base.bossY;
+          if (!this.isInLockedCombatState()) {
+            this.boss.x = base.bossX;
+          }
+          if (this.bossShadow) this.bossShadow.setPosition(this.boss.x, base.bossY + 2);
+        }
+      };
+      this.scale.on('resize', this._onScaleResize);
     }
 
     cleanupScene() {
+      this._actionToken += 1;
       this.clearAllTimers();
       this.stopBossTimer();
+      this.clearHeroAnimListeners();
       if (this.hero) this.tweens.killTweensOf(this.hero);
       if (this.boss) this.tweens.killTweensOf(this.boss);
       if (this._onVisibility) {
         document.removeEventListener('visibilitychange', this._onVisibility);
         this._onVisibility = null;
       }
+      if (this._onScaleResize && this.scale) {
+        this.scale.off('resize', this._onScaleResize);
+        this._onScaleResize = null;
+      }
       this.vfxPool.forEach((s) => s.destroy());
       this.vfxPool = [];
+      if (typeof window !== 'undefined' && window.__LEX_RAID_SCENE_STATE__) {
+        delete window.__LEX_RAID_SCENE_STATE__;
+      }
     }
 
     addSafeTimer(delay, callback) {
@@ -371,7 +434,9 @@
     }
 
     settleActiveActionImmediately() {
+      this._actionToken += 1;
       this.clearAllTimers();
+      this.clearHeroAnimListeners();
       if (this.hero) this.tweens.killTweensOf(this.hero);
       if (this.boss && !this.isBossDying) this.tweens.killTweensOf(this.boss);
       this.fsmState = STATES.IDLE;
@@ -395,10 +460,10 @@
     }
 
     playAttackSequence(payload = {}) {
-      if (this.isInLockedCombatState()) {
+      if (this.isBossDying) return;
+      if (this.isInLockedCombatState() || this.fsmState === STATES.GUARD) {
         this.settleActiveActionImmediately();
       }
-      if (this.isBossDying) return;
 
       const skillMeta = payload.skillMeta || null;
       if (skillMeta && skillMeta.selfTarget) {
@@ -406,7 +471,8 @@
         return;
       }
 
-      const cfg = window.RaidPhaserConfig;
+      this._actionToken += 1;
+      const token = this._actionToken;
       const base = this.getBaseCoords();
       const gap = Math.max(56, base.bossX - base.heroX);
       const isRanged = this.battleState.unitCode === 'archer';
@@ -420,58 +486,118 @@
       const vfxHit = skillMeta?.vfxHitAnim || 'vfx-slash-hit';
       const vfxScale = skillMeta?.vfxScale || 2.1;
 
+      const heroCfg = this.getHeroConfig(this.battleState.unitCode);
+      const heroModeMeta = heroCfg[heroAttackMode] || heroCfg.attack || { frames: 4, rate: 10, hitFrame: 2 };
+      const totalFrames = Math.max(1, Number(heroModeMeta.frames || 4));
+      const animRate = Math.max(1, Number(heroModeMeta.rate || 10));
+      const animDurationMs = Math.round((totalFrames / animRate) * 1000);
+      const targetHitFrame = Math.min(totalFrames - 1, Math.max(0, Number(heroModeMeta.hitFrame ?? Math.floor(totalFrames / 2))));
+      const resolvedAnimKey = this.anims.exists(`anim-hero-${this.battleState.unitCode}-${heroAttackMode}`)
+        ? `anim-hero-${this.battleState.unitCode}-${heroAttackMode}`
+        : `anim-hero-${this.battleState.unitCode}-attack`;
+
       this.fsmState = STATES.APPROACH;
-      this.setBattleState({ heroMode: isRanged ? 'attack' : 'run', bossMode: 'idle' });
+      this.setBattleState({ heroMode: 'run', bossMode: 'idle' });
       this.spawnPooledVfx('vfx-dash-mono-anim', base.heroX - 12, base.heroY - 12, 1.8, false);
 
+      this.tweens.killTweensOf(this.hero);
       this.tweens.add({
         targets: this.hero,
         x: targetX,
+        y: base.heroY,
         duration: isRanged ? 90 : 165,
         ease: 'Quad.Out',
-        onUpdate: () => { if (this.heroShadow) this.heroShadow.x = this.hero.x; },
+        onUpdate: () => { if (this.heroShadow) this.heroShadow.setPosition(this.hero.x, base.heroY + 2); },
         onComplete: () => {
+          if (token !== this._actionToken || this.isBossDying) return;
           this.fsmState = STATES.ATTACK;
-          this.setBattleState({ heroMode: heroAttackMode });
 
-          // Slash VFX near target
-          const slashX = isRanged ? base.bossX - 24 : this.hero.x + 58;
-          const slashY = base.bossY - 56;
-          this.spawnPooledVfx(vfxMain, slashX, slashY, vfxScale, false);
+          let slashSpawned = false;
+          let impactFired = false;
+          let recoveryStarted = false;
 
-          this.addSafeTimer(75, () => {
-            if (this.isBossDying) return;
+          const spawnSlashAtStrike = () => {
+            if (slashSpawned || token !== this._actionToken || this.isBossDying) return;
+            slashSpawned = true;
+            const slashX = isRanged ? base.bossX - 24 : this.hero.x + 58;
+            const slashY = base.bossY - 56;
+            this.spawnPooledVfx(vfxMain, slashX, slashY, vfxScale, false);
+          };
+
+          const triggerImpactOnce = () => {
+            if (impactFired || token !== this._actionToken || this.isBossDying) return;
+            impactFired = true;
+            spawnSlashAtStrike();
             this.fsmState = STATES.IMPACT;
             this.showHitFlash();
             this.setBattleState({ bossMode: 'hit' });
             this.spawnPooledVfx(vfxHit, base.bossX - 10, base.bossY - 54, 1.9, false);
 
             if (this.boss) {
+              this.tweens.killTweensOf(this.boss);
+              this.boss.setPosition(base.bossX, base.bossY);
               this.tweens.add({
                 targets: this.boss,
                 x: base.bossX + 12,
+                y: base.bossY,
                 duration: 75,
                 yoyo: true,
                 ease: 'Sine.InOut',
-                onUpdate: () => { if (this.bossShadow) this.bossShadow.x = this.boss.x; }
+                onUpdate: () => { if (this.bossShadow) this.bossShadow.setPosition(this.boss.x, base.bossY + 2); },
+                onComplete: () => {
+                  if (this.boss && !this.isBossDying) {
+                    this.boss.setPosition(base.bossX, base.bossY);
+                    if (this.bossShadow) this.bossShadow.setPosition(base.bossX, base.bossY + 2);
+                  }
+                }
               });
             }
-          });
+          };
 
-          this.addSafeTimer(420, () => {
-            this.fsmState = STATES.RECOVERY;
+          const startReturn = () => {
+            if (recoveryStarted || token !== this._actionToken || this.isBossDying) return;
+            recoveryStarted = true;
+            if (!impactFired) triggerImpactOnce();
+            this.clearHeroAnimListeners();
+            this.fsmState = STATES.RETURN;
+            this.tweens.killTweensOf(this.hero);
             this.tweens.add({
               targets: this.hero,
               x: base.heroX,
-              duration: 180,
+              y: base.heroY,
+              duration: 170,
               ease: 'Quad.Out',
-              onUpdate: () => { if (this.heroShadow) this.heroShadow.x = this.hero.x; },
+              onUpdate: () => { if (this.heroShadow) this.heroShadow.setPosition(this.hero.x, base.heroY + 2); },
               onComplete: () => {
+                if (token !== this._actionToken) return;
                 this.fsmState = STATES.IDLE;
                 this.setBattleState({ heroMode: 'idle', bossMode: this.isBossDying ? this.battleState.bossMode : 'idle' });
               }
             });
+          };
+
+          this.clearHeroAnimListeners();
+          this.onHeroAnimEvent('animationupdate', (anim, frame) => {
+            if (token !== this._actionToken || !anim || anim.key !== resolvedAnimKey) return;
+            const zeroIdx = Math.max(0, Number(frame && frame.index ? frame.index - 1 : 0));
+            if (zeroIdx >= Math.max(0, targetHitFrame - 1)) spawnSlashAtStrike();
+            if (zeroIdx >= targetHitFrame) triggerImpactOnce();
           });
+          this.onHeroAnimEvent('animationcomplete', (anim) => {
+            if (token !== this._actionToken || !anim || anim.key !== resolvedAnimKey) return;
+            if (!impactFired) triggerImpactOnce();
+            this.fsmState = STATES.RECOVERY;
+            this.addSafeTimer(40, startReturn);
+          });
+
+          this.setBattleState({ heroMode: heroAttackMode });
+          if (this.hero && this.anims.exists(resolvedAnimKey)) {
+            this.hero.play(resolvedAnimKey, false);
+          }
+
+          // Fallback timing derived from spritesheet frame metadata (never leaves actor stuck if anim skipped)
+          this.addSafeTimer(Math.round((targetHitFrame / animRate) * 1000) + 25, triggerImpactOnce);
+          this.addSafeTimer(animDurationMs + 140, startReturn);
         }
       });
     }
@@ -481,16 +607,46 @@
     }
 
     playSupportSkillSequence(skillMeta) {
+      this._actionToken += 1;
+      const token = this._actionToken;
       const base = this.getBaseCoords();
+      const heroCfg = this.getHeroConfig(this.battleState.unitCode);
+      const guardMode = skillMeta.heroAnim || 'guard';
+      const guardMeta = heroCfg[guardMode] || heroCfg.guard || { frames: 6, rate: 8, hitFrame: 2 };
+      const animRate = Math.max(1, Number(guardMeta.rate || 8));
+      const totalFrames = Math.max(1, Number(guardMeta.frames || 6));
+      const animMs = Math.max(420, Math.round((totalFrames / animRate) * 1000));
+      const hitMs = Math.max(80, Math.round((Number(guardMeta.hitFrame ?? 2) / animRate) * 1000));
+      const resolvedKey = this.anims.exists(`anim-hero-${this.battleState.unitCode}-${guardMode}`)
+        ? `anim-hero-${this.battleState.unitCode}-${guardMode}`
+        : `anim-hero-${this.battleState.unitCode}-idle`;
+
       this.fsmState = STATES.GUARD;
-      this.setBattleState({ heroMode: skillMeta.heroAnim || 'guard', bossMode: 'idle' });
-      this.spawnPooledVfx(skillMeta.vfxAnim || 'vfx-heal-frost-anim', base.heroX, base.heroY - 54, skillMeta.vfxScale || 2.6, false);
-      if (skillMeta.vfxHitAnim) {
-        this.addSafeTimer(120, () => {
+      this.clearHeroAnimListeners();
+      let secondaryFired = false;
+      const fireSecondary = () => {
+        if (secondaryFired || token !== this._actionToken) return;
+        secondaryFired = true;
+        if (skillMeta.vfxHitAnim) {
           this.spawnPooledVfx(skillMeta.vfxHitAnim, base.heroX, base.heroY - 40, 2.2, false);
-        });
+        }
+      };
+
+      this.onHeroAnimEvent('animationupdate', (anim, frame) => {
+        if (token !== this._actionToken || !anim || anim.key !== resolvedKey) return;
+        const zeroIdx = Math.max(0, Number(frame && frame.index ? frame.index - 1 : 0));
+        if (zeroIdx >= Number(guardMeta.hitFrame ?? 2)) fireSecondary();
+      });
+
+      this.setBattleState({ heroMode: guardMode, bossMode: 'idle' });
+      if (this.hero && this.anims.exists(resolvedKey)) {
+        this.hero.play(resolvedKey, false);
       }
-      this.addSafeTimer(620, () => {
+      this.spawnPooledVfx(skillMeta.vfxAnim || 'vfx-heal-frost-anim', base.heroX, base.heroY - 54, skillMeta.vfxScale || 2.6, false);
+      this.addSafeTimer(hitMs, fireSecondary);
+      this.addSafeTimer(animMs, () => {
+        if (token !== this._actionToken) return;
+        this.clearHeroAnimListeners();
         this.fsmState = STATES.IDLE;
         this.setBattleState({ heroMode: 'idle' });
       });
@@ -498,27 +654,41 @@
 
     playBossTurnSequence() {
       if (!this.boss || this.isBossDying) return;
-      if (this.isInLockedCombatState()) this.settleActiveActionImmediately();
+      if (this.isInLockedCombatState() || this.fsmState === STATES.GUARD) this.settleActiveActionImmediately();
 
+      this._actionToken += 1;
+      const token = this._actionToken;
       const base = this.getBaseCoords();
+      const cfg = window.RaidPhaserConfig;
+      const bossCfg = cfg.bosses[this.battleState.bossTheme] || cfg.bosses.crabby;
+      const bossAtkMeta = bossCfg.attack || { frames: 4, rate: 10 };
+      const atkFrameCount = Array.isArray(bossAtkMeta.frames) ? bossAtkMeta.frames.length : Number(bossAtkMeta.frames || 4);
+      const bossAtkMs = Math.max(360, Math.round((atkFrameCount / Math.max(1, Number(bossAtkMeta.rate || 10))) * 1000));
+
       this.fsmState = STATES.HURT;
       this.setBattleState({ bossMode: 'attack' });
 
+      this.tweens.killTweensOf(this.boss);
       this.tweens.add({
         targets: this.boss,
         x: base.bossX - 42,
+        y: base.bossY,
         duration: 160,
         yoyo: true,
         ease: 'Quad.Out',
-        onUpdate: () => { if (this.bossShadow) this.bossShadow.x = this.boss.x; },
+        onUpdate: () => { if (this.bossShadow) this.bossShadow.setPosition(this.boss.x, base.bossY + 2); },
         onComplete: () => {
+          if (token !== this._actionToken || this.isBossDying) return;
+          this.boss.setPosition(base.bossX, base.bossY);
+          if (this.bossShadow) this.bossShadow.setPosition(base.bossX, base.bossY + 2);
           this.cameras.main.shake(110, 0.003);
           this.spawnPooledVfx('vfx-ring-ember-anim', base.heroX + 18, base.heroY - 48, 2.2, true);
           this.addSafeTimer(90, () => {
-            if (this.isBossDying) return;
+            if (token !== this._actionToken || this.isBossDying) return;
             this.setBattleState({ bossMode: 'idle', heroMode: 'guard' });
           });
-          this.addSafeTimer(480, () => {
+          this.addSafeTimer(bossAtkMs, () => {
+            if (token !== this._actionToken || this.isBossDying) return;
             this.fsmState = STATES.IDLE;
             this.setBattleState({ heroMode: 'idle' });
           });
@@ -542,10 +712,13 @@
 
     playBossDeathSequence() {
       if (!this.boss) return;
+      this._actionToken += 1;
       this.isBossDying = true;
       this.fsmState = STATES.DEATH;
       this.clearAllTimers();
+      this.clearHeroAnimListeners();
       this.stopBossTimer();
+      if (this.hero) this.tweens.killTweensOf(this.hero);
       this.tweens.killTweensOf(this.boss);
       this.tweens.killTweensOf(this.bossShadow);
 

@@ -26,6 +26,14 @@
     return phaserLoader;
   }
 
+  function isQaEnvironment() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isLoopback = host === '127.0.0.1' || host === 'localhost' || host === '::1';
+    if (!isLoopback) return false;
+    return new URLSearchParams(window.location.search || '').get('qa') === '1';
+  }
+
   function createCanvasFallback(mount, initialState) {
     const canvas = document.createElement('canvas');
     canvas.width = 960;
@@ -48,6 +56,9 @@
     let lastTs = 0;
     let lungeOffset = 0;
     let lungeTimer = 0;
+    let lungeTotal = 460;
+    let isSupportCast = false;
+    let bossTurnTimer = 0;
     let slashFxClock = 0;
     let slashFxActive = false;
 
@@ -85,15 +96,30 @@
 
       if (lungeTimer > 0) {
         lungeTimer = Math.max(0, lungeTimer - dt);
-        const phase = 1 - (lungeTimer / 460);
-        lungeOffset = Math.round(Math.sin(phase * Math.PI) * (state.unitCode === 'archer' ? 40 : 120));
-        if (lungeTimer === 0) state.heroMode = 'idle';
+        const phase = 1 - (lungeTimer / Math.max(1, lungeTotal));
+        lungeOffset = isSupportCast ? 0 : Math.round(Math.sin(phase * Math.PI) * (state.unitCode === 'archer' ? 40 : 120));
+        if (lungeTimer === 0) {
+          state.heroMode = 'idle';
+          state.bossMode = 'idle';
+          isSupportCast = false;
+        }
       } else {
         lungeOffset = 0;
       }
 
+      let bossOffset = 0;
+      if (bossTurnTimer > 0) {
+        bossTurnTimer = Math.max(0, bossTurnTimer - dt);
+        const bPhase = 1 - (bossTurnTimer / 420);
+        bossOffset = -Math.round(Math.sin(bPhase * Math.PI) * 36);
+        if (bossTurnTimer === 0) {
+          state.bossMode = 'idle';
+          state.heroMode = 'idle';
+        }
+      }
+
       const heroX = (cfg.heroX || 330) + Number(heroCfg.battleOffsetX || 0) + lungeOffset;
-      const bossX = cfg.bossX || 630;
+      const bossX = (cfg.bossX || 630) + bossOffset;
 
       ctx.beginPath();
       ctx.ellipse(heroX, groundY + 2, 48 * Number(heroCfg.shadowScale || 1.1), 8, 0, 0, Math.PI * 2);
@@ -169,12 +195,13 @@
       if (slashFxActive) {
         slashFxClock += dt;
         const fIdx = Math.floor(slashFxClock / 45);
-        if (fIdx >= 8) {
+        if (fIdx >= 7) {
           slashFxActive = false;
         } else {
           const slashImg = await getImg('fx-slash-clean', '/ui/assets/effects/vfx/fx-slash-clean.png');
           if (slashImg) {
-            ctx.drawImage(slashImg, fIdx * 80, 0, 80, 64, bossX - 96, groundY - 128, 160, 128);
+            const fxX = isSupportCast ? heroX - 80 : bossX - 96;
+            ctx.drawImage(slashImg, fIdx * 80, 0, 80, 64, fxX, groundY - 128, 160, 128);
           }
         }
       }
@@ -183,20 +210,60 @@
     }
     requestAnimationFrame(render);
 
+    if (isQaEnvironment()) {
+      window.__LEX_RAID_SCENE_STATE__ = () => {
+        const cfg = window.RaidPhaserConfig || {};
+        const heroCfg = (cfg.heroes && cfg.heroes[state.unitCode]) || (cfg.heroes && cfg.heroes.warrior) || {};
+        const groundY = cfg.groundY || 350;
+        return {
+          fsmState: lungeTimer > 0 ? (isSupportCast ? 'GUARD' : 'ATTACK') : (bossTurnTimer > 0 ? 'HURT' : 'IDLE'),
+          unitCode: state.unitCode,
+          bossTheme: state.bossTheme,
+          heroMode: state.heroMode,
+          bossMode: state.bossMode,
+          isBossDying: false,
+          heroX: Math.round((cfg.heroX || 330) + Number(heroCfg.battleOffsetX || 0) + lungeOffset),
+          heroY: Number(heroCfg.battleY || groundY),
+          bossX: Math.round(cfg.bossX || 630),
+          bossY: groundY,
+          activeVfxCount: slashFxActive ? 1 : 0,
+          poolSize: 1,
+          pendingTimers: 0
+        };
+      };
+    }
+
     return {
       renderer: 'canvas-fallback',
       errorText: 'Đang dùng Canvas 2D fallback (không có WebGL/Phaser).',
+      isBusy() {
+        return lungeTimer > 0 || bossTurnTimer > 0 || slashFxActive;
+      },
       setState(next) {
         Object.assign(state, next || {});
         if (next && (next.playAttack || next.playSkill)) {
+          isSupportCast = Boolean(next.skillMeta && next.skillMeta.selfTarget);
           state.heroMode = (next.skillMeta && next.skillMeta.heroAnim) || 'attack2';
-          lungeTimer = 460;
-          slashFxActive = true;
+          const unit = HERO_SHEETS[state.unitCode] || HERO_SHEETS.warrior;
+          const hm = unit?.[state.heroMode] || unit?.idle;
+          lungeTotal = hm ? Math.max(420, Math.round((hm.frames / Math.max(1, hm.rate || 10)) * 1000) + 140) : 480;
+          lungeTimer = lungeTotal;
+          heroFrame = 0;
+          heroClock = 0;
+          slashFxActive = !isSupportCast;
           slashFxClock = 0;
+        }
+        if (next && next.playBossTurn) {
+          bossTurnTimer = 420;
+          state.bossMode = 'attack';
+          state.heroMode = 'guard';
+          bossFrame = 0;
         }
         if (next && next.resetActors) {
           lungeTimer = 0;
           lungeOffset = 0;
+          bossTurnTimer = 0;
+          isSupportCast = false;
           slashFxActive = false;
           state.heroMode = 'idle';
           state.bossMode = 'idle';
@@ -205,6 +272,9 @@
       destroy() {
         mounted = false;
         mount.innerHTML = '';
+        if (typeof window !== 'undefined' && window.__LEX_RAID_SCENE_STATE__) {
+          delete window.__LEX_RAID_SCENE_STATE__;
+        }
       }
     };
   }

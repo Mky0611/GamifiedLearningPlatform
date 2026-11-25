@@ -63,6 +63,10 @@
         }
         if (ui) ui.events.emit('set-ui-state', next || {});
       },
+      isBusy() {
+        const battle = game.scene.getScene('BattleScene');
+        return Boolean(battle && typeof battle.isBusy === 'function' && battle.isBusy());
+      },
       destroy() {
         game.destroy(true);
         mountEl.innerHTML = '';

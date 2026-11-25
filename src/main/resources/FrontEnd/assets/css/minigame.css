@@ -767,6 +767,16 @@ body.raid-body{
   padding:2px 5px;
   white-space:nowrap;
 }
+.skill-mp-pill--guard{
+  color:#bae6fd;
+  background:#0c2d48;
+  border-color:#38bdf8;
+}
+.skill-mp-pill--locked{
+  color:#fde68a;
+  background:#3b2614;
+  border-color:#b45309;
+}
 .skill-preview-chip{
   display:inline-flex;
   align-items:center;

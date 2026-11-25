@@ -37,12 +37,28 @@
     currentBossDetails: null,
     transitioning: false,
     isSubmitting: false,
+    finished: false,
     previewMana: 4,
     maxPreviewMana: 6,
     skillCooldowns: {},
     activeSkillId: null,
+    royalGuardActive: false,
+    royalGuardMitigationPct: 0,
+    royalGuardReflect: 0,
     soundEnabled: false
   };
+
+  function isQaEnvironment(){
+    if (typeof window === 'undefined' || !window.location) return false;
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isLoopback = host === '127.0.0.1' || host === 'localhost' || host === '::1';
+    if (!isLoopback) return false;
+    return new URLSearchParams(window.location.search || '').get('qa') === '1';
+  }
+
+  function isBattleAnimationBusy(){
+    return Boolean(state.renderer && typeof state.renderer.isBusy === 'function' && state.renderer.isBusy());
+  }
 
   const monsterFrames = Object.fromEntries(
     Object.entries((window.RaidPhaserConfig && window.RaidPhaserConfig.bosses) || {}).map(([key, value]) => [
@@ -728,7 +744,7 @@
   }
 
   function resetSelection(message, tone = 'danger'){
-    if (state.transitioning) return;
+    if (state.finished || state.transitioning) return;
     clearPendingReset();
     state.selected = [];
     state.dragging = false;
@@ -751,7 +767,7 @@
   }
 
   function addTileToPath(row, col){
-    if (state.transitioning) return;
+    if (state.finished || state.transitioning) return;
     clearPendingReset();
     const index = state.selected.findIndex((tile)=>tile.row === row && tile.col === col);
     if (index > -1) {
@@ -813,15 +829,37 @@
   }
 
   function bossTurn(message){
+    if (state.finished) return;
     state.turn += 1;
     state.rage = Math.min(999, state.rage + 3);
-    state.playerHp = Math.max(0, state.playerHp - 8);
+    let bossDmg = 8;
+    let finalMessage = message;
+    if (!state.raidSessionId && state.royalGuardActive) {
+      const pct = Math.min(90, Math.max(0, Number(state.royalGuardMitigationPct || 75)));
+      bossDmg = Math.max(1, Math.round(bossDmg * (1 - pct / 100)));
+      const reflect = Math.max(0, Number(state.royalGuardReflect || 6));
+      state.royalGuardActive = false;
+      state.royalGuardMitigationPct = 0;
+      state.royalGuardReflect = 0;
+      if (reflect > 0) {
+        if (state.bossShield > 0) {
+          const spill = Math.max(0, reflect - state.bossShield);
+          state.bossShield = Math.max(0, state.bossShield - reflect);
+          state.bossHp = Math.max(1, state.bossHp - spill);
+        } else {
+          state.bossHp = Math.max(1, state.bossHp - reflect);
+        }
+      }
+      finalMessage = `${message} Royal Guard chặn đòn (-${bossDmg} HP thay vì -8${reflect ? `, phản ${reflect} băng` : ''}).`;
+    }
+    state.playerHp = Math.max(0, state.playerHp - bossDmg);
     syncRendererState({ playBossTurn: true });
     setHeroMode('guard', 600);
     playFrameMonster(state.bossTheme, 'attack', 750);
     fillBars();
     renderObjectives();
-    renderStatus(message);
+    renderStatus(finalMessage);
+    if (typeof renderSkillBar === 'function') renderSkillBar();
     if(state.playerHp <= 0 || state.turn > (state.stage?.turnLimit || 5)){
       finishBattle(false);
       return;
@@ -893,8 +931,10 @@
   }
 
   function finishBattle(win){
-    if (state.transitioning && !win) return;
+    if (state.finished || (state.transitioning && !win)) return;
+    state.finished = true;
     clearInterval(state.timer);
+    if (typeof renderSkillBar === 'function') renderSkillBar();
     document.getElementById('finishOverlay').classList.add('is-open');
     document.getElementById('finishTitle').textContent = win ? 'Victory' : 'Battle ended';
     document.getElementById('finishHeading').textContent = win ? 'Boss Defeated!' : 'Trận đấu kết thúc';
@@ -1005,7 +1045,7 @@
   }
 
   async function submitWord(){
-    if (state.transitioning || state.isSubmitting) return;
+    if (state.finished || state.transitioning || state.isSubmitting) return;
     state.isSubmitting = true;
     try {
       const word = normalizeWord(state.currentWord);
@@ -1107,10 +1147,12 @@
 
       refillSelected();
       state.selected = [];
+      tickSkillCooldowns();
       fillBars();
       renderCore();
       renderObjectives();
       renderRecent();
+      if (typeof renderSkillBar === 'function') renderSkillBar();
 
       if(coreSolved) {
         if (movedCoreFromSubmit) {
@@ -1141,7 +1183,7 @@
   }
 
   async function guessCoreWord(){
-    if (state.transitioning || state.isSubmitting) return;
+    if (state.finished || state.transitioning || state.isSubmitting) return;
     state.isSubmitting = true;
     try {
       const target = getActiveCoreWord();
@@ -1232,6 +1274,176 @@
     }
   }
 
+  function getStaticSkillEligibility(skill){
+    if (!skill) return { ok: false, code: 'MISSING', reason: 'Kỹ năng không tồn tại.' };
+    if (state.raidSessionId) {
+      return { ok: false, code: 'BACKEND_LOCKED', reason: 'Kỹ năng Preview tạm khóa trong trận đấu Backend (chưa được máy chủ hỗ trợ).' };
+    }
+    if (state.finished) {
+      return { ok: false, code: 'FINISHED', reason: 'Trận đấu đã kết thúc.' };
+    }
+    if (Array.isArray(skill.allowedHeroes) && !skill.allowedHeroes.includes(state.unitCode)) {
+      return { ok: false, code: 'HERO_MISMATCH', reason: `${skill.name} chỉ dành cho ${skill.allowedHeroes.join('/')} (đang chọn ${state.unitCode}).` };
+    }
+    const cd = Number(state.skillCooldowns[skill.id] || 0);
+    if (cd > 0) {
+      return { ok: false, code: 'COOLDOWN', reason: `${skill.name} đang hồi chiêu (${cd} lượt).` };
+    }
+    if (skill.minCombo && state.combo < skill.minCombo) {
+      return { ok: false, code: 'COMBO', reason: `${skill.name} yêu cầu Combo >= x${skill.minCombo} (hiện tại x${state.combo}).` };
+    }
+    if (skill.requiresCoreClue && !(state.revealedIndexes.length >= 1 || state.coreGuess >= 1 || state.guessed)) {
+      return { ok: false, code: 'CORE_CLUE', reason: `${skill.name} yêu cầu mở ít nhất 1 manh mối Core Word trước.` };
+    }
+    if (skill.manaCost > state.previewMana) {
+      return { ok: false, code: 'NO_MANA', reason: `Chưa đủ Preview Mana (${state.previewMana}/${skill.manaCost}). Ghép từ hợp lệ để hồi MP!` };
+    }
+    return { ok: true, code: 'READY', reason: skill.desc };
+  }
+
+  function getSkillEligibility(skill){
+    const baseCheck = getStaticSkillEligibility(skill);
+    if (!baseCheck.ok) return baseCheck;
+    if (state.transitioning || state.isSubmitting) {
+      return { ok: false, code: 'STATE_BUSY', reason: 'Đang chuyển lượt hoặc gửi dữ liệu, vui lòng chờ.' };
+    }
+    if (isBattleAnimationBusy()) {
+      return { ok: false, code: 'ANIM_BUSY', reason: 'Nhân vật đang thực hiện động tác chiến đấu.' };
+    }
+    return baseCheck;
+  }
+
+  function renderSkillBar(){
+    const bar = document.getElementById('knightSkillBar');
+    if(!bar) return;
+    const isBackend = Boolean(state.raidSessionId);
+    const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+    const cycleBtn = document.getElementById('cycleBossPreviewBtn');
+    if (cycleBtn) {
+      cycleBtn.disabled = isBackend || state.finished;
+      cycleBtn.title = isBackend ? 'Đổi quái vật Preview chỉ dùng trong chế độ xem trước' : 'Đổi quái vật Preview (Slime & Skeleton)';
+    }
+    const cdHtml = (s, elig) => {
+      const cd = Number(state.skillCooldowns[s.id] || 0);
+      if (isBackend) return '<span class="skill-preview-chip__cd">LOCK</span>';
+      if (cd > 0) return `<span class="skill-preview-chip__cd">CD:${cd}T</span>`;
+      if (elig.code === 'HERO_MISMATCH') return '<span class="skill-preview-chip__cd">HERO</span>';
+      if (elig.code === 'COMBO') return `<span class="skill-preview-chip__cd">x${s.minCombo}+</span>`;
+      if (elig.code === 'CORE_CLUE') return '<span class="skill-preview-chip__cd">CORE</span>';
+      return s.manaCost > 0 ? `<span class="skill-preview-chip__cd">${s.manaCost}MP</span>` : '';
+    };
+    const guardPill = state.royalGuardActive ? '<span class="skill-mp-pill skill-mp-pill--guard" title="Khiên Hoàng Gia đang kích hoạt (-75% sát thương đòn kế)">GUARD</span>' : '';
+    const metaPill = isBackend
+      ? '<span class="skill-mp-pill skill-mp-pill--locked" title="Máy chủ chưa hỗ trợ Knight Skill Preview">Backend · Skill Off</span>'
+      : `<span class="skill-mp-pill" title="Preview Skill Mana (không ghi DB)">MP ${state.previewMana}/${state.maxPreviewMana}</span>${guardPill}`;
+
+    bar.innerHTML = `
+      <div class="skill-bar-preview__meta">
+        ${metaPill}
+        <button class="skill-sound-toggle ${state.soundEnabled ? 'is-on' : ''}" id="raidSoundBtn" type="button" title="${state.soundEnabled ? 'Tắt âm thanh VFX' : 'Bật âm thanh VFX (Mặc định tắt)'}" aria-label="Bật tắt âm thanh"><i class="bi ${state.soundEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}"></i></button>
+      </div>
+      ${skills.map((s) => {
+        const elig = getStaticSkillEligibility(s);
+        const active = !isBackend && state.activeSkillId === s.id;
+        return `<button class="skill-preview-chip ${active ? 'is-active' : ''}" data-skill-id="${s.id}" data-lock-reason="${window.appApi.escapeHtml(elig.code)}" type="button" title="${window.appApi.escapeHtml(elig.reason)}" ${elig.ok ? '' : 'disabled'}>
+          <img src="${s.icon}" alt="">
+          <span class="skill-preview-chip__label">${window.appApi.escapeHtml(s.name)}</span>
+          ${cdHtml(s, elig)}
+        </button>`;
+      }).join('')}`;
+
+    bar.querySelectorAll('[data-skill-id]').forEach((btn) => {
+      btn.addEventListener('click', () => castKnightSkill(btn.dataset.skillId));
+    });
+    const sndBtn = document.getElementById('raidSoundBtn');
+    if (sndBtn) {
+      sndBtn.addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        renderSkillBar();
+      });
+    }
+  }
+
+  function playSwingSfx(){
+    if (!state.soundEnabled || typeof Audio === 'undefined') return;
+    try {
+      const audio = new Audio('/ui/assets/audio/fx-slash-swing.wav');
+      audio.volume = 0.25;
+      audio.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function castKnightSkill(skillId){
+    const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
+    const skill = skills.find((s) => s.id === skillId);
+    const elig = getSkillEligibility(skill);
+    if (!elig.ok) {
+      renderStatus(elig.reason, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
+      renderSkillBar();
+      return false;
+    }
+
+    state.previewMana = Math.max(0, state.previewMana - skill.manaCost);
+    if (skill.cooldown > 0) state.skillCooldowns[skill.id] = skill.cooldown;
+    state.activeSkillId = skill.id;
+    playSwingSfx();
+    syncRendererState({ playSkill: true, skillMeta: skill });
+    setHeroMode(skill.heroAnim === 'guard' ? 'guard' : 'attack', 650);
+
+    // Client-only preview feedback (never alters SQL Server / P3 XP or coins)
+    if (skill.id === 'sacred_recovery') {
+      state.playerHp = Math.min(100, state.playerHp + Number(skill.healHp || 18));
+    } else if (skill.id === 'royal_guard') {
+      state.royalGuardActive = true;
+      state.royalGuardMitigationPct = Number(skill.mitigationPct || 75);
+      state.royalGuardReflect = Number(skill.reflectDmg || 6);
+    } else {
+      const previewDmg = Number(skill.previewDmg || 14);
+      if (state.bossShield > 0) {
+        const spill = Math.max(0, previewDmg - state.bossShield);
+        state.bossShield = Math.max(0, state.bossShield - previewDmg);
+        state.bossHp = Math.max(1, state.bossHp - spill);
+      } else {
+        state.bossHp = Math.max(1, state.bossHp - previewDmg);
+      }
+    }
+    fillBars();
+    renderSkillBar();
+    renderStatus(`${skill.name}: ${skill.desc} (Preview Mode · không ghi DB)`, 'success', { badge: 'SKILL PREVIEW', isPreview: true });
+    return true;
+  }
+
+  function tickSkillCooldowns(){
+    Object.keys(state.skillCooldowns).forEach((k) => {
+      if (state.skillCooldowns[k] > 0) state.skillCooldowns[k] -= 1;
+    });
+    state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 1);
+    renderSkillBar();
+  }
+
+  function cyclePreviewBoss(){
+    if (state.raidSessionId || state.finished || state.transitioning) return;
+    const cfg = window.RaidPhaserConfig || {};
+    const order = cfg.previewBossOrder || cfg.bossOrder || ['crabby', 'slime', 'skeleton'];
+    const curIdx = order.indexOf(state.bossTheme);
+    const nextTheme = order[(curIdx + 1) % order.length];
+    state.bossTheme = nextTheme;
+    const meta = cfg.bosses?.[nextTheme];
+    const lore = bossLore[nextTheme];
+    state.currentBossDetails = {
+      name: meta?.label || themeLabel[nextTheme] || nextTheme,
+      element: lore?.element || 'SHADOW'
+    };
+    if (window.WorldEnvironment) {
+      const biome = nextTheme === 'slime' ? 'forest' : (nextTheme === 'crabby' || nextTheme === 'seashell' ? 'waterfall' : 'mountain-dusk');
+      window.WorldEnvironment.setBiome(biome);
+    }
+    syncRendererState({ bossTheme: nextTheme, biome: nextTheme === 'slime' ? 'forest' : 'dusk', resetActors: true });
+    playFrameMonster(nextTheme, 'idle');
+    fillBars();
+    renderStatus(`Boss Preview: ${state.currentBossDetails.name}`, 'success', { badge: 'MONSTER PREVIEW', isPreview: true });
+  }
+
   async function init(){
     await applyLoadout();
     window.appApi.renderNavUser();
@@ -1309,123 +1521,6 @@
       state.raidSessionId = null;
     }
 
-    function renderSkillBar(){
-      const bar = document.getElementById('knightSkillBar');
-      if(!bar) return;
-      const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
-      const cdHtml = (s) => {
-        const cd = Number(state.skillCooldowns[s.id] || 0);
-        return cd > 0 ? `<span class="skill-preview-chip__cd">CD:${cd}T</span>` : (s.manaCost > 0 ? `<span class="skill-preview-chip__cd">${s.manaCost}MP</span>` : '');
-      };
-      bar.innerHTML = `
-        <div class="skill-bar-preview__meta">
-          <span class="skill-mp-pill" title="Preview Skill Mana (không ghi DB)">MP ${state.previewMana}/${state.maxPreviewMana}</span>
-          <button class="skill-sound-toggle ${state.soundEnabled ? 'is-on' : ''}" id="raidSoundBtn" type="button" title="${state.soundEnabled ? 'Tắt âm thanh VFX' : 'Bật âm thanh VFX (Mặc định tắt)'}" aria-label="Bật tắt âm thanh"><i class="bi ${state.soundEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}"></i></button>
-        </div>
-        ${skills.map((s) => {
-          const cd = Number(state.skillCooldowns[s.id] || 0);
-          const noMana = s.manaCost > state.previewMana;
-          const active = state.activeSkillId === s.id;
-          return `<button class="skill-preview-chip ${active ? 'is-active' : ''}" data-skill-id="${s.id}" type="button" title="${window.appApi.escapeHtml(s.desc)}" ${(cd > 0 || noMana) ? 'disabled' : ''}>
-            <img src="${s.icon}" alt="">
-            <span class="skill-preview-chip__label">${window.appApi.escapeHtml(s.name)}</span>
-            ${cdHtml(s)}
-          </button>`;
-        }).join('')}`;
-
-      bar.querySelectorAll('[data-skill-id]').forEach((btn) => {
-        btn.addEventListener('click', () => castKnightSkill(btn.dataset.skillId));
-      });
-      const sndBtn = document.getElementById('raidSoundBtn');
-      if (sndBtn) {
-        sndBtn.addEventListener('click', () => {
-          state.soundEnabled = !state.soundEnabled;
-          renderSkillBar();
-        });
-      }
-    }
-
-    function playSwingSfx(){
-      if (!state.soundEnabled || typeof Audio === 'undefined') return;
-      try {
-        const audio = new Audio('/ui/assets/audio/fx-slash-swing.wav');
-        audio.volume = 0.25;
-        audio.play().catch(() => {});
-      } catch (e) {}
-    }
-
-    function castKnightSkill(skillId){
-      const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
-      const skill = skills.find((s) => s.id === skillId);
-      if (!skill || state.transitioning) return;
-      if (Number(state.skillCooldowns[skill.id] || 0) > 0) {
-        renderStatus(`${skill.name} đang hồi chiêu (${state.skillCooldowns[skill.id]} lượt).`, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
-        return;
-      }
-      if (skill.manaCost > state.previewMana) {
-        renderStatus(`Chưa đủ Preview Mana (${state.previewMana}/${skill.manaCost}). Ghép từ hợp lệ để hồi MP!`, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
-        return;
-      }
-
-      state.previewMana = Math.max(0, state.previewMana - skill.manaCost);
-      if (skill.cooldown > 0) state.skillCooldowns[skill.id] = skill.cooldown;
-      state.activeSkillId = skill.id;
-      playSwingSfx();
-      syncRendererState({ playSkill: true, skillMeta: skill });
-      setHeroMode(skill.heroAnim === 'guard' ? 'guard' : 'attack', 650);
-
-      // Client-only preview feedback (never alters SQL Server / P3 XP or coins)
-      if (!state.raidSessionId) {
-        if (skill.id === 'sacred_recovery') {
-          state.playerHp = Math.min(100, state.playerHp + 18);
-        } else if (skill.id === 'royal_guard') {
-          state.playerHp = Math.min(100, state.playerHp + 6);
-        } else {
-          const previewDmg = skill.id === 'lexical_judgment' ? 22 : (skill.id === 'blade_storm' ? 18 : 14);
-          if (state.bossShield > 0) {
-            const spill = Math.max(0, previewDmg - state.bossShield);
-            state.bossShield = Math.max(0, state.bossShield - previewDmg);
-            state.bossHp = Math.max(1, state.bossHp - spill);
-          } else {
-            state.bossHp = Math.max(1, state.bossHp - previewDmg);
-          }
-        }
-        fillBars();
-      }
-      renderSkillBar();
-      renderStatus(`${skill.name}: ${skill.desc} (Preview Mode · không ghi DB)`, 'success', { badge: 'SKILL PREVIEW', isPreview: true });
-    }
-
-    function tickSkillCooldowns(){
-      Object.keys(state.skillCooldowns).forEach((k) => {
-        if (state.skillCooldowns[k] > 0) state.skillCooldowns[k] -= 1;
-      });
-      state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 1);
-      renderSkillBar();
-    }
-
-    function cyclePreviewBoss(){
-      const cfg = window.RaidPhaserConfig || {};
-      const order = cfg.previewBossOrder || cfg.bossOrder || ['crabby', 'slime', 'skeleton'];
-      const curIdx = order.indexOf(state.bossTheme);
-      const nextTheme = order[(curIdx + 1) % order.length];
-      state.bossTheme = nextTheme;
-      const meta = cfg.bosses?.[nextTheme];
-      const lore = bossLore[nextTheme];
-      state.currentBossDetails = {
-        name: meta?.label || themeLabel[nextTheme] || nextTheme,
-        element: lore?.element || 'SHADOW'
-      };
-      if (window.WorldEnvironment) {
-        const biome = nextTheme === 'slime' ? 'forest' : (nextTheme === 'crabby' || nextTheme === 'seashell' ? 'waterfall' : 'mountain-dusk');
-        window.WorldEnvironment.setBiome(biome);
-      }
-      syncRendererState({ bossTheme: nextTheme, biome: nextTheme === 'slime' ? 'forest' : 'dusk', resetActors: true });
-      playFrameMonster(nextTheme, 'idle');
-      fillBars();
-      renderStatus(`Boss Preview: ${state.currentBossDetails.name}`, 'success', { badge: 'MONSTER PREVIEW', isPreview: true });
-    }
-
     await mountRaidRenderer(true);
     syncRendererState();
     setTimeout(()=>syncRendererState(), 80);
@@ -1439,7 +1534,7 @@
     playFrameMonster(state.bossTheme, 'idle');
     tickTimer();
 
-    document.getElementById('submitWordBtn').onclick = () => { playSwingSfx(); tickSkillCooldowns(); return submitWord(); };
+    document.getElementById('submitWordBtn').onclick = () => { playSwingSfx(); return submitWord(); };
     document.getElementById('guessCoreBtn').onclick = () => { playSwingSfx(); return guessCoreWord(); };
     document.getElementById('clearPathBtn').onclick = ()=>resetSelection();
     document.getElementById('finishBattleBtn').onclick = ()=>finishBattle(false);
@@ -1483,7 +1578,7 @@
       };
     }
 
-    if (typeof window !== 'undefined') {
+    if (isQaEnvironment()) {
       window.__LEX_RAID_TEST_HOOKS__ = {
         getActiveCoreWord: () => getActiveCoreWord(),
         getValidWords: () => allRuntimeWords(),
@@ -1492,17 +1587,31 @@
         getBossShield: () => state.bossShield,
         getPlayerHp: () => state.playerHp,
         getTurn: () => state.turn,
+        getCombo: () => state.combo,
+        getUnitCode: () => state.unitCode,
+        getRevealedCount: () => state.revealedIndexes.length,
+        getRoyalGuard: () => state.royalGuardActive,
         getBossTheme: () => state.bossTheme,
-        getSkillState: () => ({ previewMana: state.previewMana, cooldowns: { ...state.skillCooldowns }, activeSkillId: state.activeSkillId, soundEnabled: state.soundEnabled }),
+        getSkillState: () => ({
+          previewMana: state.previewMana,
+          cooldowns: { ...state.skillCooldowns },
+          activeSkillId: state.activeSkillId,
+          royalGuardActive: state.royalGuardActive,
+          soundEnabled: state.soundEnabled
+        }),
         castSkill: (skillId) => castKnightSkill(skillId),
         cycleBossPreview: () => cyclePreviewBoss(),
         resetSceneActors: () => syncRendererState({ resetActors: true }),
         getRenderer: () => state.renderer?.renderer || null,
+        isAnimationBusy: () => isBattleAnimationBusy(),
+        isFinished: () => state.finished,
+        isBackendMode: () => Boolean(state.raidSessionId),
         setLoadoutAndBoss: ({ unitCode, bossTheme } = {}) => {
           if (unitCode) state.unitCode = unitCode;
           if (bossTheme) state.bossTheme = bossTheme;
           syncRendererState();
           fillBars();
+          renderSkillBar();
         },
         triggerBossTurn: () => bossTurn('Boss phản công (kiểm thử).'),
         isSubmitting: () => state.isSubmitting,
