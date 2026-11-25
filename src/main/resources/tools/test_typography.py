@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Typography Verification Script for Lex Raid - Phase P4-B
-Verifies glyph rendering, diacritics, word wrapping boundaries,
-and string length constraints across viewport widths.
+Static Typography UTF-8 & Width Estimation Script for Lex Raid - Phase P4-B.
+IMPORTANT: This script checks UTF-8 encoding and estimates CSS character widths only.
+It does NOT render fonts or verify visual glyphs; run `chromium_p4b_acceptance.js`
+against `/app/typography` for real headless Chromium font & glyph verification.
 """
 
 def test_typography_strings():
@@ -23,7 +24,7 @@ def test_typography_strings():
         ("VN_COMPLEX_PHRASE", "Đa hình (Polymorphism) là nguyên lý cốt lõi trong lập trình hướng đối tượng.")
     ]
 
-    print("=== LEX RAID TYPOGRAPHY VERIFICATION ===")
+    print("=== LEX RAID STATIC TYPOGRAPHY CHECK (UTF-8 & WIDTH MATH ONLY) ===")
     all_passed = True
     for label, text in test_strings:
         # Check that characters encode properly in UTF-8

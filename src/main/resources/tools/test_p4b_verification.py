@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""P4-B Comprehensive Visual QA & Design System Verification Suite for Lex Raid.
+"""P4-B Static Design System & Asset Verification Suite for Lex Raid.
 
-Verifies:
-1. Hero & Boss Sprite Scale, Baselines & Foot Alignment (Y=350, Diff < 0.1px).
+IMPORTANT: This script performs STATIC CODE, CONFIG & ASSET VERIFICATION only.
+Real browser layout, font rendering, tap targets, and runtime gameplay checks
+are performed separately by `Agent & Skill/scripts/chromium_p4b_acceptance.js`.
+
+Static checks:
+1. Hero & Boss Sprite Scale, Baselines & Foot Alignment math (Y=350, Diff < 0.1px).
 2. Boss & Hero Identity Mapping & 64x64 Pixel Portraits.
-3. Clean Retina Logo (< 25 KB, replaces 5.87MB wallpaper).
-4. Elimination of 22MB Avatar Bloat (avatars are now ~1-6KB).
+3. Clean Logo Assets (logo-mark.png 192x192, favicon.png 64x64, logo.png < 80KB vs 5.87MB original).
+4. Pixel Avatars in avatars/ (< 15 KB each).
 5. Elimination of Dev-Speak across all 9 pages.
-6. Volcard Word Break & Hyphenation Prevention (clamp + nowrap).
-7. Unified 5-Item Navigation across all pages.
-8. Font Stack (Silkscreen, VT323, Be Vietnam Pro) & pixel-rpg.css linkage.
-9. Tap Targets (>= 40px) & WCAG 2.2 AA Contrast Compliance.
+6. Volcard Word Wrap Policy (white-space: normal, word-break: normal, no ellipsis truncation).
+7. Unified 5-Item Navigation & favicon across all pages.
+8. Font Stack (Silkscreen, Be Vietnam Pro, JetBrains Mono) & pixel-rpg.css linkage.
+9. Design Tokens WCAG 2.2 AA Math Contrast Audit.
 """
 from __future__ import annotations
 import math
@@ -95,10 +99,16 @@ def check_asset_footprint() -> tuple[int, int]:
     total = 0
 
     logo_path = ROOT / "assets/imgs/logo.png"
+    logo_mark = ROOT / "assets/imgs/logo-mark.png"
+    favicon = ROOT / "assets/imgs/favicon.png"
     total += 1
     logo_kb = logo_path.stat().st_size / 1024
-    assert logo_kb < 25, f"Logo is too heavy: {logo_kb:.1f} KB"
-    print(f" - logo.png size: {logo_kb:.2f} KB (Optimized from 5.87 MB) -> PASS")
+    mark_kb = logo_mark.stat().st_size / 1024
+    fav_kb = favicon.stat().st_size / 1024
+    assert logo_kb < 80, f"Logo lockup is too heavy: {logo_kb:.1f} KB"
+    assert logo_mark.exists() and mark_kb < 60, f"logo-mark.png missing or heavy: {mark_kb:.1f} KB"
+    assert favicon.exists() and fav_kb < 20, f"favicon.png missing or heavy: {fav_kb:.1f} KB"
+    print(f" - logo.png={logo_kb:.2f} KB, logo-mark.png={mark_kb:.2f} KB, favicon.png={fav_kb:.2f} KB (vs 5.87 MB original) -> STATIC PASS")
     passed += 1
 
     avatar_dir = ROOT / "assets/ui/avatars"
@@ -140,33 +150,39 @@ def check_pages_compliance() -> tuple[int, int]:
         page_path = PAGES_DIR / page_name
         html = page_path.read_text(encoding="utf-8")
 
-        # Fonts
-        assert "Silkscreen" in html, f"{page_name} missing Silkscreen font"
+        # Fonts & favicon
+        assert "Silkscreen" in html and "Be+Vietnam+Pro" in html, f"{page_name} missing font stack"
         assert "pixel-rpg.css" in html, f"{page_name} missing pixel-rpg.css"
+        assert "logo-mark.png" in html, f"{page_name} missing favicon/navbar logo-mark.png"
         
         # Navigation
         assert "main-nav" in html, f"{page_name} missing main-nav"
-        assert "/app/home" in html, f"{page_name} missing home link"
-        assert "/app/minigame" in html, f"{page_name} missing minigame link"
-        assert "/app/volcard" in html, f"{page_name} missing volcard link"
-        assert "/app/account" in html, f"{page_name} missing account link"
+        for req_href, req_label in [
+            ("/app/home", "Trang chủ"),
+            ("/app/minigame", "Đấu Boss"),
+            ("/app/volcard", "Kho từ vựng"),
+            ("/app/quiz", "Quiz"),
+            ("/app/account", "Nhân vật"),
+        ]:
+            assert req_href in html and req_label in html, f"{page_name} missing unified nav link {req_href} / {req_label}"
 
         # Dev speak
         for word in banned_words:
             assert word not in html, f"{page_name} contains banned dev-speak: '{word}'"
 
-        print(f" - {page_name:16}: Fonts OK, pixel-rpg.css OK, Nav OK, Clean Copy -> PASS")
+        print(f" - {page_name:16}: Fonts OK, pixel-rpg.css OK, Unified 5-Link Nav OK -> STATIC PASS")
         passed += 1
 
     return passed, total
 
 def check_volcard_clamp() -> tuple[int, int]:
-    print("\n=== [4. VOLCARD WORD BREAK & HYPHENATION] ===")
+    print("\n=== [4. VOLCARD STATIC WORD-WRAP POLICY] ===")
     volcard_css = (ROOT / "assets/css/volcard.css").read_text(encoding="utf-8")
     assert "clamp(" in volcard_css, "volcard.css missing font-size clamp"
-    assert "nowrap" in volcard_css, "volcard.css missing white-space: nowrap"
-    assert "keep-all" in volcard_css, "volcard.css missing word-break: keep-all"
-    print(" - .flash-word has clamp(), white-space: nowrap, word-break: keep-all -> PASS")
+    assert "white-space: normal" in volcard_css, "volcard.css missing white-space: normal"
+    assert "word-break: normal" in volcard_css, "volcard.css missing word-break: normal"
+    assert "text-overflow: ellipsis" not in volcard_css, "volcard.css must not truncate vocabulary with ellipsis"
+    print(" - .flash-word uses clamp(), white-space: normal, word-break: normal, no ellipsis -> STATIC PASS")
     return 1, 1
 
 def check_color_contrast() -> tuple[int, int]:
@@ -205,7 +221,7 @@ def check_color_contrast() -> tuple[int, int]:
 
 def main():
     print("=" * 65)
-    print("LEX RAID · P4-B COMPREHENSIVE VERIFICATION SUITE")
+    print("LEX RAID · P4-B STATIC CODE & ASSET VERIFICATION SUITE")
     print("=" * 65)
 
     total_passed = 0
@@ -232,8 +248,8 @@ def main():
     total_tests += t
 
     print("\n" + "=" * 65)
-    print(f"TOTAL TESTS: {total_tests} | PASSED: {total_passed} | FAILED: {total_tests - total_passed}")
-    print("ALL VERIFICATIONS COMPLETED SUCCESSFULLY!")
+    print(f"STATIC CHECKS: {total_tests} | STATIC PASS: {total_passed} | FAILED: {total_tests - total_passed}")
+    print("STATIC VERIFICATION COMPLETED (RUN chromium_p4b_acceptance.js FOR REAL BROWSER QA)")
     print("=" * 65)
 
     if total_passed != total_tests:

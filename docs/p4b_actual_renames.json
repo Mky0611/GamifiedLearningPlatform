@@ -1,0 +1,494 @@
+[
+  {
+    "from": "imgs/Icon_10.png",
+    "to": "ui/icons/icon-settings.png"
+  },
+  {
+    "from": "imgs/Icon_11.png",
+    "to": "ui/icons/icon-info.png"
+  },
+  {
+    "from": "ui/icons/icon-01.png",
+    "to": "ui/icons/icon-mallet.png"
+  },
+  {
+    "from": "ui/icons/icon-05.png",
+    "to": "ui/icons/icon-sword.png"
+  },
+  {
+    "from": "ui/icons/icon-09.png",
+    "to": "ui/icons/icon-cross-red.png"
+  },
+  {
+    "from": "imgs/fantasy_bg.png",
+    "to": "backgrounds/fantasy-arena-bg.png"
+  },
+  {
+    "from": "monsters/treasure/captain/idle/Idle Sword 01.png",
+    "to": "bosses/captain/boss-captain-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/captain/idle/Idle Sword 02.png",
+    "to": "bosses/captain/boss-captain-idle-02.png"
+  },
+  {
+    "from": "monsters/treasure/captain/idle/Idle Sword 03.png",
+    "to": "bosses/captain/boss-captain-idle-03.png"
+  },
+  {
+    "from": "monsters/treasure/captain/idle/Idle Sword 04.png",
+    "to": "bosses/captain/boss-captain-idle-04.png"
+  },
+  {
+    "from": "monsters/treasure/captain/idle/Idle Sword 05.png",
+    "to": "bosses/captain/boss-captain-idle-05.png"
+  },
+  {
+    "from": "monsters/treasure/captain/attack/Attack 1 01.png",
+    "to": "bosses/captain/boss-captain-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/captain/attack/Attack 1 02.png",
+    "to": "bosses/captain/boss-captain-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/captain/attack/Attack 1 03.png",
+    "to": "bosses/captain/boss-captain-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/captain/hit/Hit Sword 01.png",
+    "to": "bosses/captain/boss-captain-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/captain/hit/Hit Sword 02.png",
+    "to": "bosses/captain/boss-captain-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/captain/hit/Hit Sword 03.png",
+    "to": "bosses/captain/boss-captain-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/captain/hit/Hit Sword 04.png",
+    "to": "bosses/captain/boss-captain-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 01.png",
+    "to": "bosses/crabby/boss-crabby-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 02.png",
+    "to": "bosses/crabby/boss-crabby-idle-02.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 03.png",
+    "to": "bosses/crabby/boss-crabby-idle-03.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 04.png",
+    "to": "bosses/crabby/boss-crabby-idle-04.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 05.png",
+    "to": "bosses/crabby/boss-crabby-idle-05.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 06.png",
+    "to": "bosses/crabby/boss-crabby-idle-06.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 07.png",
+    "to": "bosses/crabby/boss-crabby-idle-07.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 08.png",
+    "to": "bosses/crabby/boss-crabby-idle-08.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/idle/Idle 09.png",
+    "to": "bosses/crabby/boss-crabby-idle-09.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/attack/Attack 01.png",
+    "to": "bosses/crabby/boss-crabby-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/attack/Attack 02.png",
+    "to": "bosses/crabby/boss-crabby-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/attack/Attack 03.png",
+    "to": "bosses/crabby/boss-crabby-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/attack/Attack 04.png",
+    "to": "bosses/crabby/boss-crabby-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/hit/Hit 01.png",
+    "to": "bosses/crabby/boss-crabby-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/hit/Hit 02.png",
+    "to": "bosses/crabby/boss-crabby-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/hit/Hit 03.png",
+    "to": "bosses/crabby/boss-crabby-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/crabby/hit/Hit 04.png",
+    "to": "bosses/crabby/boss-crabby-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 01.png",
+    "to": "bosses/fierce/boss-fierce-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 02.png",
+    "to": "bosses/fierce/boss-fierce-idle-02.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 03.png",
+    "to": "bosses/fierce/boss-fierce-idle-03.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 04.png",
+    "to": "bosses/fierce/boss-fierce-idle-04.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 05.png",
+    "to": "bosses/fierce/boss-fierce-idle-05.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 06.png",
+    "to": "bosses/fierce/boss-fierce-idle-06.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 07.png",
+    "to": "bosses/fierce/boss-fierce-idle-07.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/idle/Idle 08.png",
+    "to": "bosses/fierce/boss-fierce-idle-08.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/attack/Attack 01.png",
+    "to": "bosses/fierce/boss-fierce-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/attack/Attack 02.png",
+    "to": "bosses/fierce/boss-fierce-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/attack/Attack 03.png",
+    "to": "bosses/fierce/boss-fierce-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/attack/Attack 04.png",
+    "to": "bosses/fierce/boss-fierce-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/attack/Attack 05.png",
+    "to": "bosses/fierce/boss-fierce-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/hit/Hit 01.png",
+    "to": "bosses/fierce/boss-fierce-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/hit/Hit 02.png",
+    "to": "bosses/fierce/boss-fierce-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/hit/Hit 03.png",
+    "to": "bosses/fierce/boss-fierce-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/fierce/hit/Hit 04.png",
+    "to": "bosses/fierce/boss-fierce-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 01.png",
+    "to": "bosses/pink/boss-pink-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 02.png",
+    "to": "bosses/pink/boss-pink-idle-02.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 03.png",
+    "to": "bosses/pink/boss-pink-idle-03.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 04.png",
+    "to": "bosses/pink/boss-pink-idle-04.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 05.png",
+    "to": "bosses/pink/boss-pink-idle-05.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 06.png",
+    "to": "bosses/pink/boss-pink-idle-06.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 07.png",
+    "to": "bosses/pink/boss-pink-idle-07.png"
+  },
+  {
+    "from": "monsters/treasure/pink/idle/Idle 08.png",
+    "to": "bosses/pink/boss-pink-idle-08.png"
+  },
+  {
+    "from": "monsters/treasure/pink/attack/Attack 01.png",
+    "to": "bosses/pink/boss-pink-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/pink/attack/Attack 02.png",
+    "to": "bosses/pink/boss-pink-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/pink/attack/Attack 03.png",
+    "to": "bosses/pink/boss-pink-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/pink/attack/Attack 04.png",
+    "to": "bosses/pink/boss-pink-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/pink/hit/Hit 01.png",
+    "to": "bosses/pink/boss-pink-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/pink/hit/Hit 02.png",
+    "to": "bosses/pink/boss-pink-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/pink/hit/Hit 03.png",
+    "to": "bosses/pink/boss-pink-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/pink/hit/Hit 04.png",
+    "to": "bosses/pink/boss-pink-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/idle/1.png",
+    "to": "bosses/totem1/boss-totem1-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/1.png",
+    "to": "bosses/totem1/boss-totem1-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/2.png",
+    "to": "bosses/totem1/boss-totem1-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/3.png",
+    "to": "bosses/totem1/boss-totem1-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/4.png",
+    "to": "bosses/totem1/boss-totem1-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/5.png",
+    "to": "bosses/totem1/boss-totem1-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/attack/6.png",
+    "to": "bosses/totem1/boss-totem1-attack-06.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/hit/1.png",
+    "to": "bosses/totem1/boss-totem1-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/hit/2.png",
+    "to": "bosses/totem1/boss-totem1-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/hit/3.png",
+    "to": "bosses/totem1/boss-totem1-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem1/hit/4.png",
+    "to": "bosses/totem1/boss-totem1-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/idle/1.png",
+    "to": "bosses/totem2/boss-totem2-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/1.png",
+    "to": "bosses/totem2/boss-totem2-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/2.png",
+    "to": "bosses/totem2/boss-totem2-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/3.png",
+    "to": "bosses/totem2/boss-totem2-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/4.png",
+    "to": "bosses/totem2/boss-totem2-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/5.png",
+    "to": "bosses/totem2/boss-totem2-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/attack/6.png",
+    "to": "bosses/totem2/boss-totem2-attack-06.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/hit/1.png",
+    "to": "bosses/totem2/boss-totem2-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/hit/2.png",
+    "to": "bosses/totem2/boss-totem2-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/hit/3.png",
+    "to": "bosses/totem2/boss-totem2-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem2/hit/4.png",
+    "to": "bosses/totem2/boss-totem2-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/idle/1.png",
+    "to": "bosses/totem3/boss-totem3-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/1.png",
+    "to": "bosses/totem3/boss-totem3-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/2.png",
+    "to": "bosses/totem3/boss-totem3-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/3.png",
+    "to": "bosses/totem3/boss-totem3-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/4.png",
+    "to": "bosses/totem3/boss-totem3-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/5.png",
+    "to": "bosses/totem3/boss-totem3-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/attack/6.png",
+    "to": "bosses/totem3/boss-totem3-attack-06.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/hit/1.png",
+    "to": "bosses/totem3/boss-totem3-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/hit/2.png",
+    "to": "bosses/totem3/boss-totem3-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/hit/3.png",
+    "to": "bosses/totem3/boss-totem3-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/totem3/hit/4.png",
+    "to": "bosses/totem3/boss-totem3-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/idle/1.png",
+    "to": "bosses/seashell/boss-seashell-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/1.png",
+    "to": "bosses/seashell/boss-seashell-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/2.png",
+    "to": "bosses/seashell/boss-seashell-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/3.png",
+    "to": "bosses/seashell/boss-seashell-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/4.png",
+    "to": "bosses/seashell/boss-seashell-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/5.png",
+    "to": "bosses/seashell/boss-seashell-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/attack/6.png",
+    "to": "bosses/seashell/boss-seashell-attack-06.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/hit/1.png",
+    "to": "bosses/seashell/boss-seashell-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/hit/2.png",
+    "to": "bosses/seashell/boss-seashell-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/hit/3.png",
+    "to": "bosses/seashell/boss-seashell-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/seashell/hit/4.png",
+    "to": "bosses/seashell/boss-seashell-hit-04.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/idle/1.png",
+    "to": "bosses/cannon/boss-cannon-idle-01.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/1.png",
+    "to": "bosses/cannon/boss-cannon-attack-01.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/2.png",
+    "to": "bosses/cannon/boss-cannon-attack-02.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/3.png",
+    "to": "bosses/cannon/boss-cannon-attack-03.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/4.png",
+    "to": "bosses/cannon/boss-cannon-attack-04.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/5.png",
+    "to": "bosses/cannon/boss-cannon-attack-05.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/attack/6.png",
+    "to": "bosses/cannon/boss-cannon-attack-06.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/hit/1.png",
+    "to": "bosses/cannon/boss-cannon-hit-01.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/hit/2.png",
+    "to": "bosses/cannon/boss-cannon-hit-02.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/hit/3.png",
+    "to": "bosses/cannon/boss-cannon-hit-03.png"
+  },
+  {
+    "from": "monsters/treasure/cannon/hit/4.png",
+    "to": "bosses/cannon/boss-cannon-hit-04.png"
+  }
+]

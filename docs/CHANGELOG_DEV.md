@@ -7,6 +7,14 @@
 
 ---
 
+## [P4-B-ACCEPTANCE] — 2026-11-25: Visual Acceptance, Asset Correction & Chromium 9-Viewport Verification
+- **Strict QA Reclassification:** Phân biệt rõ `STATIC PASS` (`audit_assets.py`, `check_case_sensitivity.py`, `smoke_check.py`, `test_p4b_verification.py`, `test_typography.py`), `UNIT PASS`, `HTTP PASS`, `BROWSER PASS` (`chromium_p4b_acceptance.js`), và `NOT TESTED`.
+- **Safe Asset Renames & Pipeline Hygiene:** Tách contact sheets khỏi `FrontEnd/assets/qa_audit/` vào `test_output/asset_audit/`; thực hiện **123 `git mv` renames** (`assets/bosses/<boss>/boss-<boss>-<mode>-<nn>.png`, `ui/icons/icon-*.png`, `backgrounds/fantasy-arena-bg.png`); cập nhật `raid-config.js`, `generate_portraits.py`, `audit_assets.py`. Kiểm toán lại: **316 assets**, `130/130` Phaser URLs pass `0` missing / `0` case mismatch.
+- **Logo, Favicon & Unified Navbar:** Cắt tách `logo-mark.png` (`192x192`, `42.78 KB`), `favicon.png` (`64x64`, `8.34 KB`), `logo.png` (`281x240`, `65.94 KB`); đồng bộ nav 5 link, contrast menu mobile (`#241a14` / `#f3e4be`), và sửa active link sai trên `auth.html`.
+- **Typography & Volcard Fix:** Xuất bản `/app/typography` (`typography-specimen.html`), tách `Silkscreen` cho ASCII HUD khỏi `Be Vietnam Pro` cho tiếng Việt/từ vựng; sửa lỗi `fitFlashWord()` bị co về `15px` và bỏ `nowrap`/`ellipsis`, đảm bảo `POLYMORPHISM` và `CONTINUOUS INTEGRATION` hiển thị trọn vẹn từ `320x568` tới `1366x768`.
+- **Battle Arena & Safe Status Rendering:** Sửa lỗi CSS Grid làm cắt chân sprite trên `768x1024`, `1024x768`, `1920x1080` (`position: absolute; inset: 0; object-fit: contain`), gọn lưới desktop (`'fighter arena boss' 'core board boss'`) giúp 9/9 viewports fit above-the-fold (`coreBottom <= H`); thay raw HTML trong `renderStatus()` bằng DOM API (`textContent`); kiểm chứng cả Phaser lẫn Canvas 2D fallback (`?renderer=canvas`).
+- **Speed-Math & Auth Polish:** Chặn auto-focus gây nhảy cuộn trên `speed-math` mobile, thêm `min-width: 0` chống tràn nội dung grid, nâng tap target eye-toggle lên `40x40px`.
+
 ## [P4-B] — 25/11/2026: Pure Fantasy Pixel RPG Redesign, Asset Reorganization & Visual QA
 
 ### 1. Kiểm toán Toàn Diện Tài Nguyên & Tối Ưu Băng Thông (Asset Audit & Pipeline)
