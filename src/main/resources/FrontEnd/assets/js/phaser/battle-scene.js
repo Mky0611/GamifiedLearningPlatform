@@ -34,6 +34,8 @@
       this.battleState = {
         unitCode: 'warrior',
         bossTheme: 'crabby',
+        bossRarity: 'NORMAL',
+        waveIndex: 1,
         heroMode: 'idle',
         bossMode: 'idle',
         biome: 'dusk',
@@ -60,13 +62,19 @@
           fsmState: this.fsmState,
           unitCode: this.battleState.unitCode,
           bossTheme: this.battleState.bossTheme,
+          bossRarity: this.battleState.bossRarity || 'NORMAL',
           heroMode: this.battleState.heroMode,
           bossMode: this.battleState.bossMode,
           isBossDying: this.isBossDying,
+          groundY: (window.RaidPhaserConfig && window.RaidPhaserConfig.groundY) || 302,
           heroX: this.hero ? Math.round(this.hero.x) : null,
           heroY: this.hero ? Math.round(this.hero.y) : null,
+          heroScale: this.hero ? Number(this.hero.scaleX.toFixed(2)) : null,
+          heroDisplayH: this.hero ? Math.round(this.hero.displayHeight) : null,
           bossX: this.boss ? Math.round(this.boss.x) : null,
           bossY: this.boss ? Math.round(this.boss.y) : null,
+          bossScale: this.boss ? Number(this.boss.scaleX.toFixed(2)) : null,
+          bossDisplayH: this.boss ? Math.round(this.boss.displayHeight) : null,
           activeVfxCount: this.vfxPool.filter((s) => s.visible).length,
           poolSize: this.vfxPool.length,
           pendingTimers: this.activeTimers.size,
@@ -96,7 +104,7 @@
 
     create() {
       const cfg = window.RaidPhaserConfig;
-      const groundY = cfg.groundY || 350;
+      const groundY = cfg.groundY || 302;
       this.cameras.main.roundPixels = true;
 
       this.bgSprite = this.add.image(cfg.canvasWidth / 2, cfg.canvasHeight / 2, cfg.backgroundKey)
@@ -281,7 +289,7 @@
     getBaseCoords() {
       const cfg = window.RaidPhaserConfig;
       const heroCfg = this.getHeroConfig(this.battleState.unitCode);
-      const groundY = cfg.groundY || 350;
+      const groundY = cfg.groundY || 302;
       return {
         heroX: cfg.heroX + Number(heroCfg.battleOffsetX || 0),
         heroY: Number(heroCfg.battleY || groundY),
@@ -325,12 +333,22 @@
       this.applyVisualState(true);
     }
 
+    getEffectiveBossScale(theme) {
+      const cfg = window.RaidPhaserConfig || {};
+      const themeMeta = cfg.bosses[theme] || cfg.bosses.crabby || {};
+      const baseScale = Number(themeMeta.scale || 3.4);
+      const rarityKey = String(this.battleState.bossRarity || 'NORMAL').toUpperCase();
+      const rarityMul = Number((cfg.rarityScales && cfg.rarityScales[rarityKey]) || 1.0);
+      return Number((baseScale * rarityMul).toFixed(2));
+    }
+
     createBossSprite(theme, mode) {
       const cfg = window.RaidPhaserConfig;
-      const groundY = cfg.groundY || 350;
+      const groundY = cfg.groundY || 302;
       const themeMeta = cfg.bosses[theme] || cfg.bosses.crabby;
       const modeMeta = themeMeta[mode] || themeMeta.idle;
       const flip = themeMeta.nativeFacingLeft ? false : true;
+      const effScale = this.getEffectiveBossScale(theme);
 
       let sprite;
       if (themeMeta.isSheet && modeMeta.sheetUrl) {
@@ -346,13 +364,14 @@
         this.startBossFrames(sprite, modeMeta.rate || 8, mode !== 'hit');
       }
 
-      sprite.setScale(themeMeta.scale || 3.0);
+      sprite.setScale(effScale);
       sprite.setOrigin(Number(themeMeta.originX || 0.5), Number(themeMeta.originY || 0.9));
       sprite.setFlipX(flip);
       sprite.__theme = theme;
       sprite.__mode = mode;
+      sprite.__rarity = this.battleState.bossRarity || 'NORMAL';
 
-      this.bossShadow.setPosition(cfg.bossX, groundY + 2).setScale(Math.max(0.7, (themeMeta.scale || 3.0) / 3.5), 1).setVisible(true).setAlpha(0.28);
+      this.bossShadow.setPosition(cfg.bossX, groundY + 2).setScale(Math.max(0.8, effScale / 3.4), 1).setVisible(true).setAlpha(0.28);
       return sprite;
     }
 
@@ -382,6 +401,7 @@
     setBattleState(next) {
       const prevUnit = this.battleState.unitCode;
       const prevBoss = this.battleState.bossTheme;
+      const prevRarity = this.battleState.bossRarity;
       const prevBiome = this.battleState.biome;
       Object.assign(this.battleState, next || {});
 
@@ -391,7 +411,7 @@
       }
 
       const unitChanged = Boolean(next && Object.prototype.hasOwnProperty.call(next, 'unitCode') && next.unitCode !== prevUnit);
-      const bossChanged = Boolean(next && Object.prototype.hasOwnProperty.call(next, 'bossTheme') && next.bossTheme !== prevBoss);
+      const bossChanged = Boolean(next && ((Object.prototype.hasOwnProperty.call(next, 'bossTheme') && next.bossTheme !== prevBoss) || (Object.prototype.hasOwnProperty.call(next, 'bossRarity') && next.bossRarity !== prevRarity)));
 
       if (this.scene.isActive() && (!this.hero || !this.boss || unitChanged)) {
         this.spawnActors();
@@ -411,17 +431,17 @@
 
       const heroCfg = this.getHeroConfig(this.battleState.unitCode);
       const base = this.getBaseCoords();
-      this.hero.setScale(Number(heroCfg.scale || 1.35));
+      this.hero.setScale(Number(heroCfg.scale || 1.56));
       this.hero.setOrigin(Number(heroCfg.originX || 0.5), Number(heroCfg.originY || 0.7135));
 
       // Guard: never overwrite hero/boss X/Y mid-lunge unless strictly idle!
       if (!this.isInLockedCombatState() && !this.isBossDying) {
         this.hero.setPosition(base.heroX, base.heroY);
-        this.heroShadow.setPosition(base.heroX, base.heroY + 2).setScale(Number(heroCfg.shadowScale || 1.1), 1);
+        this.heroShadow.setPosition(base.heroX, base.heroY + 2).setScale(Number(heroCfg.shadowScale || 1.3), 1);
       }
 
       if (!this.isBossDying && this.boss) {
-        const bossDiff = forceBossRecreate || this.boss.__theme !== this.battleState.bossTheme || this.boss.__mode !== this.battleState.bossMode;
+        const bossDiff = forceBossRecreate || this.boss.__theme !== this.battleState.bossTheme || this.boss.__mode !== this.battleState.bossMode || this.boss.__rarity !== (this.battleState.bossRarity || 'NORMAL');
         if (bossDiff) {
           const prevX = this.boss.x;
           this.tweens.killTweensOf(this.boss);
@@ -750,10 +770,9 @@
 
     playBossSpawnSequence() {
       this.isBossDying = false;
-      const cfg = window.RaidPhaserConfig;
       this.spawnActors();
       if (this.boss) {
-        const finalScale = (cfg.bosses[this.battleState.bossTheme] || cfg.bosses.crabby).scale || 3.0;
+        const finalScale = this.getEffectiveBossScale(this.battleState.bossTheme);
         this.boss.alpha = 0;
         this.boss.scaleY = 0;
         this.boss.visible = true;

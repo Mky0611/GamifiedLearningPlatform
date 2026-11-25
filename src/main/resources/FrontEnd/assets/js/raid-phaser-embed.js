@@ -35,9 +35,10 @@
   }
 
   function createCanvasFallback(mount, initialState) {
+    const cfgInit = window.RaidPhaserConfig || {};
     const canvas = document.createElement('canvas');
-    canvas.width = 960;
-    canvas.height = 420;
+    canvas.width = cfgInit.canvasWidth || 960;
+    canvas.height = cfgInit.canvasHeight || 360;
     canvas.className = 'raid-phaser-canvas';
     mount.innerHTML = '';
     mount.appendChild(canvas);
@@ -46,7 +47,7 @@
 
     const HERO_SHEETS = window.RaidPhaserConfig?.heroes || {};
     const BOSS_SHEETS = window.RaidPhaserConfig?.bosses || {};
-    const state = { heroMode: 'idle', bossMode: 'idle', unitCode: 'warrior', bossTheme: 'crabby', biome: 'dusk', ...initialState };
+    const state = { heroMode: 'idle', bossMode: 'idle', unitCode: 'warrior', bossTheme: 'crabby', bossRarity: 'NORMAL', biome: 'dusk', ...initialState };
     const cache = new Map();
     let mounted = true;
     let heroFrame = 0;
@@ -92,7 +93,8 @@
 
       const heroCfg = (cfg.heroes && cfg.heroes[state.unitCode]) || (cfg.heroes && cfg.heroes.warrior) || {};
       const bossCfg = (cfg.bosses && cfg.bosses[state.bossTheme]) || (cfg.bosses && cfg.bosses.crabby) || {};
-      const groundY = cfg.groundY || 350;
+      const groundY = cfg.groundY || 302;
+      const rarityMul = Number((cfg.rarityScales && cfg.rarityScales[String(state.bossRarity || 'NORMAL').toUpperCase()]) || 1.0);
 
       if (lungeTimer > 0) {
         lungeTimer = Math.max(0, lungeTimer - dt);
@@ -118,16 +120,16 @@
         }
       }
 
-      const heroX = (cfg.heroX || 330) + Number(heroCfg.battleOffsetX || 0) + lungeOffset;
-      const bossX = (cfg.bossX || 630) + bossOffset;
+      const heroX = (cfg.heroX || 300) + Number(heroCfg.battleOffsetX || 0) + lungeOffset;
+      const bossX = (cfg.bossX || 660) + bossOffset;
 
       ctx.beginPath();
-      ctx.ellipse(heroX, groundY + 2, 48 * Number(heroCfg.shadowScale || 1.1), 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(heroX, groundY + 2, 48 * Number(heroCfg.shadowScale || 1.3), 8, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
       ctx.fill();
 
       ctx.beginPath();
-      ctx.ellipse(bossX, groundY + 2, 54 * Math.max(0.7, Number(bossCfg.scale || 3.0) / 3.5), 9, 0, 0, Math.PI * 2);
+      ctx.ellipse(bossX, groundY + 2, 54 * Math.max(0.8, (Number(bossCfg.scale || 3.4) * rarityMul) / 3.4), 9, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fill();
 
@@ -140,7 +142,7 @@
             heroClock = 0;
             heroFrame = (heroFrame + 1) % hm.frames;
           }
-          const scale = Number(heroCfg.scale || 1.35);
+          const scale = Number(heroCfg.scale || 1.56);
           const originX = Number(heroCfg.originX || 0.5);
           const originY = Number(heroCfg.originY || 0.7135);
           const destW = FRAME_W * scale;
@@ -161,7 +163,7 @@
           }
           const fw = bm.fw || 32;
           const fh = bm.fh || 32;
-          const scale = Number(bossCfg.scale || 3.4);
+          const scale = Number(bossCfg.scale || 3.5) * rarityMul;
           const destW = fw * scale;
           const destH = fh * scale;
           const destY = groundY - (Number(bossCfg.originY || 0.96) * destH);
@@ -180,7 +182,7 @@
         const fUrl = bm.frames[bossFrame];
         const img = await getImg(`bossframe:${fUrl}`, fUrl);
         if (img) {
-          const scale = Number(bossCfg.scale || 3.0);
+          const scale = Number(bossCfg.scale || 3.4) * rarityMul;
           const destW = img.width * scale;
           const destH = img.height * scale;
           const destY = groundY - (Number(bossCfg.originY || 0.9) * destH);
@@ -214,17 +216,19 @@
       window.__LEX_RAID_SCENE_STATE__ = () => {
         const cfg = window.RaidPhaserConfig || {};
         const heroCfg = (cfg.heroes && cfg.heroes[state.unitCode]) || (cfg.heroes && cfg.heroes.warrior) || {};
-        const groundY = cfg.groundY || 350;
+        const groundY = cfg.groundY || 302;
         return {
           fsmState: lungeTimer > 0 ? (isSupportCast ? 'GUARD' : 'ATTACK') : (bossTurnTimer > 0 ? 'HURT' : 'IDLE'),
           unitCode: state.unitCode,
           bossTheme: state.bossTheme,
+          bossRarity: state.bossRarity || 'NORMAL',
           heroMode: state.heroMode,
           bossMode: state.bossMode,
           isBossDying: false,
-          heroX: Math.round((cfg.heroX || 330) + Number(heroCfg.battleOffsetX || 0) + lungeOffset),
+          groundY,
+          heroX: Math.round((cfg.heroX || 300) + Number(heroCfg.battleOffsetX || 0) + lungeOffset),
           heroY: Number(heroCfg.battleY || groundY),
-          bossX: Math.round(cfg.bossX || 630),
+          bossX: Math.round(cfg.bossX || 660),
           bossY: groundY,
           activeVfxCount: slashFxActive ? 1 : 0,
           poolSize: 1,

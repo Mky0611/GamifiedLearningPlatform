@@ -3,13 +3,19 @@
 
   window.RaidPhaserConfig = {
     canvasWidth: 960,
-    canvasHeight: 420,
-    groundY: 350,
-    heroScale: 1.35,
-    heroX: 330,
-    heroY: 350,
-    bossX: 630,
-    bossY: 350,
+    canvasHeight: 360,
+    groundY: 302,
+    heroScale: 1.56,
+    heroX: 300,
+    heroY: 302,
+    bossX: 660,
+    bossY: 302,
+    rarityScales: {
+      NORMAL: 1.0,
+      ELITE: 1.14,
+      GUARDIAN: 1.24,
+      CHAPTER_BOSS: 1.36
+    },
     backgroundKey: 'raid-bg',
     backgroundUrl: '/ui/assets/backgrounds/worlds/mountain-dusk/mountain-dusk-a.png',
     biomeStages: {
@@ -22,13 +28,13 @@
       warrior: {
         frameWidth: 192,
         frameHeight: 192,
-        scale: 1.35,
-        battleY: 350,
+        scale: 1.56,
+        battleY: 302,
         battleOffsetX: -4,
         originX: 0.5,
         originY: 0.7135, // 137 / 192
-        shadowScale: 1.2,
-        previewScale: 1.3,
+        shadowScale: 1.35,
+        previewScale: 1.4,
         portrait: '/ui/assets/ui/avatars/portrait-hero-warrior.png',
         idle: { url: '/ui/assets/units/warrior/idle.png', frames: 8, rate: 8 },
         run: { url: '/ui/assets/units/warrior/run.png', frames: 6, rate: 10 },
@@ -39,13 +45,13 @@
       lancer: {
         frameWidth: 192,
         frameHeight: 192,
-        scale: 1.32,
-        battleY: 350,
+        scale: 1.50,
+        battleY: 302,
         battleOffsetX: -2,
         originX: 0.5,
         originY: 0.9271, // 178 / 192
-        shadowScale: 1.15,
-        previewScale: 1.25,
+        shadowScale: 1.3,
+        previewScale: 1.35,
         portrait: '/ui/assets/ui/avatars/portrait-hero-lancer.png',
         idle: { url: '/ui/assets/units/lancer/normalized/idle.png', frames: 12, rate: 10 },
         run: { url: '/ui/assets/units/lancer/normalized/run.png', frames: 6, rate: 12 },
@@ -56,13 +62,13 @@
       archer: {
         frameWidth: 192,
         frameHeight: 192,
-        scale: 1.35,
-        battleY: 350,
+        scale: 1.56,
+        battleY: 302,
         battleOffsetX: 2,
         originX: 0.5,
         originY: 0.7083, // 136 / 192
-        shadowScale: 1.2,
-        previewScale: 1.3,
+        shadowScale: 1.35,
+        previewScale: 1.4,
         portrait: '/ui/assets/ui/avatars/portrait-hero-archer.png',
         idle: { url: '/ui/assets/units/archer/idle.png', frames: 6, rate: 8 },
         run: { url: '/ui/assets/units/archer/run.png', frames: 4, rate: 10 },
@@ -103,7 +109,7 @@
     ],
     bosses: {
       captain: {
-        label: 'Captain Clown Nose', scale: 3.0,
+        label: 'Captain Clown Nose', scale: 3.2,
         portrait: '/ui/assets/ui/avatars/portrait-boss-captain.png',
         originX: 0.5, originY: 0.8,
         idle: { frames: seq(5, n => `/ui/assets/bosses/captain/boss-captain-idle-${String(n).padStart(2, '0')}.png`), rate: 8 },
@@ -111,7 +117,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/captain/boss-captain-hit-${String(n).padStart(2, '0')}.png`), rate: 10 }
       },
       crabby: {
-        label: 'Crabby', scale: 3.2,
+        label: 'Crabby', scale: 3.5,
         portrait: '/ui/assets/ui/avatars/portrait-boss-crabby.png',
         originX: 0.5, originY: 0.9062,
         idle: { frames: seq(9, n => `/ui/assets/bosses/crabby/boss-crabby-idle-${String(n).padStart(2, '0')}.png`), rate: 10 },
@@ -119,7 +125,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/crabby/boss-crabby-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       fierce: {
-        label: 'Fierce Tooth', scale: 3.6,
+        label: 'Fierce Tooth', scale: 3.8,
         portrait: '/ui/assets/ui/avatars/portrait-boss-fierce.png',
         originX: 0.5, originY: 0.9333,
         idle: { frames: seq(8, n => `/ui/assets/bosses/fierce/boss-fierce-idle-${String(n).padStart(2, '0')}.png`), rate: 10 },
@@ -127,7 +133,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/fierce/boss-fierce-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       pink: {
-        label: 'Pink Star', scale: 3.6,
+        label: 'Pink Star', scale: 3.8,
         portrait: '/ui/assets/ui/avatars/portrait-boss-pink.png',
         originX: 0.5, originY: 0.9667,
         idle: { frames: seq(8, n => `/ui/assets/bosses/pink/boss-pink-idle-${String(n).padStart(2, '0')}.png`), rate: 10 },
@@ -135,7 +141,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/pink/boss-pink-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       totem1: {
-        label: 'Totem Head I', scale: 3.4,
+        label: 'Totem Head I', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem1.png',
         originX: 0.5, originY: 0.9688,
         idle: { frames: ['/ui/assets/bosses/totem1/boss-totem1-idle-01.png'], rate: 6 },
@@ -143,7 +149,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/totem1/boss-totem1-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       totem2: {
-        label: 'Totem Head II', scale: 3.4,
+        label: 'Totem Head II', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem2.png',
         originX: 0.5, originY: 1.0,
         idle: { frames: ['/ui/assets/bosses/totem2/boss-totem2-idle-01.png'], rate: 6 },
@@ -151,7 +157,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/totem2/boss-totem2-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       totem3: {
-        label: 'Totem Head III', scale: 3.4,
+        label: 'Totem Head III', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-totem3.png',
         originX: 0.5, originY: 1.0,
         idle: { frames: ['/ui/assets/bosses/totem3/boss-totem3-idle-01.png'], rate: 6 },
@@ -159,7 +165,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/totem3/boss-totem3-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       seashell: {
-        label: 'Seashell', scale: 3.4,
+        label: 'Seashell', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-seashell.png',
         originX: 0.5, originY: 1.0,
         idle: { frames: ['/ui/assets/bosses/seashell/boss-seashell-idle-01.png'], rate: 6 },
@@ -167,7 +173,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/seashell/boss-seashell-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       cannon: {
-        label: 'Cannon', scale: 3.5,
+        label: 'Cannon', scale: 3.6,
         portrait: '/ui/assets/ui/avatars/portrait-boss-cannon.png',
         originX: 0.5, originY: 1.0,
         idle: { frames: ['/ui/assets/bosses/cannon/boss-cannon-idle-01.png'], rate: 6 },
@@ -175,7 +181,7 @@
         hit: { frames: seq(4, n => `/ui/assets/bosses/cannon/boss-cannon-hit-${String(n).padStart(2, '0')}.png`), rate: 12 }
       },
       slime: {
-        label: 'Verdant Slime (Preview)', scale: 3.5, isSheet: true, nativeFacingLeft: true,
+        label: 'Verdant Slime (Preview)', scale: 3.8, isSheet: true, nativeFacingLeft: true,
         portrait: '/ui/assets/ui/avatars/portrait-boss-slime.png',
         originX: 0.5, originY: 0.9688,
         idle: { sheetUrl: '/ui/assets/monsters/slime/idle.png', fw: 32, fh: 32, frames: 4, rate: 7 },
@@ -185,7 +191,7 @@
         death: { sheetUrl: '/ui/assets/monsters/slime/death.png', fw: 32, fh: 32, frames: 8, rate: 10 }
       },
       skeleton: {
-        label: 'Cursed Skeleton (Preview)', scale: 3.6, isSheet: true, nativeFacingLeft: true,
+        label: 'Cursed Skeleton (Preview)', scale: 3.9, isSheet: true, nativeFacingLeft: true,
         portrait: '/ui/assets/ui/avatars/portrait-boss-skeleton.png',
         originX: 0.5, originY: 1.0,
         idle: { sheetUrl: '/ui/assets/monsters/skeleton/idle.png', fw: 32, fh: 32, frames: 4, rate: 7 },

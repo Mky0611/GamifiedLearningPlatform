@@ -33,39 +33,81 @@
   <main class="page-container raid-shell">
     <section class="soft-card pixel-panel-wood raid-header">
       <div class="raid-header__grid">
-        <div>
-          <span class="section-kicker"><i class="bi bi-shield-shaded"></i> Đấu Trường Từ Vựng · Boss Hunt</span>
+        <div class="raid-header__title-wrap">
+          <span class="section-kicker" id="raidModeBadge"><i class="bi bi-shield-shaded"></i> Campaign · Boss Hunt</span>
           <div class="raid-title" id="stageTitle">Đang tải ải...</div>
-          <p class="raid-sub" id="stageSubtitle" style="margin: 2px 0 0;">Ghép từ vựng tiếng Anh trên bảng ma trận để tung chiêu thức, hóa giải khiên chắn và đánh bại quái vật cổ đại!</p>
+          <p class="raid-sub" id="stageSubtitle" style="margin: 2px 0 0;">Ghép từ tiếng Anh bất kỳ để tấn công và hồi Mana; từ thuộc chủ đề gây +30% sát thương!</p>
         </div>
         <div class="raid-header__brand">
-          <img src="/ui/assets/imgs/logo-mark.png" alt="Lex Raid emblem">
+          <div class="raid-mode-switch" role="group" aria-label="Chế độ chơi">
+            <button class="pixel-chip-btn is-active" id="modeCampaignBtn" type="button">Campaign</button>
+            <button class="pixel-chip-btn" id="modePracticeBtn" type="button">Practice</button>
+          </div>
           <div class="raid-chip-row" id="stageChipRow"></div>
         </div>
       </div>
     </section>
 
-    <div id="raidStatus" class="raid-status-wrap"></div>
-
     <section class="raid-layout">
       <aside class="soft-card fighter-panel raid-cell raid-cell--fighter">
-        <div class="panel-banner">Hiệp Sĩ</div>
-        <div class="avatar-hero"><img id="heroAvatarImg" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt="hero avatar"></div>
-        <div class="fighter-meta"><strong id="playerName">Hiệp Sĩ Lexia</strong><span class="small-muted" id="heroRoleText">Chiến binh · Chọn ô chữ bất kỳ để tạo từ tấn công.</span></div>
-        <div class="bar-stack bar-stack--player">
-          <div><div class="pixel-bar__label"><span><i class="bi bi-heart-fill me-1" style="color: #ef4444; font-size: 1.2rem; vertical-align: middle;"></i> HP</span><strong id="playerHpValue">100 / 100</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--player" id="playerHpBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--player" id="playerHpBar"></div></div></div>
+        <div class="hud-compact-top">
+          <div class="avatar-hero"><img id="heroAvatarImg" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt="hero avatar"></div>
+          <div class="hud-compact-meta">
+            <div class="hud-title-line">
+              <strong id="playerName">Hiệp Sĩ Lexia</strong>
+              <span class="hud-wave-pill" id="waveBadge">Wave 1/5</span>
+            </div>
+            <span class="small-muted" id="heroRoleText">Warrior · Chiến binh từ vựng</span>
+          </div>
         </div>
-        <div class="fighter-kv">
-          <div class="fighter-kv__row"><span><i class="bi bi-hourglass-split me-1" style="color: #a48c77;"></i> Turn</span><strong id="turnValue">1/5</strong></div>
-          <div class="fighter-kv__row"><span><i class="bi bi-stopwatch me-1" style="color: #a48c77;"></i> Timer</span><strong id="timerValue">00:20</strong></div>
-          <div class="fighter-kv__row"><span><i class="bi bi-fire me-1" style="color: #f59e0b;"></i> Combo</span><strong id="comboValue">x1</strong></div>
-          <div class="fighter-kv__row"><span><i class="bi bi-trophy-fill me-1" style="color: #f59e0b;"></i> Score</span><strong id="scoreValue">0</strong></div>
+        <div class="bar-stack bar-stack--player">
+          <div><div class="pixel-bar__label"><span><i class="bi bi-heart-fill me-1" style="color: #ef4444;"></i> HP</span><strong id="playerHpValue">100 / 100</strong></div><div class="pixel-bar pixel-bar--segmented"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--player" id="playerHpBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--player" id="playerHpBar"></div></div></div>
+        </div>
+        <div class="fighter-kv fighter-kv--inline">
+          <div class="fighter-kv__row"><span>Turn</span><strong id="turnValue">1/5</strong></div>
+          <div class="fighter-kv__row"><span>Timer</span><strong id="timerValue">00:45</strong></div>
+          <div class="fighter-kv__row"><span>Combo</span><strong id="comboValue">x1</strong></div>
+          <div class="fighter-kv__row"><span>Score</span><strong id="scoreValue">0</strong></div>
+        </div>
+      </aside>
+
+      <aside class="soft-card boss-panel raid-cell raid-cell--boss">
+        <div class="hud-compact-top">
+          <div class="avatar-boss"><img src="/ui/assets/ui/avatars/portrait-boss-crabby.png" alt="boss avatar"></div>
+          <div class="hud-compact-meta">
+            <div class="boss-title-row">
+              <strong id="bossName">Boss</strong>
+              <span class="rarity-pill rarity-pill--normal" id="bossRarityBadge">NORMAL</span>
+              <span class="phase-pill" id="bossPhaseBadge">P1</span>
+              <span class="element-badge" id="bossElement">Arcane</span>
+              <button class="info-btn" id="bossInfoBtn" type="button" title="Xem thông tin quái vật">
+                <img src="/ui/assets/ui/kibyra/icon5.png" alt="info">
+              </button>
+              <button class="info-btn" id="cycleBossPreviewBtn" type="button" title="Đổi quái vật Preview (Slime & Skeleton)">
+                <img src="/ui/assets/ui/kibyra/icon33.png" alt="cycle preview boss">
+              </button>
+            </div>
+            <div class="boss-telegraph-row" id="bossTelegraphBar">
+              <span class="telegraph-pill" id="bossTelegraphText">Sẵn sàng công kích</span>
+              <span class="boss-status-pills" id="bossStatusPills"></span>
+            </div>
+          </div>
+        </div>
+        <div class="bar-stack bar-stack--boss">
+          <div><div class="pixel-bar__label"><span><i class="bi bi-skull-fill me-1 text-danger"></i> HP</span><strong id="bossHpValue">100 / 100</strong></div><div class="pixel-bar pixel-bar--segmented"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--hp" id="bossHpBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--hp" id="bossHpBar"></div></div></div>
+          <div class="bar-stack-split">
+            <div><div class="pixel-bar__label"><span><i class="bi bi-shield-fill me-1 text-primary"></i> Shield</span><strong id="bossShieldValue">30 / 30</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--shield" id="bossShieldBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--shield" id="bossShieldBar"></div></div></div>
+            <div><div class="pixel-bar__label"><span><i class="bi bi-lightning-fill me-1 text-warning"></i> Rage</span><strong id="bossRageValue">0 / 20</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--rage" id="bossRageBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--rage" id="bossRageBar"></div></div></div>
+          </div>
+        </div>
+        <div class="boss-kv boss-kv--inline">
+          <div class="boss-kv__row"><span>Monster</span><strong id="monsterThemeLabel">Crabby</strong></div>
+          <div class="boss-kv__row"><span>Words</span><strong id="topicCountValue">0</strong></div>
+          <div class="boss-kv__row"><span>Guesses</span><strong id="coreGuessValue">0</strong></div>
         </div>
       </aside>
 
       <section class="soft-card arena-panel raid-cell raid-cell--arena">
-
-
         <div class="battle-stage battle-stage--engine">
           <div id="raidPhaserMount" class="raid-phaser-mount"></div>
           <div class="battle-stage__actors battle-stage__actors--fallback" aria-hidden="true">
@@ -79,7 +121,8 @@
           <div class="arena-hud-overlay" id="arenaHudOverlay">
             <div class="arena-hud-player">
               <span class="arena-hud-badge"><i class="bi bi-heart-fill text-danger me-1"></i><strong id="playerHpHudValue">100</strong></span>
-              <span class="arena-hud-badge"><i class="bi bi-stopwatch text-warning me-1"></i><strong id="timerHudValue">00:20</strong></span>
+              <span class="arena-hud-badge"><i class="bi bi-stopwatch text-warning me-1"></i><strong id="timerHudValue">00:45</strong></span>
+              <span class="arena-hud-badge"><strong id="waveHudValue">W1/5</strong></span>
             </div>
             <div class="arena-hud-boss">
               <span class="arena-hud-badge"><i class="bi bi-skull-fill text-danger me-1"></i><strong id="bossHpHudValue">100</strong></span>
@@ -88,79 +131,49 @@
           </div>
         </div>
         <div class="raid-engine-note" id="raidEngineNote"></div>
-
-        <div class="skill-bar-preview" id="knightSkillBar" role="toolbar" aria-label="Kỹ năng Hiệp sĩ (Preview)"></div>
-
-        <div class="attack-dock">
-          <div class="attack-dock__content">
-            <span class="section-kicker" style="font-size: 0.72rem; padding: 2px 8px;"><i class="bi bi-lightning-charge-fill"></i> Từ Đang Ghép</span>
-            <div class="attack-dock__word" id="currentWordValue">—</div>
-            <div class="attack-dock__meta" id="currentWordMeta">Bấm các ô chữ bất kỳ trên bàn cờ để tạo từ</div>
-          </div>
-          <div class="attack-dock__actions">
-            <button class="pixel-btn pixel-btn--wood" id="clearPathBtn" type="button"><i class="bi bi-x-lg"></i> Xóa</button>
-            <button class="pixel-btn pixel-btn--primary" id="submitWordBtn" type="button"><i class="bi bi-lightning-fill"></i> Tấn Công</button>
-          </div>
-        </div>
+        <div class="skill-bar-preview" id="knightSkillBar" role="toolbar" aria-label="Kỹ năng &amp; Phép thuật Hiệp sĩ"></div>
+        <div id="wordFeedbackToast" class="word-feedback-toast" aria-live="polite"></div>
+        <div id="raidStatus" class="raid-status-wrap"></div>
       </section>
 
-      <aside class="soft-card boss-panel raid-cell raid-cell--boss">
-        <div class="panel-banner pixel-ribbon pixel-ribbon--red">Quái Vật</div>
-        <div class="avatar-boss"><img src="/ui/assets/ui/avatars/portrait-boss-crabby.png" alt="boss avatar"></div>
-        <div class="boss-meta">
-          <div class="boss-title-row">
-            <strong id="bossName">Boss</strong>
-            <button class="info-btn" id="bossInfoBtn" type="button" title="Xem thông tin quái vật">
-              <img src="/ui/assets/ui/kibyra/icon5.png" alt="info">
-            </button>
-            <button class="info-btn" id="cycleBossPreviewBtn" type="button" title="Đổi quái vật Preview (Slime & Skeleton)">
-              <img src="/ui/assets/ui/kibyra/icon33.png" alt="cycle preview boss">
-            </button>
-          </div>
-          <span class="small-muted" id="bossElement">Arcane</span>
+      <div class="attack-dock raid-cell raid-cell--dock">
+        <div class="attack-dock__content">
+          <span class="section-kicker" style="font-size: 0.72rem; padding: 2px 8px;"><i class="bi bi-lightning-charge-fill"></i> Từ Đang Ghép</span>
+          <div class="attack-dock__word" id="currentWordValue">—</div>
+          <div class="attack-dock__meta" id="currentWordMeta">Chọn ô chữ bất kỳ (không cần liền kề) để tấn công</div>
         </div>
-        <div class="bar-stack">
-          <div><div class="pixel-bar__label"><span><i class="bi bi-skull-fill me-1 text-danger"></i> HP</span><strong id="bossHpValue">100 / 100</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--hp" id="bossHpBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--hp" id="bossHpBar"></div></div></div>
-          <div><div class="pixel-bar__label"><span><i class="bi bi-shield-fill me-1 text-primary"></i> Shield</span><strong id="bossShieldValue">30 / 30</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--shield" id="bossShieldBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--shield" id="bossShieldBar"></div></div></div>
-          <div><div class="pixel-bar__label"><span><i class="bi bi-lightning-fill me-1 text-warning"></i> Rage</span><strong id="bossRageValue">0 / 20</strong></div><div class="pixel-bar"><div class="pixel-bar__fill pixel-bar__fill--ghost pixel-bar__fill--rage" id="bossRageBarGhost"></div><div class="pixel-bar__fill pixel-bar__fill--rage" id="bossRageBar"></div></div></div>
+        <div class="attack-dock__actions">
+          <button class="pixel-btn pixel-btn--wood" id="clearPathBtn" type="button"><i class="bi bi-x-lg"></i> Xóa</button>
+          <button class="pixel-btn pixel-btn--primary" id="submitWordBtn" type="button"><i class="bi bi-lightning-fill"></i> Tấn Công</button>
         </div>
-        <div class="boss-kv">
-          <div class="boss-kv__row"><span><i class="bi bi-person-badge-fill me-1" style="color: #a48c77;"></i> Monster</span><strong id="monsterThemeLabel">Crabby</strong></div>
-          <div class="boss-kv__row"><span><i class="bi bi-book-half me-1" style="color: #a48c77;"></i> Words</span><strong id="topicCountValue">0</strong></div>
-          <div class="boss-kv__row"><span><i class="bi bi-key-fill me-1" style="color: #a48c77;"></i> Guesses</span><strong id="coreGuessValue">0</strong></div>
-        </div>
-      </aside>
+      </div>
 
       <article class="paper-card raid-cell raid-cell--core">
-        <h3 style="font-size: 0.95rem; min-height: 40px; padding: 6px 14px;">Từ Khóa Cốt Lõi</h3>
+        <div class="core-head-row">
+          <h3>Từ Khóa Cốt Lõi</h3>
+          <button class="pixel-btn pixel-btn--mana" id="guessCoreBtn" type="button" style="min-height: 38px;"><i class="bi bi-lightbulb-fill"></i> Đoán Từ Khóa</button>
+        </div>
         <div class="core-mask" id="coreMask"></div>
-        <p class="muted" id="clueText" style="font-size: 0.85rem; line-height: 1.4;">Tạo các từ vựng chủ đề để mở manh mối, sau đó đoán từ khóa để gây sát thương chí mạng.</p>
-        <div class="raid-side-card__actions"><button class="pixel-btn pixel-btn--mana" id="guessCoreBtn" type="button" style="width: 100%; min-height: 42px;"><i class="bi bi-lightbulb-fill"></i> Đoán Từ Khóa</button></div>
+        <p class="muted" id="clueText" style="font-size: 0.82rem; line-height: 1.35; margin: 0;">Ghép từ tiếng Anh bất kỳ để mở gợi ý; từ thuộc chủ đề gây +30% sát thương.</p>
       </article>
 
       <article class="board-shell raid-cell raid-cell--board">
-        <div class="board-horizontal-container">
-          <!-- Left Section: Title & Instructions -->
-          <div class="board-info-section">
-            <span class="board-banner-wood">Bàn Cờ Chữ</span>
-            <p class="board-instructions">Chọn các ô chữ bất kỳ trên bảng để ghép thành từ. Không cần liền kề.</p>
-            <div class="board-actions" style="margin-top: 10px;">
-              <button class="pixel-btn pixel-btn--wood" id="finishBattleBtn" type="button" style="width: 100%; min-height: 38px; font-size: 0.78rem;"><i class="bi bi-flag"></i> Kết Thúc</button>
-            </div>
-          </div>
-          
-          <!-- Middle Section: Letters Grid -->
+        <div class="board-command-wrap">
           <div class="board-grid-section">
             <div class="board-grid" id="boardGrid"></div>
           </div>
-          
-          <!-- Right Section: Objectives & Recent Words -->
+          <div class="hint-toolbar" id="hintToolbar">
+            <button class="pixel-chip-btn" id="hintMeaningBtn" type="button" title="Xem gợi ý nghĩa">Gợi ý nghĩa</button>
+            <button class="pixel-chip-btn" id="hintRevealBtn" type="button" title="Mở 1 chữ cái Core Word">Mở 1 chữ (<span id="hintChargeVal">3</span>)</button>
+            <button class="pixel-chip-btn" id="boardRefreshBtn" type="button" title="Làm mới bàn cờ">Đổi bảng</button>
+            <button class="pixel-btn pixel-btn--wood" id="finishBattleBtn" type="button" style="min-height: 36px; font-size: 0.74rem; margin-left: auto;"><i class="bi bi-flag"></i> Kết Thúc</button>
+          </div>
           <div class="board-objectives-section">
             <div class="mini-wood-card">
               <span class="board-banner-wood-small">Objectives</span>
               <div class="objective-list" id="objectiveList"></div>
             </div>
-            <div class="mini-wood-card" style="margin-top: 10px;">
+            <div class="mini-wood-card">
               <span class="board-banner-wood-small">Recent Words</span>
               <div id="recentWords" class="recent-words-container"></div>
             </div>

@@ -29,6 +29,10 @@
     lastHoveredKey: '',
     invalidResetTimer: null,
     bossTheme: 'crabby',
+    bossRarity: 'NORMAL',
+    bossPhase: 1,
+    waveIndex: 1,
+    totalWaves: 5,
     monsterAnimator: null,
     unitCode: 'warrior',
     avatarCode: 'avatar1',
@@ -342,6 +346,8 @@
     updateRaidRenderer({
       unitCode: state.unitCode,
       bossTheme: state.bossTheme,
+      bossRarity: state.bossRarity || 'NORMAL',
+      waveIndex: state.waveIndex || 1,
       ...extra
     });
   }
@@ -633,6 +639,19 @@
     document.getElementById('topicCountValue').textContent = String(state.topicCount);
     document.getElementById('coreGuessValue').textContent = String(state.coreGuess);
     document.getElementById('monsterThemeLabel').textContent = themeLabel[state.bossTheme] || 'Boss';
+    const rarity = String(state.bossRarity || 'NORMAL').toUpperCase();
+    const rarityEl = document.getElementById('bossRarityBadge');
+    if (rarityEl) {
+      rarityEl.textContent = rarity.replace('_', ' ');
+      rarityEl.className = `rarity-pill rarity-pill--${rarity.toLowerCase()}`;
+    }
+    const phaseEl = document.getElementById('bossPhaseBadge');
+    if (phaseEl) phaseEl.textContent = `P${state.bossPhase || 1}`;
+    const waveText = `Wave ${state.waveIndex || 1}/${state.totalWaves || 5}`;
+    const waveEl = document.getElementById('waveBadge');
+    if (waveEl) waveEl.textContent = waveText;
+    const waveHudEl = document.getElementById('waveHudValue');
+    if (waveHudEl) waveHudEl.textContent = `W${state.waveIndex || 1}/${state.totalWaves || 5}`;
   }
 
   function renderCore(){
