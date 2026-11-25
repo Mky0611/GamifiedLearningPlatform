@@ -1,8 +1,8 @@
 (function(){
   const unitCatalog = [
-    {code:'warrior', name:'Warrior', role:'Cận chiến chủ lực', note:'Sát thương ổn định, animation đầy đủ nhất cho Boss Hunt.'},
-    {code:'lancer', name:'Lancer', role:'Phòng tuyến / phản đòn', note:'Giữ nhịp giao tranh, hợp với state Guard và counter.'},
-    {code:'archer', name:'Archer', role:'Tầm xa / áp lực mục tiêu', note:'Dùng shoot animation để tạo cảm giác đánh boss từ xa.'}
+    {code:'warrior', name:'Warrior', role:'Cận chiến chủ lực', note:'Sát thương ổn định với kiếm khiên uy dũng trong mọi trận Đấu Boss.'},
+    {code:'lancer', name:'Lancer', role:'Phòng tuyến / phản đòn', note:'Giữ vững phòng tuyến với trường thương và đòn phản kích sắc bén.'},
+    {code:'archer', name:'Archer', role:'Tầm xa / áp lực mục tiêu', note:'Tấn công tầm xa bằng mưa tên chuẩn xác để chế ngự quái vật.'}
   ];
 
   const avatars = [
@@ -120,7 +120,7 @@
       <button class="option-card avatar-option ${avatar.code===state.avatarCode?'is-selected':''}" data-avatar="${avatar.code}" type="button">
         <span class="option-card__badge"><i class="bi bi-check2"></i></span>
         <div class="avatar-option__frame"><img src="${avatar.url}" alt="${avatar.name}"></div>
-        <div><strong style="display:block;font-size:1.05rem;color:var(--gold-bright, #f6c344)">${avatar.name}</strong><div class="muted" style="color:#eeddc5;font-size:0.85rem">${avatar.desc || 'Chân dung hiệp sĩ'}</div></div>
+        <div><strong style="display:block;font-size:1.05rem;color:var(--wood-dark, #1c120c)">${avatar.name}</strong><div class="muted" style="color:var(--ink-muted, #695241);font-size:0.85rem">${avatar.desc || 'Chân dung hiệp sĩ'}</div></div>
       </button>`).join('');
     const grid = document.getElementById('avatarGrid');
     grid.innerHTML = html;

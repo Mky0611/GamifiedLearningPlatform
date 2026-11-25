@@ -1,9 +1,9 @@
 (function(){
   const artByCode = {
     LEX_RAID: '/ui/assets/imgs/map1.gif',
-    QUIZ: '/ui/assets/ui/tiny/icon-book.png',
+    QUIZ: '/ui/assets/imgs/logo-mark.png',
     MEMORY: '/ui/assets/imgs/map2.gif',
-    SPEED_MATH: '/ui/assets/ui/tiny/icon-star.png',
+    SPEED_MATH: '/ui/assets/ui/icons/icon-settings.png',
     CODE_PUZZLE: '/ui/assets/imgs/map3.gif',
     VOLCARD: '/ui/assets/imgs/logo.png'
   };
@@ -36,7 +36,7 @@
         </div>
         <div class="feature-card__actions">
           <span class="small-muted">${window.appApi.escapeHtml(code)}</span>
-          <a class="btn-soft ${code === 'LEX_RAID' ? 'btn-primary-soft' : 'btn-secondary-soft'}" href="${href}">${cta}</a>
+          <a class="pixel-btn ${code === 'LEX_RAID' ? 'pixel-btn--primary' : 'pixel-btn--wood'}" href="${href}">${cta}</a>
         </div>
       </article>`;
   }
@@ -111,8 +111,8 @@
           <div class="hero-stage-stat"><span>Thời Gian</span><strong>${data.timePerRoundSec || 20}s / lượt</strong></div>
         </div>
         <div class="hero-actions-row">
-          <a class="btn-soft btn-primary-soft" href="${href}"><i class="bi bi-sword"></i> Chiến Đấu Ngay</a>
-          <a class="btn-soft btn-secondary-soft" href="/app/volcard"><i class="bi bi-book"></i> Ôn Từ Vựng</a>
+          <a class="pixel-btn pixel-btn--primary" href="${href}"><i class="bi bi-sword"></i> Chiến Đấu Ngay</a>
+          <a class="pixel-btn pixel-btn--wood" href="/app/volcard"><i class="bi bi-book"></i> Ôn Từ Vựng</a>
         </div>
       </div>`;
 
@@ -123,7 +123,7 @@
         <p class="muted" style="margin:0">Bấm chọn các ô chữ trên bảng ma trận để ghép thành từ tiếng Anh chuẩn và tung đòn tấn công.</p>
         <div class="stage-preview-card__footer">
           <div><strong>${data.turnLimit || 5} lượt đấu</strong><div class="small-muted">Độ khó: ${window.appApi.escapeHtml(data.difficulty || 'NORMAL')}</div></div>
-          <a class="btn-soft btn-primary-soft" href="${href}">Vào Ải</a>
+          <a class="pixel-btn pixel-btn--primary" href="${href}">Vào Ải</a>
         </div>
       </article>
       <article class="soft-card stage-preview-card">
@@ -132,7 +132,7 @@
         <p class="muted" style="margin:0">Đa dạng hóa lộ trình rèn luyện tiếng Anh và tư duy logic qua các minigame tương tác hấp dẫn.</p>
         <div class="stage-preview-card__footer">
           <div><strong>6 Chế Độ</strong><div class="small-muted">Cùng ngôn ngữ Pixel RPG</div></div>
-          <a class="btn-soft btn-secondary-soft" href="/app/volcard">Khám Phá</a>
+          <a class="pixel-btn pixel-btn--wood" href="/app/volcard">Khám Phá</a>
         </div>
       </article>`;
   }

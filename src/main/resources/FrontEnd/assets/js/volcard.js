@@ -44,6 +44,19 @@
     el.querySelectorAll('.set-item').forEach((b) => b.onclick = () => loadCards(Number(b.dataset.id)));
   }
 
+  function fitFlashWord(){
+    const elWord = document.getElementById('flashWord');
+    if(!elWord) return;
+    elWord.style.fontSize = '';
+    const maxW = elWord.parentElement ? elWord.parentElement.clientWidth - 2 : elWord.clientWidth;
+    if(maxW <= 0) return;
+    let computed = parseFloat(window.getComputedStyle(elWord).fontSize) || 28;
+    while(elWord.scrollWidth > maxW + 1 && computed > 15){
+      computed -= 1;
+      elWord.style.fontSize = `${computed}px`;
+    }
+  }
+
   function renderCard(){
     const card = state.cards[state.index];
     const set = currentSet();
@@ -97,6 +110,7 @@
     if(elIndex) elIndex.textContent = `${state.index + 1}/${state.cards.length}`;
 
     if(elCard) elCard.classList.toggle('is-flipped', state.flipped);
+    requestAnimationFrame(fitFlashWord);
     status(`Đang ôn ${state.cards.length} từ${state.total && state.total > state.cards.length ? ` / tổng ${state.total}` : ''}. Click thẻ hoặc nút để lật.`);
   }
 
@@ -172,11 +186,14 @@
     } catch(e) {
       // Offline fallback with rich CEFR & IT properties
       const fallbackPool = [
-        {wordText: 'compile', partOfSpeech: 'verb', meaningEn: 'to convert code into machine language', meaningVi: 'biên dịch mã nguồn', levelCefr: 'B1', itDomain: 'IT_RUNTIMES', itTier: 'Foundation', boardEligible: true},
-        {wordText: 'variable', partOfSpeech: 'noun', meaningEn: 'a named data storage location', meaningVi: 'biến số lưu trữ', levelCefr: 'B1', itDomain: 'IT_PROG_FUND', itTier: 'Foundation', boardEligible: true},
-        {wordText: 'firewall', partOfSpeech: 'noun', meaningEn: 'a network security device', meaningVi: 'tường lửa bảo mật', levelCefr: 'B2', itDomain: 'IT_NETWORKS', itTier: 'Practitioner', boardEligible: true},
-        {wordText: 'endpoint', partOfSpeech: 'noun', meaningEn: 'a specific URL where an API can access resources', meaningVi: 'điểm cuối API', levelCefr: 'B1', itDomain: 'IT_BACKEND_API', itTier: 'Practitioner', boardEligible: true},
-        {wordText: 'polymorphism', partOfSpeech: 'noun', meaningEn: 'the ability of different classes to respond to the same message', meaningVi: 'tính đa hình trong hướng đối tượng', levelCefr: 'C1', itDomain: 'IT_OOP', itTier: 'Specialist', boardEligible: false}
+        {wordText: 'polymorphism', partOfSpeech: 'noun', meaningEn: 'the ability of different classes to respond to the same interface', meaningVi: 'tính đa hình trong lập trình hướng đối tượng', levelCefr: 'C1', itDomain: 'IT_OOP', itTier: 'Specialist', boardEligible: false},
+        {wordText: 'continuous integration', partOfSpeech: 'noun', meaningEn: 'the practice of frequently merging developer code changes into a shared repository with automated builds', meaningVi: 'tích hợp liên tục trong quy trình phát triển phần mềm', levelCefr: 'B2', itDomain: 'IT_DEVOPS', itTier: 'Advanced', boardEligible: false},
+        {wordText: 'authentication', partOfSpeech: 'noun', meaningEn: 'the process of verifying the identity of a user or system', meaningVi: 'xác thực danh tính người dùng', levelCefr: 'B2', itDomain: 'IT_SECURITY', itTier: 'Practitioner', boardEligible: false},
+        {wordText: 'infrastructure', partOfSpeech: 'noun', meaningEn: 'the foundational hardware, network, and cloud resources supporting applications', meaningVi: 'hạ tầng kỹ thuật và máy chủ', levelCefr: 'B2', itDomain: 'IT_CLOUD', itTier: 'Practitioner', boardEligible: false},
+        {wordText: 'compile', partOfSpeech: 'verb', meaningEn: 'to convert source code into machine-executable instructions', meaningVi: 'biên dịch mã nguồn', levelCefr: 'B1', itDomain: 'IT_RUNTIMES', itTier: 'Foundation', boardEligible: true},
+        {wordText: 'variable', partOfSpeech: 'noun', meaningEn: 'a named storage location in memory holding data', meaningVi: 'biến số lưu trữ', levelCefr: 'B1', itDomain: 'IT_PROG_FUND', itTier: 'Foundation', boardEligible: true},
+        {wordText: 'firewall', partOfSpeech: 'noun', meaningEn: 'a network security system monitoring incoming and outgoing traffic', meaningVi: 'tường lửa bảo mật', levelCefr: 'B2', itDomain: 'IT_NETWORKS', itTier: 'Practitioner', boardEligible: true},
+        {wordText: 'endpoint', partOfSpeech: 'noun', meaningEn: 'a specific URL where an API receives requests and serves resources', meaningVi: 'điểm cuối API', levelCefr: 'B1', itDomain: 'IT_BACKEND_API', itTier: 'Practitioner', boardEligible: true}
       ];
 
       // Filter offline fallback if requested
@@ -271,6 +288,8 @@
 
     const flashCard = document.getElementById('flashCard');
     if(flashCard) flashCard.onclick = flipOrNext;
+
+    window.addEventListener('resize', fitFlashWord);
 
     loadTopics();
   });

@@ -32,11 +32,11 @@
       : normalizeConfig(configOrMountId, { mountId: 'quizMount', scoreId: 'quizScore', progressId: 'quizProgress', streakId: 'quizStreak', noteId: 'quizNote' });
 
     const fallbackQuestions = [
-      { question: 'Điểm khác biệt cốt lõi của Lex Raid là gì?', choices: ['Người chơi gõ input text', 'Người chơi nối ô chữ liền kề để tạo từ', 'Người chơi kéo thanh slider', 'Người chơi chọn đáp án radio'], correct: 1, explain: 'Flow signature là click hoặc drag qua các tile liền kề, không dùng input text.' },
-      { question: 'Volcard phù hợp nhất để làm gì?', choices: ['Render boss phase', 'Ôn từ vựng bằng flashcard theo topic', 'Lưu audit log', 'Spawn quái'], correct: 1, explain: 'Volcard là mode flashcard ôn vocab theo topic và set.' },
-      { question: 'Trong Boss Hunt, core word dùng để làm gì?', choices: ['Làm mật khẩu', 'Là từ cốt lõi để đoán và gây lợi thế trong battle', 'Mở cài đặt tài khoản', 'Đổi avatar'], correct: 1, explain: 'Core word là mục tiêu phụ quan trọng để người chơi đoán trong trận.' },
-      { question: 'Tiny Swords được tận dụng tốt nhất cho phần nào?', choices: ['Chỉ dùng font', 'UI panel, button, ribbon, bar và fantasy pixel feel', 'Thay backend SQL', 'Sinh API auth'], correct: 1, explain: 'Asset pack này hợp nhất để tăng chất game scene cho FE.' },
-      { question: 'Nếu backend quiz chưa sẵn, FE nên làm gì?', choices: ['Để trang trắng', 'Chỉ hiện loading vô hạn', 'Có mock flow để người dùng vẫn test UX/UI', 'Ẩn mode khỏi website'], correct: 2, explain: 'Mock flow giúp hoàn thiện FE trước khi BE tích hợp thật.' },
+      { question: 'Trong lập trình hướng đối tượng (OOP), "Polymorphism" có nghĩa là gì?', choices: ['Tính đóng gói dữ liệu', 'Tính đa hình', 'Tính kế thừa đơn', 'Biên dịch tĩnh'], correct: 1, explain: 'Polymorphism (Tính đa hình) cho phép các lớp khác nhau phản hồi cùng một thông điệp theo cách riêng.' },
+      { question: 'Từ "Authentication" trong bảo mật phần mềm dùng để chỉ quá trình nào?', choices: ['Phân quyền truy cập', 'Mã hóa cơ sở dữ liệu', 'Xác thực danh tính người dùng', 'Sao lưu hệ thống'], correct: 2, explain: 'Authentication là bước xác minh danh tính hợp lệ trước khi cấp quyền (Authorization).' },
+      { question: 'Quy trình "Continuous Integration" (CI) giúp đội phát triển điều gì?', choices: ['Tích hợp mã nguồn thường xuyên kèm kiểm thử tự động', 'Viết lại toàn bộ giao diện bằng tay', 'Loại bỏ hoàn toàn cơ sở dữ liệu', 'Chỉ deploy thủ công mỗi năm'], correct: 0, explain: 'CI tự động build và kiểm thử mỗi khi mã mới được hợp nhất vào kho chung.' },
+      { question: 'Từ "Infrastructure" tương ứng với ý nghĩa nào trong kỹ thuật hệ thống?', choices: ['Biến cục bộ', 'Hạ tầng máy chủ, mạng và lưu trữ', 'Từ khóa cốt lõi', 'Bảng chữ cái'], correct: 1, explain: 'Infrastructure bao gồm phần cứng, mạng và tài nguyên cloud vận hành ứng dụng.' },
+      { question: 'Khi chiến đấu với quái vật trong Lex Raid, việc đoán đúng Từ Khóa Cốt Lõi (Core Word) có tác dụng gì?', choices: ['Mở cài đặt tài khoản', 'Gây sát thương chí mạng để kết thúc hoặc chuyển giai đoạn Boss', 'Thoát khỏi màn chơi ngay lập tức', 'Đổi avatar nhân vật'], correct: 1, explain: 'Core Word là chìa khóa chiến thuật giúp bứt phá sát thương trong trận Đấu Boss.' },
     ];
 
     let questions = [...fallbackQuestions];
@@ -68,9 +68,9 @@
       const choices = item.choices || item.options || [];
       mount.innerHTML = `
         <div class="quiz-question-card">
-          <div class="module-pill">${backendEnabled ? 'Backend session' : 'Fallback'} · Question ${index + 1}</div>
+          <div class="module-pill">${backendEnabled ? 'Lượt thi trực tuyến' : 'Bộ đề chuẩn IT'} · Câu ${index + 1}</div>
           <h3>${escapeHtml(item.question || item.questionText || 'Question')}</h3>
-          <p class="small-muted">${backendEnabled ? 'Câu hỏi đang lấy từ backend quiz session. Nếu submit lỗi, FE sẽ vẫn giữ được flow học.' : 'Chọn đáp án đúng nhất. Sau mỗi câu, phần giải thích sẽ được cập nhật ở side panel.'}</p>
+          <p class="small-muted">${backendEnabled ? 'Câu hỏi được tải từ máy chủ. Nếu gặp gián đoạn mạng, hệ thống vẫn lưu nhịp làm bài.' : 'Chọn đáp án đúng nhất. Sau mỗi câu, phần giải thích chi tiết sẽ hiển thị ở bảng bên cạnh.'}</p>
           <div class="choice-list">
             ${choices.map((choice, choiceIndex)=>`<button class="choice-btn" data-choice="${choiceIndex}" data-answer-id="${choice.answerId ?? ''}" type="button"><span>${choiceIndex + 1}.</span><strong>${escapeHtml(choice.answerText || choice)}</strong></button>`).join('')}
           </div>
@@ -257,12 +257,12 @@
     let operator = '+';
     let timer = null;
 
-    function nextProblem(){
+    function nextProblem(focusInput = false){
       a = Math.ceil(Math.random() * 20);
       b = Math.ceil(Math.random() * 20);
       operator = ['+','-','×'][Math.floor(Math.random() * 3)];
       if(operator === '-' && b > a){ [a, b] = [b, a]; }
-      render();
+      render(focusInput);
     }
 
     function answer(){
@@ -277,7 +277,7 @@
       if(config.streakId) setText(config.streakId, streak);
     }
 
-    function render(){
+    function render(focusInput = false){
       syncMeta();
       mount.innerHTML = `
         <div class="math-panel">
@@ -302,13 +302,13 @@
           if(config.noteId) setText(config.noteId, `Sai rồi. Đáp án đúng là ${answer()}.`);
         }
         syncMeta();
-        nextProblem();
+        nextProblem(true);
       };
       submit.addEventListener('click', onSubmit);
       input.addEventListener('keydown',(event)=>{
         if(event.key === 'Enter') onSubmit();
       });
-      input.focus();
+      if(focusInput) input.focus({ preventScroll: true });
     }
 
     timer = window.setInterval(()=>{
@@ -326,7 +326,7 @@
       }
     }, 1000);
 
-    nextProblem();
+    nextProblem(false);
   }
 
   function mountCodePuzzle(configOrMountId){

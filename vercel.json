@@ -13,6 +13,7 @@
     { "source": "/app/speed-math", "destination": "/src/main/resources/FrontEnd/src/pages/speed-math.html" },
     { "source": "/app/code-puzzle", "destination": "/src/main/resources/FrontEnd/src/pages/code-puzzle.html" },
     { "source": "/app/account", "destination": "/src/main/resources/FrontEnd/src/pages/account.html" },
+    { "source": "/app/typography", "destination": "/src/main/resources/FrontEnd/src/pages/typography-specimen.html" },
     { "source": "/ui/assets/(.*)", "destination": "/src/main/resources/FrontEnd/assets/$1" },
     { "source": "/ui/src/(.*)", "destination": "/src/main/resources/FrontEnd/src/$1" },
     { "source": "/ui/(.*)", "destination": "/src/main/resources/FrontEnd/$1" },

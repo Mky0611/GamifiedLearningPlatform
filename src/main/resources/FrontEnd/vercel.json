@@ -13,6 +13,7 @@
     { "source": "/app/speed-math", "destination": "/src/pages/speed-math.html" },
     { "source": "/app/code-puzzle", "destination": "/src/pages/code-puzzle.html" },
     { "source": "/app/account", "destination": "/src/pages/account.html" },
+    { "source": "/app/typography", "destination": "/src/pages/typography-specimen.html" },
     { "source": "/ui/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/ui/src/(.*)", "destination": "/src/$1" },
     { "source": "/ui/(.*)", "destination": "/$1" }

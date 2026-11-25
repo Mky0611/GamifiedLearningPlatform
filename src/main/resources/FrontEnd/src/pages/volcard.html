@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lexicon Scroll · Kho từ vựng · Lex Raid</title>
+  <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/ui/assets/css/base.css">
   <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
+  <link rel="stylesheet" href="/ui/assets/css/base.css">
   <link rel="stylesheet" href="/ui/assets/css/volcard.css">
 </head>
 <body class="pixel-cursor">
@@ -17,16 +18,16 @@
     <header class="main-nav">
       <div class="page-container main-nav__inner">
         <a href="/app/home" class="brand">
-          <img class="brand__logo" src="/ui/assets/imgs/logo.png" alt="logo">
+          <img class="brand__logo" src="/ui/assets/imgs/logo-mark.png" alt="Lex Raid emblem">
           <span>Lex Raid</span>
         </a>
-        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button"><i class="bi bi-list"></i></button>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-label="Mở menu"><i class="bi bi-list"></i></button>
         <nav class="nav-links" id="mainNavLinks">
-          <a class="nav-link-soft" href="/app/home">Trang chủ</a>
-          <a class="nav-link-soft" href="/app/minigame">Đấu Boss</a>
-          <a class="nav-link-soft is-active" href="/app/volcard">Kho từ vựng</a>
-          <a class="nav-link-soft" href="/app/quiz">Quiz</a>
-          <a class="nav-link-soft" href="/app/account">Nhân vật</a>
+          <a class="nav-link-soft" href="/app/home"><img class="nav-pixel-icon" src="/ui/assets/imgs/favicon.png" alt=""><span>Trang chủ</span></a>
+          <a class="nav-link-soft" href="/app/minigame"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-sword.png" alt=""><span>Đấu Boss</span></a>
+          <a class="nav-link-soft is-active" href="/app/volcard"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-info.png" alt=""><span>Kho từ vựng</span></a>
+          <a class="nav-link-soft" href="/app/quiz"><img class="nav-pixel-icon" src="/ui/assets/ui/icons/icon-settings.png" alt=""><span>Quiz</span></a>
+          <a class="nav-link-soft" href="/app/account"><img class="nav-pixel-icon" src="/ui/assets/ui/avatars/portrait-hero-warrior.png" alt=""><span>Nhân vật</span></a>
           <div id="navUserArea"></div>
         </nav>
       </div>
@@ -36,7 +37,7 @@
       <div class="volcard-grid">
         <aside class="soft-card topic-panel pixel-panel-wood">
           <span class="section-kicker"><i class="bi bi-book-half"></i> Cổ Thư & Chuyên Đề</span>
-          <h2 style="margin:14px 0 8px; color: var(--gold-bright, #f6c344); font-family: var(--font-pixel, monospace); font-size: 1.15rem;">Chọn bộ kinh thư</h2>
+          <h2 style="margin:14px 0 8px; color: var(--gold-bright, #f6c344); font-family: var(--font-display); font-weight: 800; font-size: 1.25rem;">Chọn bộ kinh thư</h2>
           <p class="muted" style="color: #eeddc5; font-size: 0.9rem;">Lựa chọn chuyên đề Anh ngữ hoặc Miền kiến thức IT để tôi luyện thần chú trước trận chiến.</p>
           <div id="topicList" class="topic-list"></div>
           <div id="setList" class="set-list"></div>
@@ -44,7 +45,7 @@
 
         <section class="soft-card card-stage pixel-panel-parchment">
           <span class="section-kicker"><i class="bi bi-journal-richtext"></i> Thẻ Bài Thần Chú · Spellbook Lexicon</span>
-          <h2 style="margin:12px 0 16px; color: var(--wood-dark, #1c120c); font-family: var(--font-pixel, monospace); font-size: 1.25rem;">Ôn tập từ vựng chuẩn CEFR & IT English</h2>
+          <h2 style="margin:12px 0 16px; color: var(--wood-dark, #1c120c); font-family: var(--font-display); font-weight: 900; font-size: 1.35rem;">Ôn tập từ vựng chuẩn CEFR & IT English</h2>
 
           <!-- CEFR Filter & Search Bar -->
           <div class="volcard-filter-bar">
@@ -77,7 +78,7 @@
                     </div>
                     <div class="flash-word-wrap">
                       <div class="flash-word" id="flashWord">loading</div>
-                      <button class="tts-btn" id="ttsBtn" type="button" title="Nghe phát âm chuẩn (Web Speech API)"><i class="bi bi-volume-up-fill"></i></button>
+                      <button class="tts-btn" id="ttsBtn" type="button" title="Nghe phát âm chuẩn (Web Speech API)"><i class="bi bi-volume-up-fill"></i><span>Nghe phát âm</span></button>
                     </div>
                     <div class="flash-meta">
                       <span id="flashDomain">General</span>

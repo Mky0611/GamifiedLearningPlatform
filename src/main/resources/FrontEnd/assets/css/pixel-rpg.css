@@ -3,12 +3,11 @@
  * Classic Fantasy Pixel RPG Theme · Original Retro Tokens · Responsive Ergonomics
  * ============================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap');
-
 :root {
   /* Wood & Timber Palette */
   --wood-dark: #1c120c;
   --wood-frame: #3c2a1a;
+  --wood-panel: #241710;
   --wood-medium: #5a3d24;
   --wood-light: #7a5432;
 
@@ -40,8 +39,12 @@
   --ink-deep: #140e0a;
   --ink-primary: #2b1d14;
   --ink-muted: #695241;
-  --font-pixel: 'Silkscreen', 'VT323', monospace, sans-serif;
+  /* Pixel font strictly for short ASCII HUD labels, numbers, and tiles */
+  --font-pixel: 'Silkscreen', 'JetBrains Mono', monospace;
+  /* Readable geometric sans with full Vietnamese diacritics for headings, nav & body */
+  --font-display: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'VT323', ui-monospace, monospace;
 
   /* Retro Pixel Shadows */
   --pixel-shadow-sm: 0 2px 0 0 rgba(0, 0, 0, 0.4);
@@ -137,22 +140,22 @@
   gap: 8px;
   min-height: 42px;
   padding: 8px 18px;
-  font-family: var(--font-pixel);
+  font-family: var(--font-display);
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--wood-dark);
   background: var(--gold-bright);
-  border: 3px solid var(--wood-dark);
+  border: 2px solid var(--wood-dark);
   border-radius: 0 !important;
   cursor: pointer;
   user-select: none;
   box-sizing: border-box;
   box-shadow:
-    inset -3px -3px 0 0 var(--gold-shadow),
-    inset 3px 3px 0 0 var(--gold-highlight),
-    0 4px 0 0 var(--wood-dark);
+    inset -2px -2px 0 0 var(--gold-shadow),
+    inset 2px 2px 0 0 var(--gold-highlight),
+    0 3px 0 0 var(--wood-dark);
   transform: translateY(0);
   transition: none !important;
 }
@@ -161,13 +164,13 @@
   background: #ffd666;
   transform: translateY(1px);
   box-shadow:
-    inset -3px -3px 0 0 var(--gold-shadow),
-    inset 3px 3px 0 0 #ffffff,
-    0 3px 0 0 var(--wood-dark);
+    inset -2px -2px 0 0 var(--gold-shadow),
+    inset 2px 2px 0 0 #ffffff,
+    0 2px 0 0 var(--wood-dark);
 }
 
 .pixel-btn:active {
-  transform: translateY(4px);
+  transform: translateY(3px);
   box-shadow:
     inset -2px -2px 0 0 var(--gold-shadow),
     inset 2px 2px 0 0 var(--gold-highlight),

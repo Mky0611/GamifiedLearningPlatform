@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lex Raid · Typography Specimen Comparison</title>
+  <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ui/assets/css/pixel-rpg.css">
+  <link rel="stylesheet" href="/ui/assets/css/base.css">
+  <style>
+    .spec-grid { display: grid; gap: 20px; padding: 24px 0; }
+    .spec-card { padding: 20px; background: #fae9c5; border: 4px solid #1c120c; color: #1c120c; }
+    .spec-card--dark { background: #241a14; color: #ffebb3; }
+    .combo-a { font-family: 'Silkscreen', monospace; }
+    .combo-b-pixel { font-family: 'Silkscreen', monospace; }
+    .combo-b-display { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 800; }
+    .combo-b-mono { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .combo-c-display { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+    .combo-c-mono { font-family: 'VT323', monospace; font-size: 1.35rem; }
+    .sample-row { padding: 10px 12px; border: 2px solid rgba(60,42,26,.25); margin-top: 8px; background: rgba(255,255,255,.55); }
+    .spec-card--dark .sample-row { background: #1c120c; border-color: #5a3d24; }
+    .fallback-sim { font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <main class="page-container spec-grid">
+    <section class="spec-card spec-card--dark">
+      <h1>Lex Raid Typography Specimen (Real Chromium Font Evaluation)</h1>
+      <p id="fontLoadSummary">Đang kiểm tra trạng thái nạp webfonts...</p>
+    </section>
+
+    <section class="spec-card" id="comboA">
+      <h2>Combination A: Pure Silkscreen All-Caps / UI</h2>
+      <div class="sample-row combo-a" data-sample="vn-heading">ĐĂNG NHẬP · TIẾNG ANH CHUYÊN NGÀNH · QUẢN LÝ NHÂN VẬT · TỪ VỰNG</div>
+      <div class="sample-row combo-a" data-sample="vn-diacritics">Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ệ Ứ Ừ Ự — Đa hình (Polymorphism)</div>
+      <div class="sample-row combo-a" data-sample="ambig">O0 · I1l · rn / m</div>
+      <div class="sample-row combo-a" data-sample="long" style="max-width:280px">POLYMORPHISM / CONTINUOUS INTEGRATION / AUTHENTICATION</div>
+    </section>
+
+    <section class="spec-card" id="comboB">
+      <h2>Combination B (Adopted): Silkscreen (ASCII HUD) + Be Vietnam Pro (VN/Vocab) + JetBrains Mono (Code)</h2>
+      <div class="sample-row combo-b-display" data-sample="vn-heading">ĐĂNG NHẬP · TIẾNG ANH CHUYÊN NGÀNH · QUẢN LÝ NHÂN VẬT · TỪ VỰNG</div>
+      <div class="sample-row combo-b-display" data-sample="vn-diacritics">Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ệ Ứ Ừ Ự — Đa hình (Polymorphism) là nguyên lý cốt lõi.</div>
+      <div class="sample-row combo-b-mono" data-sample="ambig">O0 · I1l · rn / m · 12:34 · 50/200 XP</div>
+      <div class="sample-row combo-b-pixel" data-sample="ascii-hud">LEX RAID · LV 14 · HP 100/100 · CEFR C1 · +250 GOLD</div>
+      <div class="sample-row combo-b-display" data-sample="long" style="max-width:280px">POLYMORPHISM<br>CONTINUOUS INTEGRATION<br>AUTHENTICATION<br>INFRASTRUCTURE</div>
+    </section>
+
+    <section class="spec-card" id="comboC">
+      <h2>Combination C: Space Grotesk + VT323</h2>
+      <div class="sample-row combo-c-display" data-sample="vn-heading">ĐĂNG NHẬP · TIẾNG ANH CHUYÊN NGÀNH · QUẢN LÝ NHÂN VẬT · TỪ VỰNG</div>
+      <div class="sample-row combo-c-display" data-sample="vn-diacritics">Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ệ Ứ Ừ Ự — Đa hình (Polymorphism)</div>
+      <div class="sample-row combo-c-mono" data-sample="ambig">O0 · I1l · rn / m · 12:34</div>
+    </section>
+
+    <section class="spec-card" id="comboFallback">
+      <h2>Offline System Fallback Simulation</h2>
+      <div class="sample-row fallback-sim" data-sample="vn-diacritics">Ắ Ằ Ẳ Ẵ Ặ Ế Ề Ệ Ứ Ừ Ự · POLYMORPHISM · CONTINUOUS INTEGRATION</div>
+    </section>
+  </main>
+  <script>
+    window.addEventListener('load', async () => {
+      await document.fonts.ready;
+      const summary = {
+        silkscreenLoaded: document.fonts.check('16px Silkscreen'),
+        beVietnamLoaded: document.fonts.check('16px "Be Vietnam Pro"'),
+        jetbrainsMonoLoaded: document.fonts.check('700 16px "JetBrains Mono"') || document.fonts.check('16px "JetBrains Mono"'),
+        vt323Loaded: document.fonts.check('16px VT323'),
+        spaceGroteskLoaded: document.fonts.check('700 16px "Space Grotesk"') || document.fonts.check('16px "Space Grotesk"')
+      };
+      document.getElementById('fontLoadSummary').textContent = JSON.stringify(summary);
+      window.__TYPO_SPECIMEN_READY__ = summary;
+    });
+  </script>
+</body>
+</html>
