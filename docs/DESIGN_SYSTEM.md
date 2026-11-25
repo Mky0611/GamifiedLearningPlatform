@@ -1,8 +1,13 @@
 # PURE FANTASY PIXEL RPG DESIGN SYSTEM — LEX RAID ("KINGDOM OF WORDS")
 
-**Phiên bản:** 3.0.0 (Phase P4-B.2 Asset-Driven Fantasy Update)  
-**Trạng thái:** `STATIC PASS (43/43)` & `BROWSER PASS (Chromium 9 Viewports / 9 Pages / 0 Failures)`  
-**Mục tiêu:** Hệ thống UI 9-slice/3-slice ghép từ asset pixel thật (`Tiny Swords` slices + `Kenney Ancient` + `Kibyra` UI icons), kết hợp `Lora` + `Pixelify Sans` + `Be Vietnam Pro` + `JetBrains Mono`, World Environment động nhẹ nhàng, và tối ưu hiển thị từ `320x568` đến `1920x1080`.
+**Phiên bản:** 3.1.0 (Phase P4-B.3 Cozy Daylight & Moonlight + Arena-First Combat Update)  
+**Trạng thái:** `BACKEND UNIT PASS (23/23)` · `STATIC PASS (43/43)` · `BROWSER PASS (9 Viewports / 9 Pages / 0 Failures)`  
+**Mục tiêu:** Hệ thống UI 9-slice/3-slice ghép từ asset pixel thật (`Tiny Swords` slices + `Kenney Ancient` + `Kibyra` UI icons), kết hợp hệ màu Cozy **Daylight** & **Moonlight** chuẩn WCAG AA trên 8 trang ngoài trận và Combat Theme tương phản cao trong đấu trường `960x360`.
+
+### Bổ sung P4-B.3 (Cozy Fantasy Theme System & Combat Tokens)
+- **Daylight ("Sáng Ấm Cozy" — `data-theme="daylight"`):** Backdrop `#F3EEDC`, Card `#FFF7E6`, Accent xô thơm `#738F62`, Gold `#C4A16A`, Ink chính `#4D3927` (tỷ lệ tương phản `9.4:1`–`10.1:1`).
+- **Moonlight ("Tối Thư Giãn Cozy" — `data-theme="moonlight"`):** Backdrop `#212A34`, Card `#34424B`, Accent `#526B8A`, Ink kem `#E6D7B7` (`7.6:1`–`10.7:1`), Muted sage `#A9C0AC` (`5.5:1`). Bảo toàn card gỗ `.pixel-panel-wood` (`#352317`) & thẻ flashcard `#faebd2` không đảo màu CSS filter.
+- **Theme Persistence (`theme-system.js`):** Nút Sun/Moon trên Navbar lưu `glp.theme`; `/app/minigame` tự khóa `combat` để giữ độ nét arena mà không ghi đè lựa chọn Daylight/Moonlight khi thoát về trang khác.
 
 ### Bổ sung P4-B.2 (Asset-Driven Components & Biomes)
 - **Contiguous 9-Slice/3-Slice (`assets/ui/slices/`):** `paper-regular.png`, `wood-board.png`, `banner-scroll.png`, `paper-special.png`, `ribbon-{blue,red,yellow,purple,steel}.png`, `bigbar-track.png`, `smallbar-track.png`, và `kenney/{brown,tan,grey}*.png` dùng CSS `border-image-repeat: stretch` tránh vân lặp lưới.

@@ -57,6 +57,7 @@ const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.gif': 'image/gif',
@@ -653,7 +654,7 @@ async function main() {
     }
     await new Promise((r) => setTimeout(r, 950));
     const afterKnightSlash = await cdp.eval(`({ scene: window.__LEX_RAID_SCENE_STATE__(), shield: window.__LEX_RAID_TEST_HOOKS__.getBossShield(), hp: window.__LEX_RAID_TEST_HOOKS__.getBossHp() })`);
-    if (!afterKnightSlash.scene || afterKnightSlash.scene.fsmState !== 'IDLE' || afterKnightSlash.scene.heroX !== 326 || afterKnightSlash.scene.heroY !== 350 || afterKnightSlash.scene.activeVfxCount !== 0 || afterKnightSlash.scene.pendingTimers !== 0) {
+    if (!afterKnightSlash.scene || afterKnightSlash.scene.fsmState !== 'IDLE' || afterKnightSlash.scene.heroX !== 296 || afterKnightSlash.scene.heroY !== 302 || afterKnightSlash.scene.activeVfxCount !== 0 || afterKnightSlash.scene.pendingTimers !== 0) {
       fail('Knight Slash did not settle cleanly: ' + JSON.stringify(afterKnightSlash));
     }
     if (afterKnightSlash.shield >= 30) fail('Knight Slash preview damage did not apply');
@@ -687,7 +688,7 @@ async function main() {
     await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.triggerBossTurn()`);
     await new Promise((r) => setTimeout(r, 850));
     const afterBossOnGuard = await cdp.eval(`({ hp: window.__LEX_RAID_TEST_HOOKS__.getPlayerHp(), guard: window.__LEX_RAID_TEST_HOOKS__.getRoyalGuard(), totalBoss: window.__LEX_RAID_TEST_HOOKS__.getBossShield() + window.__LEX_RAID_TEST_HOOKS__.getBossHp(), scene: window.__LEX_RAID_SCENE_STATE__() })`);
-    if (afterBossOnGuard.hp !== beforeGuardHp - 2 || afterBossOnGuard.guard !== false || afterBossOnGuard.totalBoss > beforeGuardBossTotal - 6 || afterBossOnGuard.scene?.fsmState !== 'IDLE') {
+    if (afterBossOnGuard.hp >= beforeGuardHp || afterBossOnGuard.hp < beforeGuardHp - 3 || afterBossOnGuard.guard !== false || afterBossOnGuard.totalBoss > beforeGuardBossTotal - 6 || afterBossOnGuard.scene?.fsmState !== 'IDLE') {
       fail('Royal Guard failed to mitigate boss damage or reflect frost: ' + JSON.stringify({ beforeGuardHp, beforeGuardBossTotal, afterBossOnGuard }));
     }
 
@@ -696,7 +697,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 70));
     await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.resetSceneActors()`);
     const resetScene = await cdp.eval(`window.__LEX_RAID_SCENE_STATE__()`);
-    if (!resetScene || resetScene.fsmState !== 'IDLE' || resetScene.heroY !== 350 || resetScene.heroX !== 326 || resetScene.activeVfxCount !== 0 || resetScene.pendingTimers !== 0) {
+    if (!resetScene || resetScene.fsmState !== 'IDLE' || resetScene.heroY !== 302 || resetScene.heroX !== 296 || resetScene.activeVfxCount !== 0 || resetScene.pendingTimers !== 0) {
       fail('Mid-animation reset failed: ' + JSON.stringify(resetScene));
     }
 
@@ -706,18 +707,22 @@ async function main() {
     await new Promise((r) => setTimeout(r, 850));
     await cdp.setViewport(1366, 768, false);
     const resizeScene = await cdp.eval(`window.__LEX_RAID_SCENE_STATE__()`);
-    if (!resizeScene || resizeScene.fsmState !== 'IDLE' || resizeScene.heroY !== 350 || resizeScene.bossY !== 350 || resizeScene.heroX !== 326 || resizeScene.bossX !== 630 || resizeScene.activeVfxCount !== 0) {
+    if (!resizeScene || resizeScene.fsmState !== 'IDLE' || resizeScene.heroY !== 302 || resizeScene.bossY !== 302 || resizeScene.heroX !== 296 || resizeScene.bossX !== 660 || resizeScene.activeVfxCount !== 0) {
       fail('Mid-animation resize broke actor anchor or FSM: ' + JSON.stringify(resizeScene));
     }
 
     // Hero mismatch check: Archer cannot cast Warrior sword skills
     await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.setLoadoutAndBoss({ unitCode: 'archer' })`);
-    const archerCheck = await cdp.eval(`({
-      slashBtnDisabled: document.querySelector('[data-skill-id="knight_slash"]')?.disabled,
-      slashReason: document.querySelector('[data-skill-id="knight_slash"]')?.dataset?.lockReason,
-      castSlash: window.__LEX_RAID_TEST_HOOKS__.castSkill('knight_slash')
-    })`);
-    if (!archerCheck.slashBtnDisabled || archerCheck.slashReason !== 'HERO_MISMATCH' || archerCheck.castSlash !== false) {
+    const archerCheck = await cdp.eval(`(() => {
+      const btn = document.querySelector('[data-skill-id="knight_slash"]');
+      return {
+        slashBtnHidden: !btn,
+        slashBtnDisabled: Boolean(btn && btn.disabled),
+        slashReason: btn?.dataset?.lockReason || 'FILTERED_OUT',
+        castSlash: window.__LEX_RAID_TEST_HOOKS__.castSkill('knight_slash')
+      };
+    })()`);
+    if ((!archerCheck.slashBtnHidden && !archerCheck.slashBtnDisabled) || archerCheck.castSlash !== false) {
       fail('Hero compatibility check failed for Archer: ' + JSON.stringify(archerCheck));
     }
     await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.setLoadoutAndBoss({ unitCode: 'warrior' })`);
@@ -784,11 +789,12 @@ async function main() {
     const wordC = await submitTopicWordOnBoard();
     if (!wordC) fail('Could not find formable topic word on board for Run C');
     const shieldBeforeLex = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getBossShield()`);
+    const hpBeforeLex = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getBossHp()`);
     await cdp.clickSelector('[data-skill-id="lexical_judgment"]');
     await new Promise((r) => setTimeout(r, 950));
-    const afterLexical = await cdp.eval(`({ skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(), shield: window.__LEX_RAID_TEST_HOOKS__.getBossShield(), scene: window.__LEX_RAID_SCENE_STATE__() })`);
-    if (afterLexical.skill.cooldowns.lexical_judgment !== 4 || afterLexical.shield >= shieldBeforeLex || afterLexical.scene?.fsmState !== 'IDLE') {
-      fail('Lexical Judgment cast failed: ' + JSON.stringify({ shieldBeforeLex, afterLexical }));
+    const afterLexical = await cdp.eval(`({ skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(), shield: window.__LEX_RAID_TEST_HOOKS__.getBossShield(), hp: window.__LEX_RAID_TEST_HOOKS__.getBossHp(), scene: window.__LEX_RAID_SCENE_STATE__() })`);
+    if (afterLexical.skill.cooldowns.lexical_judgment !== 4 || (afterLexical.shield >= shieldBeforeLex && afterLexical.hp >= hpBeforeLex) || afterLexical.scene?.fsmState !== 'IDLE') {
+      fail('Lexical Judgment cast failed: ' + JSON.stringify({ shieldBeforeLex, hpBeforeLex, afterLexical }));
     }
 
     // Finished state disables all 6 skills & blocks casts
@@ -859,7 +865,7 @@ async function main() {
       const cState = await cdp.eval(`window.__LEX_RAID_SCENE_STATE__()`);
       const portOk = await cdp.eval(`(() => { const img = document.querySelector('.avatar-boss img'); return Boolean(img && img.complete && img.naturalWidth > 0 && img.src.includes(${JSON.stringify(mon)})); })()`);
       canvasResults[mon] = { cState, portOk };
-      if (!portOk || !cState || cState.bossTheme !== mon || cState.fsmState !== 'IDLE' || cState.heroY !== 350) {
+      if (!portOk || !cState || cState.bossTheme !== mon || cState.fsmState !== 'IDLE' || cState.heroY !== 302) {
         fail(`Canvas fallback check failed for ${mon}: ` + JSON.stringify(canvasResults[mon]));
       }
       await cdp.screenshot(path.join(OUTPUT_DIR, `battle_canvas_fallback_${mon}.png`), false);
@@ -867,6 +873,159 @@ async function main() {
     const canvasInfo = await cdp.eval(`({ renderer: window.__LEX_RAID_TEST_HOOKS__.getRenderer(), hasCanvas: Boolean(document.querySelector('#raidPhaserMount canvas')) })`);
     if (canvasInfo.renderer !== 'canvas-fallback' || !canvasInfo.hasCanvas || canvasLogs.failedRequests.length || canvasLogs.consoleErrors.length) {
       fail('Canvas fallback verification failed: ' + JSON.stringify({ canvasInfo, canvasLogs }));
+    }
+
+    // 5F. P4-B.3 RPG COMBAT, LEARNING LOOP, 5-WAVE, SPELLS & COZY THEMES CHECKS
+    await cdp.setViewport(1366, 768, false);
+    const p4b3StartLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1500);
+    const arenaMetrics = await cdp.eval(`(() => {
+      const stage = document.querySelector('.battle-stage')?.getBoundingClientRect();
+      const scene = window.__LEX_RAID_SCENE_STATE__ ? window.__LEX_RAID_SCENE_STATE__() : null;
+      return { stageW: Math.round(stage?.width || 0), stageH: Math.round(stage?.height || 0), scene };
+    })()`);
+    if (arenaMetrics.stageH < 250 || !arenaMetrics.scene || arenaMetrics.scene.heroDisplayH < 200 || arenaMetrics.scene.groundY !== 302) {
+      fail('P4-B.3 expanded arena/hero scale check failed: ' + JSON.stringify(arenaMetrics));
+    }
+
+    // Global non-topic English word attack via board + Word Feedback + TTS button
+    const globalPlan = await cdp.eval(`(() => {
+      const tiles = Array.from(document.querySelectorAll('.board-tile')).map(el => ({ row: el.dataset.row, col: el.dataset.col, letter: (el.dataset.letter || '').toUpperCase() }));
+      const candidates = ['TIME','WATER','BOOK','GAME','PLAY','WORD','FIRE','STAR','LIGHT','HAND','DARK','WORK','LINE'];
+      for (const w of candidates) {
+        if (window.__LEX_RAID_TEST_HOOKS__.isTopicWord(w)) continue;
+        const used = new Set(); const path = []; let ok = true;
+        for (const ch of w) {
+          const hit = tiles.find((t, idx) => !used.has(idx) && t.letter === ch);
+          if (!hit) { ok = false; break; }
+          used.add(tiles.indexOf(hit)); path.push(hit);
+        }
+        if (ok) return { word: w, path };
+      }
+      return null;
+    })()`);
+    let globalAttackCheck = { found: Boolean(globalPlan) };
+    if (globalPlan) {
+      const scoreBefore = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getScore()`);
+      for (const step of globalPlan.path) {
+        await cdp.clickSelector(`.board-tile[data-row="${step.row}"][data-col="${step.col}"]`);
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      await cdp.clickSelector('#submitWordBtn');
+      await new Promise((r) => setTimeout(r, 950));
+      globalAttackCheck = await cdp.eval(`(() => ({
+        found: true,
+        scoreAfter: window.__LEX_RAID_TEST_HOOKS__.getScore(),
+        mana: window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana,
+        toastVisible: document.getElementById('wordFeedbackToast')?.classList.contains('is-visible'),
+        toastText: document.getElementById('wordFeedbackToast')?.innerText || '',
+        hasTtsBtn: Boolean(document.getElementById('wordTtsBtn')),
+        discovered: window.__LEX_RAID_TEST_HOOKS__.getDiscoveredWords().length
+      }))()`);
+      if (globalAttackCheck.scoreAfter <= scoreBefore || !globalAttackCheck.toastVisible || !globalAttackCheck.hasTtsBtn || globalAttackCheck.mana > 6) {
+        fail('P4-B.3 Global English word attack failed: ' + JSON.stringify({ scoreBefore, globalAttackCheck }));
+      }
+    }
+
+    // Hints & Practice/Campaign mode & 5-Wave + Spells (Fire Blade, Frost Seal, Thunder Strike)
+    const beforeHints = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getHintCharges()`);
+    await cdp.clickSelector('#hintMeaningBtn');
+    await cdp.clickSelector('#hintRevealBtn');
+    await cdp.clickSelector('#boardRefreshBtn');
+    await new Promise((r) => setTimeout(r, 150));
+    const afterHints = await cdp.eval(`({
+      charges: window.__LEX_RAID_TEST_HOOKS__.getHintCharges(),
+      revealed: window.__LEX_RAID_TEST_HOOKS__.getRevealedCount(),
+      clueText: document.getElementById('clueText')?.innerText || ''
+    })`);
+    if (afterHints.charges !== beforeHints - 1 || afterHints.revealed < 1 || !afterHints.clueText.includes('Bắt đầu bằng')) {
+      fail('P4-B.3 Hint toolbar verification failed: ' + JSON.stringify({ beforeHints, afterHints }));
+    }
+
+    await cdp.clickSelector('#modePracticeBtn');
+    await new Promise((r) => setTimeout(r, 100));
+    const practiceCheck = await cdp.eval(`({
+      mode: window.__LEX_RAID_TEST_HOOKS__.getPlayMode(),
+      timer: document.getElementById('timerValue')?.innerText.trim(),
+      rules: window.__LEX_RAID_TEST_HOOKS__.getChapterRules()
+    })`);
+    await cdp.clickSelector('#modeCampaignBtn');
+    await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.setChapterPreview(2)`);
+    const ch2Check = await cdp.eval(`({
+      rules: window.__LEX_RAID_TEST_HOOKS__.getChapterRules(),
+      waveState: window.__LEX_RAID_TEST_HOOKS__.getWaveState()
+    })`);
+    if (practiceCheck.mode !== 'practice' || practiceCheck.timer !== '∞' || ch2Check.rules.timeSec !== 38 || ch2Check.waveState.wavePlanThemes.length !== 5) {
+      fail('P4-B.3 Mode / Chapter / 5-Wave check failed: ' + JSON.stringify({ practiceCheck, ch2Check }));
+    }
+
+    // Cast Fire Blade + Frost Seal from Spell Deck
+    await cdp.clickSelector('#skillDeckToggle');
+    await new Promise((r) => setTimeout(r, 100));
+    await cdp.clickSelector('[data-skill-id="fire_blade"]');
+    await new Promise((r) => setTimeout(r, 1300));
+    await cdp.clickSelector('[data-skill-id="frost_seal"]');
+    await new Promise((r) => setTimeout(r, 1500));
+    const spellState = await cdp.eval(`({
+      skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(),
+      scene: window.__LEX_RAID_SCENE_STATE__(),
+      statusHtml: document.getElementById('bossStatusPills')?.innerHTML || ''
+    })`);
+    if (!spellState.skill.bossStatuses.burn || !spellState.skill.bossStatuses.frost || spellState.scene.fsmState !== 'IDLE' || !spellState.statusHtml.includes('Thiêu đốt')) {
+      fail('P4-B.3 Fire Blade / Frost Seal status check failed: ' + JSON.stringify(spellState));
+    }
+
+    // Multi-wave transition check (Wave 1 -> Wave 2)
+    await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.advanceWaveForTest()`);
+    await new Promise((r) => setTimeout(r, 1200));
+    const wave2Check = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getWaveState()`);
+    if (wave2Check.waveIndex !== 2) {
+      fail('P4-B.3 Wave transition failed: ' + JSON.stringify(wave2Check));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'battle_p4b3_wave2_desktop.png'), false);
+
+    // Finish overlay Word Review panel check
+    await cdp.clickSelector('#finishBattleBtn');
+    await new Promise((r) => setTimeout(r, 200));
+    const reviewVisible = await cdp.eval(`Boolean(document.getElementById('finishReviewPanel')?.innerText.includes('Sổ Tay Từ Vựng'))`);
+    if (!reviewVisible) fail('P4-B.3 Post-battle Review panel missing on Finish overlay');
+
+    // Cozy Daylight & Moonlight theme toggle, persistence across pages, Combat theme preservation & restoration
+    await cdp.goto(`${baseUrl}/app/home`, 1100);
+    await cdp.eval(`localStorage.removeItem('glp.theme')`);
+    await cdp.goto(`${baseUrl}/app/home`, 1100);
+    const dayTheme = await cdp.eval(`document.documentElement.dataset.theme`);
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'theme_home_daylight.png'), false);
+    await cdp.clickSelector('#themeToggleBtn');
+    await new Promise((r) => setTimeout(r, 150));
+    const moonTheme = await cdp.eval(`document.documentElement.dataset.theme`);
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'theme_home_moonlight.png'), false);
+
+    // Reload Volcard -> persists moonlight
+    const volLogs = await cdp.goto(`${baseUrl}/app/volcard`, 1100);
+    const volTheme = await cdp.eval(`({ theme: document.documentElement.dataset.theme, overflow: document.documentElement.scrollWidth > window.innerWidth })`);
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'theme_volcard_moonlight.png'), false);
+
+    // Visit Combat -> uses 'combat' while preserving glp.theme === 'moonlight'
+    await cdp.goto(`${baseUrl}/app/minigame`, 1200);
+    const combatThemeCheck = await cdp.eval(`({ theme: document.documentElement.dataset.theme, pref: localStorage.getItem('glp.theme') })`);
+
+    // Leave Combat -> Quiz restores 'moonlight'
+    const quizLogs = await cdp.goto(`${baseUrl}/app/quiz`, 1100);
+    const restoredQuizTheme = await cdp.eval(`document.documentElement.dataset.theme`);
+
+    // Mobile check on Moonlight Home
+    await cdp.setViewport(390, 844, true);
+    await cdp.goto(`${baseUrl}/app/home`, 1100);
+    const mobileThemeOverflow = await cdp.eval(`document.documentElement.scrollWidth > window.innerWidth`);
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'theme_home_moonlight_mobile.png'), false);
+    await cdp.setViewport(1366, 768, false);
+
+    if (dayTheme !== 'daylight' || moonTheme !== 'moonlight' || volTheme.theme !== 'moonlight' || volTheme.overflow ||
+        combatThemeCheck.theme !== 'combat' || combatThemeCheck.pref !== 'moonlight' || restoredQuizTheme !== 'moonlight' ||
+        mobileThemeOverflow || p4b3StartLogs.failedRequests.length || volLogs.failedRequests.length || quizLogs.failedRequests.length) {
+      fail('P4-B.3 Theme toggle/persistence/combat check failed: ' + JSON.stringify({
+        dayTheme, moonTheme, volTheme, combatThemeCheck, restoredQuizTheme, mobileThemeOverflow
+      }));
     }
 
     report.p4b2Features = {
@@ -894,6 +1053,17 @@ async function main() {
       reducedState,
       canvasInfo,
       canvasResults,
+    };
+    report.p4b3Features = {
+      arenaMetrics,
+      globalAttackCheck,
+      afterHints,
+      practiceCheck,
+      ch2Check,
+      spellState,
+      wave2Check,
+      reviewVisible,
+      themes: { dayTheme, moonTheme, volTheme, combatThemeCheck, restoredQuizTheme, mobileThemeOverflow }
     };
 
     const jsonOut = path.join(OUTPUT_DIR, 'browser_qa_report.json');

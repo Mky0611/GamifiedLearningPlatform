@@ -3,9 +3,17 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P4-B.2 (Kingdom of Words — Asset-Driven Fantasy Pixel RPG)
+**Giai đoạn:** P4-B.3 (RPG Combat, English Learning Loop & Cozy Fantasy Themes)
 
 ---
+
+## [P4-B.3] — 2026-11-25: Expanded Battle Arena, Global English Lexicon, 5-Wave Encounters, Spells & Cozy Themes
+- **Milestone A (Arena, Scaling & HUD):** Mở rộng canvas đấu trường `960x360` (`groundY: 302`), nâng scale Hero (`1.56x` / `1.50x`, `heroDisplayH: 300`) và Boss theo `rarityScales` (`1.0x..1.36x`), thu gọn HUD, chuyển ô chữ bàn cờ sang `Be Vietnam Pro` 800/900.
+- **Milestone B (Global Lexicon & Topic Bonus):** Tạo `build_en_wl_lexicon.py` sinh `76,993` từ tiếng Anh chuẩn từ `en-wl/wordlist/v2` (`LICENSE_EN_WL.txt`), bổ sung `EnglishLexiconService`, `LexRaidBalanceConfig`, lưu `BoardSnapshot` khởi đầu & xác thực đường chọn không trùng ô trên `LexRaidServiceImpl`, kiểm chứng bởi `LexRaidGlobalLexiconTest` (`3/3 PASS`).
+- **Milestone C (Learning Loop & Solvable Board):** Triển khai `#wordFeedbackToast` kèm TTS, Hint Toolbar (`Gợi ý nghĩa`, `Mở 1 chữ`, `Đổi bảng`), bộ sinh bảng khả giải 20/20 seeds, `glp.wordJournal` và Sổ Tay Từ Vựng cuối trận (`/app/volcard`).
+- **Milestone D (Difficulty, 5-Wave & Monster Traits):** Thêm `encounter-registry.js` cho `5-Wave Encounter` (`Normal -> Normal -> Elite -> Guardian -> Chapter Boss`), chế độ `Campaign` (`Ch1 45s -> Ch2 38s`) và `Practice` (`∞`), Boss Traits + Phase 2 (`<50% HP`), và Lexical Judgment khi giải Core Word.
+- **Milestone E (Expanded Spells & Pooled VFX):** Bổ sung `Fire Blade` (Burn), `Frost Seal` (Frost +4s), `Thunder Strike` (x2 Shield Break + Stun) vào `raid-config.js`, bộ lọc hotbar $\le 6$ nút để tránh rối mắt.
+- **Milestones F–G (Cozy Daylight/Moonlight Themes, QA & Docs):** Xuất bản `theme.css` + `theme-system.js` kèm nút Sun/Moon lưu `localStorage('glp.theme')`, giữ Combat Theme khi vào trận & khôi phục theme khi ra ngoài; kiểm chứng **23/23** Java unit tests, **43/43 STATIC PASS**, và **0 failures** trên Chromium full QA (`docs/P4B3_QA_REPORT.md`, `docs/P4B3_BACKEND_DRAFT.md`).
 
 ## [P4-B.2] — 2026-11-25: Kingdom of Words, Asset-Driven 9-Slice UI, Combat VFX State Machine & World Environment
 - **Milestone A (Asset Audit & Provenance):** Thêm `audit_ui_extra.py` (`3,676` raw / `2,881` non-OS files) và `curate_p4b2_assets.py` (cách ly `UI Extra/` trong `.gitignore` và loại `428` tệp `Tiny Swords` `LICENSE_PENDING`); sửa lỗi đảo `cursor-action.png` <-> `cursor-forbidden.png`; xuất bản `P4B2_ASSET_MANIFEST.json`, `P4B2_COMPONENT_ASSET_MAP.csv`, `P4B2_THIRD_PARTY_ASSETS.md`, `P4B2_EXECUTION_PLAN.md`, `P4B2_DECISIONS.md`.

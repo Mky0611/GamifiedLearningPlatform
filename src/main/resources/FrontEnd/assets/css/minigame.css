@@ -357,8 +357,8 @@ body.raid-body{
   .pixel-rewards-grid{grid-template-columns:1fr}
 }
 @media (max-width:360px){
-  :root{--tile-size:clamp(32px, calc((100vw - 30px) / var(--board-cols, 5) - 3px), 35px)}
-  .battle-stage{height:82px}
+  :root{--tile-size:clamp(30px, calc((100vw - 30px) / var(--board-cols, 5) - 3px), 33px)}
+  .battle-stage{height:76px}
   .board-grid{gap:3px}
   .board-shell,.arena-panel{padding:4px}
   .attack-dock{padding:4px 6px;gap:3px}

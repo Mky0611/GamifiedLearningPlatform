@@ -81,10 +81,10 @@ html[data-theme="moonlight"] body:not(.raid-body) .nav-link-soft.is-active {
   border-color: var(--cozy-gold);
 }
 
-html[data-theme="daylight"] body:not(.raid-body) .soft-card,
-html[data-theme="moonlight"] body:not(.raid-body) .soft-card,
-html[data-theme="daylight"] body:not(.raid-body) .paper-card,
-html[data-theme="moonlight"] body:not(.raid-body) .paper-card,
+html[data-theme="daylight"] body:not(.raid-body) .soft-card:not(.pixel-panel-wood),
+html[data-theme="moonlight"] body:not(.raid-body) .soft-card:not(.pixel-panel-wood),
+html[data-theme="daylight"] body:not(.raid-body) .paper-card:not(.pixel-panel-wood),
+html[data-theme="moonlight"] body:not(.raid-body) .paper-card:not(.pixel-panel-wood),
 html[data-theme="daylight"] body:not(.raid-body) .stat-card,
 html[data-theme="moonlight"] body:not(.raid-body) .stat-card,
 html[data-theme="daylight"] body:not(.raid-body) .account-card,
@@ -105,6 +105,48 @@ html[data-theme="moonlight"] body:not(.raid-body) .auth-card {
   color: var(--cozy-ink) !important;
   border-color: var(--cozy-border) !important;
   box-shadow: 0 6px 0 var(--cozy-shadow) !important;
+}
+
+/* Preserve dark walnut panels, gold parchment hero crests, and cream flashcard surfaces with guaranteed high-contrast ink */
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood {
+  background: #352317 !important;
+  color: #FFF7E6 !important;
+}
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood h1,
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood h2,
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood h3,
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood p,
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood strong,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood h1,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood h2,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood h3,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood p,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood strong {
+  color: #FFF7E6 !important;
+}
+html[data-theme="daylight"] body:not(.raid-body) .pixel-panel-wood .muted,
+html[data-theme="moonlight"] body:not(.raid-body) .pixel-panel-wood .muted {
+  color: #EBD2B6 !important;
+}
+
+html[data-theme="daylight"] body:not(.raid-body) .hero-crest,
+html[data-theme="moonlight"] body:not(.raid-body) .hero-crest,
+html[data-theme="daylight"] body:not(.raid-body) .tts-disclaimer,
+html[data-theme="moonlight"] body:not(.raid-body) .tts-disclaimer,
+html[data-theme="daylight"] body:not(.raid-body) .empty-state,
+html[data-theme="moonlight"] body:not(.raid-body) .empty-state {
+  color: #2B1D14 !important;
+}
+html[data-theme="daylight"] body:not(.raid-body) .hero-crest strong,
+html[data-theme="daylight"] body:not(.raid-body) .hero-crest p,
+html[data-theme="daylight"] body:not(.raid-body) .hero-crest .muted,
+html[data-theme="moonlight"] body:not(.raid-body) .hero-crest strong,
+html[data-theme="moonlight"] body:not(.raid-body) .hero-crest p,
+html[data-theme="moonlight"] body:not(.raid-body) .hero-crest .muted,
+html[data-theme="daylight"] body:not(.raid-body) .tts-disclaimer strong,
+html[data-theme="moonlight"] body:not(.raid-body) .tts-disclaimer strong {
+  color: #2B1D14 !important;
 }
 
 html[data-theme="daylight"] body:not(.raid-body) .muted,

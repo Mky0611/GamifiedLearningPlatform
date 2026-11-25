@@ -61,7 +61,8 @@
     bossMaxShield: 30,
     bossStatuses: {},
     timerPaused: false,
-    skillDeck: 'knight'
+    skillDeck: 'knight',
+    meaningHintShown: false
   };
 
   function isQaEnvironment(){
@@ -249,7 +250,11 @@
   }
 
   function getActiveClueText(){
-    return getActiveCoreEntry()?.clueText || state.runtime?.clueText || state.runtime?.clue || 'Tìm topic words để mở clue rồi đoán core word.';
+    const baseClue = getActiveCoreEntry()?.clueText || state.runtime?.clueText || state.runtime?.clue || 'Tìm topic words để mở clue rồi đoán core word.';
+    if (!state.meaningHintShown) return baseClue;
+    const word = getActiveCoreWord();
+    const firstLetter = word ? word[0] : '?';
+    return `Gợi ý: ${baseClue} (${word.length} chữ cái · Bắt đầu bằng "${firstLetter}")`;
   }
 
   function applyBoardFromPayload(board){
@@ -784,13 +789,10 @@
 
   function useMeaningHint(){
     if (state.finished) return;
-    const word = getActiveCoreWord();
-    const clue = getActiveClueText();
-    const firstLetter = word ? word[0] : '?';
+    state.meaningHintShown = true;
     state.hintsUsedCount += 1;
-    const hintText = `Gợi ý: ${clue} (${word.length} chữ cái · Bắt đầu bằng "${firstLetter}")`;
-    const clueEl = document.getElementById('clueText');
-    if (clueEl) clueEl.textContent = hintText;
+    const hintText = getActiveClueText();
+    renderCore();
     renderStatus(hintText, 'success');
   }
 

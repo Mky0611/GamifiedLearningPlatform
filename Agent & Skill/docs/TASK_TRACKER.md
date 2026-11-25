@@ -3,7 +3,7 @@
 **Trạng thái cập nhật:** 2026-11-25  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh hiện tại:** `feature/p4b2-kingdom-of-words`
+**Nhánh hiện tại:** `feature/p4b3-rpg-combat-learning`
 
 ---
 
@@ -13,24 +13,24 @@
 | :---: | :--- | :---: | :--- |
 | **SEC** | Security Post-Audit & Credential Sanitization | **STATIC PASS** | Scanner sạch working tree; không chứa secret mới trong mã nguồn. |
 | **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật; Backend live SQL `NOT TESTED`. |
-| **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS (3/3) / STATIC REVIEW** | DB seed audit (2,098 rows); giữ nguyên dịch vụ & dữ liệu. |
-| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS (20/20)** | Java 21 Mockito tests pass ở P3; không sửa công thức/schema ở P4-B.2. |
+| **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS / STATIC REVIEW** | DB seed audit (2,098 rows); giữ nguyên dịch vụ & dữ liệu. |
+| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS** | Java 21 Mockito tests pass (`LexRaidProgressionTest` 4/4, `QuizProgressionTest` 5/5, `RpgProgressionServiceTest` 9/9, `AccountProfileServiceTest` 2/2). |
 | **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS (P4-A)** | `vercel.json` routing clean, `/api/**` 404 kích hoạt Preview fallback. |
-| **P4-B** | Visual Acceptance, Asset Normalization & Browser QA | **STATIC PASS (43/43) & BROWSER PASS** | Audit assets, logo/nav, Volcard fit, Battle 9/9 viewports, XSS-safe DOM. |
-| **P4-B.2** | Kingdom of Words — Asset-Driven Pixel RPG, Skills, VFX & World Env | **STATIC PASS & BROWSER PASS (0 failures)** | Milestones A–H hoàn tất: curated 113 runtime assets, stitched 9-slice, fixed cursors, `WorldEnvironment`, `BattleScene` FSM + pooled VFX, 6 Knight Skills Preview, Slime & Skeleton Preview, 9/9 viewports + 9/9 pages PASS trên Chrome thật. |
-| **P5** | Docker, CI/CD, Containerized Deployment | `TODO` | Chưa thực hiện. |
+| **P4-B / B.2** | Visual Redesign, 9-Slice UI, Animation FSM & World Env | **STATIC PASS (43/43) & BROWSER PASS** | Curated runtime assets, FSM pooled VFX, Canvas 2D fallback, 9/9 viewports PASS. |
+| **P4-B.3** | RPG Combat, English Learning Loop & Cozy Fantasy Themes | **BACKEND UNIT PASS (23/23), STATIC PASS (43/43) & BROWSER PASS (0 failures)** | Milestones A–G hoàn tất: Global English Lexicon (`76,993` words), Topic `+30%`, Hints & Review, 5-Wave + Spells, Daylight & Moonlight Cozy Themes trên toàn bộ trang. |
+| **P5** | Docker, CI/CD & SQL Server Migration Apply | `TODO (DRAFT ONLY)` | Bản nháp DDL/API tại `docs/P4B3_BACKEND_DRAFT.md`. |
 
 ---
 
-## 2. CHI TIẾT MILESTONES P4-B.2
+## 2. CHI TIẾT MILESTONES P4-B.3
 
-| Milestone | Nội dung | Bằng chứng | Kết quả |
+| Milestone | Nội dung | Bằng chứng / Commit | Kết quả |
 | :---: | :--- | :--- | :---: |
-| **B.2A** | Asset audit (`UI Extra`), license verification, fixed swapped cursors, manifest CSV/JSON | `docs/P4B2_ASSET_MANIFEST.json`, `docs/P4B2_COMPONENT_ASSET_MAP.csv`, `curate_p4b2_assets.py` | **DONE** |
-| **B.2B** | Asset-driven Fantasy Design System, contiguous 9-slice/3-slice CSS, `Lora` + `Pixelify Sans` + `Be Vietnam Pro`, Adventure Guild Nav | `pixel-rpg.css`, `base.css`, `typography-specimen.html` | **DONE** |
-| **B.2C** | Shared Animated World Environment System (`village`, `forest`, `mountain-dusk`, `academy`, `gate`, `waterfall`) | `world-environment.js` | **DONE** |
-| **B.2D** | Knight Animation Engine FSM (`IDLE`..`VICTORY`), `Warrior_Attack2`, Pooled VFX, Canvas fallback parity | `battle-scene.js`, `boot-scene.js`, `raid-config.js`, `raid-phaser-embed.js` | **DONE** |
-| **B.2E** | 6 Knight Skills (Preview Mode) + `Verdant Slime` & `Cursed Skeleton` Preview + Backend Reviewer compatibility check | `minigame.js`, `docs/P4B2_DECISIONS.md` | **DONE** |
-| **B.2F** | All 9 Pages Redesign, compact Royal Academy hero, English/IT fallback quiz questions, `320x568` & `1440x900` layout fit | `home.*`, `volcard.html`, `account.html`, `quiz.html`, `games-lite.*`, `auth.*`, `minigame.*` | **DONE** |
-| **B.2G** | Performance hygiene (removed heavy `background.png` & multi-MB `map*.gif` page refs, route-scoped lightweight assets) | Static asset audit (`0` missing) | **DONE** |
-| **B.2H** | Real Headless Chromium QA (`0` failures), docs sync, Git commit/push & Vercel Preview deploy (NO `--prod`) | `chromium_p4b2_acceptance.js`, `docs/P4B2_QA_REPORT.md` | **DONE / DEPLOYING PREVIEW** |
+| **B.3A** | Large Battle Arena (`960x360`, `273px` desktop), Hero `~1.56x` / Rarity Boss scale, compact HUD, `Be Vietnam Pro` tiles | `0d94b86` | **DONE** |
+| **B.3B** | Offline `en-wl/wordlist/v2` (`76,993` words), `LexRaidBalanceConfig`, `EnglishLexiconService`, authoritative board path check | `d917f37`, `LexRaidGlobalLexiconTest` (`3/3`) | **DONE** |
+| **B.3C** | Compact Word Toast + TTS, Hint Toolbar (`Meaning`/`Reveal`/`Refresh`), 20-seed solvable board, Word Journal & Post-battle Review | `22fc098` | **DONE** |
+| **B.3D** | Campaign (`45s` Ch1 -> faster) vs Practice (`∞`), 5-Wave Encounters, Boss Traits & Phase 2, Core Word Lexical Judgment | `bad2934` | **DONE** |
+| **B.3E** | Expanded Spell Registry (`Fire Blade`, `Frost Seal`, `Thunder Strike`), Burn/Frost/Stun statuses, filtered $\le 6$ hotbar | `bec8235` | **DONE** |
+| **B.3F** | Cozy **Daylight** & **Moonlight** palettes (`theme.css`/`theme-system.js`) trên toàn trang + Sun/Moon toggle + Biome Combat restoration | `25834b7` | **DONE** |
+| **B.3G** | Backend Draft (`P4B3_BACKEND_DRAFT.md`), `23/23` Java Unit PASS, Chromium Full QA (`0` failures), docs & mirrors sync | `docs/P4B3_QA_REPORT.md` | **DONE** |
+| **B.3H** | Git push + NEW Vercel Preview deploy (KHÔNG `--prod`) + live check | Đang thực hiện | **NEXT** |
