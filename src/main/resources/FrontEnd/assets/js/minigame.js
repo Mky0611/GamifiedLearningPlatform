@@ -455,10 +455,17 @@
     return raw.map((entry)=>normalizeWord(entry.wordText || entry.word || entry.normalizedText)).filter(Boolean);
   }
 
+  function isTopicWord(word){
+    const normalized = normalizeWord(word);
+    if (!normalized) return false;
+    return allRuntimeWords().includes(normalized) || normalized === getActiveCoreWord();
+  }
+
   function isValidWord(word){
     const normalized = normalizeWord(word);
-    if(normalized.length < 3) return false;
-    return allRuntimeWords().includes(normalized) || normalized === getActiveCoreWord();
+    if(normalized.length < 3 || normalized.length > 12) return false;
+    if (isTopicWord(normalized)) return true;
+    return Boolean(window.LexRaidBalance && window.LexRaidBalance.isEnglishLexiconWord(normalized));
   }
 
   function parseStageChip(){
@@ -1076,13 +1083,18 @@
         renderStatus('Hãy bấm các ô chữ trước khi attack.');
         return;
       }
+      const uniqueSelectedKeys = new Set(state.selected.map((tile) => boardKey(tile.row, tile.col)));
+      if (uniqueSelectedKeys.size !== state.selected.length) {
+        renderStatus('Mỗi ô trên bảng chỉ được dùng một lần cho mỗi từ.');
+        return;
+      }
       const invalidKeys = state.selected.map((tile)=>boardKey(tile.row, tile.col));
       if(state.recentWords.includes(word)){
         flashInvalidSelection(invalidKeys, 'Từ này đã dùng rồi, hãy ghép từ khác.');
         return;
       }
       if(!isValidWord(word)){
-        flashInvalidSelection(invalidKeys, 'Từ không hợp lệ, reset lựa chọn ngay.');
+        flashInvalidSelection(invalidKeys, 'Từ không có trong từ điển tiếng Anh hoặc chủ đề, reset lựa chọn.');
         return;
       }
 
@@ -1095,7 +1107,8 @@
         try{
           backendResult = await window.appApi.submitRaidWord(state.raidSessionId, { submittedWord: word, word, normalizedWord: word, path: pathPayload, boardJson: JSON.stringify(state.board), roundNo: state.turn, selectedPathJson: JSON.stringify(pathPayload) });
         }catch(error){
-          backendResult = null;
+          renderStatus(error?.message || 'Lỗi kết nối máy chủ khi gửi từ (không tự chuyển sang Preview Mode).');
+          return;
         }
       }
 
@@ -1107,6 +1120,11 @@
       let accepted = false;
       let movedCoreFromSubmit = false;
       let coreSolved = false;
+      let wordCategory = 'GLOBAL';
+      let damageDealt = 0;
+      let bonusDamage = 0;
+      let manaGain = 0;
+      let isTopicMatch = isTopicWord(word);
 
       if(backendResult && backendResult.accepted){
         accepted = true;
@@ -1116,7 +1134,17 @@
         state.rage = Number(backendResult.rageValue ?? state.rage);
         state.bossShield = Number(backendResult.bossShieldRemaining ?? state.bossShield);
         state.bossHp = Number(backendResult.bossHpRemaining ?? state.bossHp);
-        state.topicCount += 1;
+        isTopicMatch = Boolean(backendResult.topicBonusApplied || backendResult.wordCategory === 'TOPIC' || backendResult.wordCategory === 'CORE');
+        wordCategory = backendResult.wordCategory || (isTopicMatch ? 'TOPIC' : 'GLOBAL');
+        damageDealt = Number(backendResult.damageDealt || 0) + Number(backendResult.shieldDamage || 0);
+        bonusDamage = Number(backendResult.bonusDamage || 0);
+        manaGain = Number(backendResult.manaGain || 0);
+        if (backendResult.manaAfter !== undefined && backendResult.manaAfter !== null) {
+          state.previewMana = Math.min(state.maxPreviewMana, Number(backendResult.manaAfter));
+        } else {
+          state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + manaGain);
+        }
+        if (isTopicMatch) state.topicCount += 1;
         if(word.length >= 5) state.longWord += 1;
         coreSolved = backendResult.coreSolved || false;
         if(syncRuntimeCoreFromResult(backendResult)){
@@ -1127,29 +1155,49 @@
             : Array.from({ length: getActiveCoreWord().length }, (_, index) => index);
         }
       } else {
-        // Fallback
+        // Preview Mode deterministic combat metrics matching backend LexRaidBalanceConfig
+        const balance = window.LexRaidBalance;
+        const nextCombo = state.combo + 1;
+        const metrics = balance
+          ? balance.calculateAttackMetrics(word.length, nextCombo, isTopicMatch)
+          : {
+              baseDamage: word.length * 5 + nextCombo * 2,
+              bonusDamage: isTopicMatch ? Math.round((word.length * 5 + nextCombo * 2) * 0.3) : 0,
+              totalDamage: isTopicMatch ? Math.round((word.length * 5 + nextCombo * 2) * 1.3) : (word.length * 5 + nextCombo * 2),
+              manaGain: Math.min(6, Math.max(1, Math.floor(word.length / 2)) + (isTopicMatch ? 1 : 0))
+            };
+        damageDealt = metrics.totalDamage;
+        bonusDamage = metrics.bonusDamage;
+        manaGain = metrics.manaGain;
+
         if (word === getActiveCoreWord()) {
           accepted = true;
           coreSolved = true;
-          state.score += 40;
+          wordCategory = 'CORE';
+          state.score += 40 + metrics.totalDamage;
+          state.combo = nextCombo;
           state.bossHp = 0;
+          state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + Math.min(state.maxPreviewMana, manaGain + 2));
+          state.topicCount += 1;
+          if(word.length >= 5) state.longWord += 1;
           const moved = advanceCoreWord();
           movedCoreFromSubmit = moved;
           state.guessed = !moved;
           state.revealedIndexes = moved ? [] : Array.from({ length: word.length }, (_, index) => index);
         } else {
-          const damage = Math.max(8, word.length * 4 + (state.combo - 1) * 2);
-          state.score += damage * 2;
-          state.combo += 1;
-          state.topicCount += 1;
+          wordCategory = isTopicMatch ? 'TOPIC' : 'GLOBAL';
+          state.score += Math.max(10, word.length * 8 + (isTopicMatch ? 8 : 0));
+          state.combo = nextCombo;
+          if (isTopicMatch) state.topicCount += 1;
           if(word.length >= 5) state.longWord += 1;
+          state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + manaGain);
           if(state.bossShield > 0){
-            const remainingShield = Math.max(0, state.bossShield - damage);
-            const spill = Math.max(0, damage - state.bossShield);
+            const remainingShield = Math.max(0, state.bossShield - damageDealt);
+            const spill = Math.max(0, damageDealt - state.bossShield);
             state.bossShield = remainingShield;
             state.bossHp = Math.max(0, state.bossHp - spill);
           }else{
-            state.bossHp = Math.max(0, state.bossHp - damage);
+            state.bossHp = Math.max(0, state.bossHp - damageDealt);
           }
         }
       }
@@ -1192,7 +1240,10 @@
         return;
       }
 
-      renderStatus(accepted ? `Backend đã nhận từ ${word}, hero tung đòn.` : `Frontend fallback chấp nhận từ ${word}, hero tung đòn.`, 'success');
+      const categoryTag = wordCategory === 'TOPIC'
+        ? `Chủ đề +${bonusDamage} sát thương`
+        : (wordCategory === 'CORE' ? 'Core Word!' : 'Từ tiếng Anh');
+      renderStatus(`${word} (${categoryTag}) · ${damageDealt} DMG · +${manaGain} MP`, 'success');
       renderBoard(false);
       tickTimer();
       syncSession();
@@ -1436,7 +1487,6 @@
     Object.keys(state.skillCooldowns).forEach((k) => {
       if (state.skillCooldowns[k] > 0) state.skillCooldowns[k] -= 1;
     });
-    state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 1);
     renderSkillBar();
   }
 
@@ -1464,6 +1514,7 @@
   }
 
   async function init(){
+    window.LexRaidBalance?.loadOfflineLexicon();
     await applyLoadout();
     window.appApi.renderNavUser();
     window.appApi.bindMobileNav();

@@ -1,9 +1,10 @@
 package org.example.service;
 
-import lombok.RequiredArgsConstructor;
+import org.example.config.LexRaidBalanceConfig;
 import org.example.dto.*;
 import org.example.entity.*;
 import org.example.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@RequiredArgsConstructor
 public class LexRaidServiceImpl implements LexRaidService {
 
     private static final String ACTIVE_STATUS = "ACTIVE";
@@ -47,6 +47,85 @@ public class LexRaidServiceImpl implements LexRaidService {
     private final UserStageProgressRepository userStageProgressRepository;
     private final BossRepository bossRepository;
     private final RpgProgressionService rpgProgressionService;
+    private final EnglishLexiconService englishLexiconService;
+    private final LexRaidBalanceConfig balanceConfig;
+
+    public LexRaidServiceImpl(
+            StageRepository stageRepository,
+            StageObjectiveRepository stageObjectiveRepository,
+            StageCoreWordRepository stageCoreWordRepository,
+            VocabularyWordRepository vocabularyWordRepository,
+            UserRepository userRepository,
+            GameModeRepository gameModeRepository,
+            GameSessionRepository gameSessionRepository,
+            RaidSessionRepository raidSessionRepository,
+            BoardSnapshotRepository boardSnapshotRepository,
+            WordSubmitEventRepository wordSubmitEventRepository,
+            CoreWordGuessEventRepository coreWordGuessEventRepository,
+            UserWordMasteryRepository userWordMasteryRepository,
+            UserStageProgressRepository userStageProgressRepository,
+            BossRepository bossRepository,
+            RpgProgressionService rpgProgressionService
+    ) {
+        this(
+                stageRepository,
+                stageObjectiveRepository,
+                stageCoreWordRepository,
+                vocabularyWordRepository,
+                userRepository,
+                gameModeRepository,
+                gameSessionRepository,
+                raidSessionRepository,
+                boardSnapshotRepository,
+                wordSubmitEventRepository,
+                coreWordGuessEventRepository,
+                userWordMasteryRepository,
+                userStageProgressRepository,
+                bossRepository,
+                rpgProgressionService,
+                new EnglishLexiconService(),
+                new LexRaidBalanceConfig()
+        );
+    }
+
+    @Autowired
+    public LexRaidServiceImpl(
+            StageRepository stageRepository,
+            StageObjectiveRepository stageObjectiveRepository,
+            StageCoreWordRepository stageCoreWordRepository,
+            VocabularyWordRepository vocabularyWordRepository,
+            UserRepository userRepository,
+            GameModeRepository gameModeRepository,
+            GameSessionRepository gameSessionRepository,
+            RaidSessionRepository raidSessionRepository,
+            BoardSnapshotRepository boardSnapshotRepository,
+            WordSubmitEventRepository wordSubmitEventRepository,
+            CoreWordGuessEventRepository coreWordGuessEventRepository,
+            UserWordMasteryRepository userWordMasteryRepository,
+            UserStageProgressRepository userStageProgressRepository,
+            BossRepository bossRepository,
+            RpgProgressionService rpgProgressionService,
+            EnglishLexiconService englishLexiconService,
+            LexRaidBalanceConfig balanceConfig
+    ) {
+        this.stageRepository = stageRepository;
+        this.stageObjectiveRepository = stageObjectiveRepository;
+        this.stageCoreWordRepository = stageCoreWordRepository;
+        this.vocabularyWordRepository = vocabularyWordRepository;
+        this.userRepository = userRepository;
+        this.gameModeRepository = gameModeRepository;
+        this.gameSessionRepository = gameSessionRepository;
+        this.raidSessionRepository = raidSessionRepository;
+        this.boardSnapshotRepository = boardSnapshotRepository;
+        this.wordSubmitEventRepository = wordSubmitEventRepository;
+        this.coreWordGuessEventRepository = coreWordGuessEventRepository;
+        this.userWordMasteryRepository = userWordMasteryRepository;
+        this.userStageProgressRepository = userStageProgressRepository;
+        this.bossRepository = bossRepository;
+        this.rpgProgressionService = rpgProgressionService;
+        this.englishLexiconService = englishLexiconService != null ? englishLexiconService : new EnglishLexiconService();
+        this.balanceConfig = balanceConfig != null ? balanceConfig : new LexRaidBalanceConfig();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -163,6 +242,8 @@ public class LexRaidServiceImpl implements LexRaidService {
         raidSession.setClueProgressJson("[]");
         raidSession = raidSessionRepository.save(raidSession);
 
+        saveInitialBoardSnapshot(raidSession, stage);
+
         return toSessionDto(raidSession);
     }
 
@@ -201,49 +282,75 @@ public class LexRaidServiceImpl implements LexRaidService {
     public LexRaidActionResultDto submitWord(Long raidSessionId, LexRaidSubmitWordRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
         Stage stage = raidSession.getStage();
-        String normalizedWord = normalizeWord(request.getSubmittedWord());
+        String submittedRaw = request != null ? request.getSubmittedWord() : null;
+        String normalizedWord = normalizeWord(submittedRaw);
+        int length = normalizedWord.length();
+        boolean lengthValid = length >= LexRaidBalanceConfig.MIN_WORD_LENGTH
+                && length <= LexRaidBalanceConfig.MAX_WORD_LENGTH;
+
         VocabularySet set = stage.getVocabularySet();
-        Optional<VocabularyWord> matchedWordOpt = vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(set.getVocabularySetId(), normalizedWord);
-        boolean alreadyUsed = wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSessionId).stream()
+        List<StageCoreWord> coreWords = stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(stage.getStageId());
+        Set<Long> solvedIds = parseSolvedCoreWordIds(raidSession.getClueProgressJson());
+        StageCoreWord activeCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
+        List<VocabularyWord> vocabulary = set != null
+                ? vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(set.getVocabularySetId())
+                : List.of();
+
+        List<List<String>> authoritativeBoard = resolveAuthoritativeBoard(raidSession, stage, vocabulary, activeCoreWord);
+        List<WordPathTileDto> submittedPath = request != null ? request.getPath() : null;
+        boolean hasPath = submittedPath != null && !submittedPath.isEmpty();
+        boolean pathValid = !hasPath || pathFormsWord(submittedPath, normalizedWord);
+        boolean boardValid = !hasPath || pathMatchesBoard(submittedPath, authoritativeBoard);
+
+        Optional<VocabularyWord> matchedWordOpt = (set != null && lengthValid)
+                ? vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(set.getVocabularySetId(), normalizedWord)
+                : Optional.empty();
+        boolean alreadyUsed = lengthValid && wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(raidSessionId).stream()
                 .anyMatch(event -> Boolean.TRUE.equals(event.getIsValid()) && normalizeWord(event.getSubmittedWord()).equals(normalizedWord));
-        boolean valid = matchedWordOpt.isPresent() && !alreadyUsed;
+
+        boolean isTopicWord = matchedWordOpt.isPresent();
+        boolean isGlobalWord = !isTopicWord && lengthValid && englishLexiconService.isValidEnglishWord(normalizedWord);
+        boolean lexiconValid = isTopicWord || isGlobalWord;
+        boolean valid = lengthValid && pathValid && boardValid && !alreadyUsed && lexiconValid;
 
         VocabularyWord matchedWord = matchedWordOpt.orElse(null);
         int oldCombo = defaultIfNull(raidSession.getComboCount(), 0);
         int comboAfter = valid ? oldCombo + 1 : 0;
-        int length = normalizedWord.length();
-        int baseScore = valid ? Math.max(10, length * 8) : 0;
-        int manaGain = valid ? Math.min(6, Math.max(1, length / 2)) : 0;
+        boolean solvedCoreCandidate = valid && activeCoreWord != null && !solvedIds.contains(activeCoreWord.getStageCoreWordId())
+                && ((matchedWord != null && activeCoreWord.getWord() != null && Objects.equals(activeCoreWord.getWord().getWordId(), matchedWord.getWordId()))
+                || (activeCoreWord.getWord() != null && normalizeWord(activeCoreWord.getWord().getWordText()).equals(normalizedWord)));
+
+        int baseScore = valid ? balanceConfig.resolveWordBaseScore(length, isTopicWord) : 0;
+        int currentMana = defaultIfNull(raidSession.getManaValue(), 0);
+        int rawManaGain = valid ? balanceConfig.computeManaGain(length, isTopicWord, solvedCoreCandidate) : 0;
+        int manaAfter = valid ? balanceConfig.applyManaGainWithCap(currentMana, rawManaGain) : currentMana;
+        int manaGain = Math.max(0, manaAfter - currentMana);
         int cluePoints = valid ? Math.max(1, length / 3) : 0;
-        int totalDamage = valid ? (length * 5) + (comboAfter * 2) : 0;
+        int baseDamage = valid ? balanceConfig.computeBaseDamage(length, comboAfter) : 0;
+        int totalDamage = valid ? balanceConfig.computeTotalDamage(length, comboAfter, isTopicWord) : 0;
+        int bonusDamage = Math.max(0, totalDamage - baseDamage);
         int shieldDamage = Math.min(defaultIfNull(raidSession.getBossShieldRemaining(), 0), totalDamage);
         int hpDamage = Math.max(0, totalDamage - shieldDamage);
-
-        List<StageCoreWord> coreWords = stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(stage.getStageId());
-        Set<Long> solvedIds = parseSolvedCoreWordIds(raidSession.getClueProgressJson());
-        StageCoreWord activeCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
         boolean solvedCoreBySubmit = false;
 
         if (valid) {
             raidSession.setBossShieldRemaining(defaultIfNull(raidSession.getBossShieldRemaining(), 0) - shieldDamage);
             raidSession.setBossHpRemaining(Math.max(0, defaultIfNull(raidSession.getBossHpRemaining(), 0) - hpDamage));
             raidSession.setComboCount(comboAfter);
-            raidSession.setManaValue(defaultIfNull(raidSession.getManaValue(), 0) + manaGain);
+            raidSession.setManaValue(manaAfter);
             raidSession.setRageValue(defaultIfNull(raidSession.getRageValue(), 0) + Math.max(1, length));
             raidSession.setTotalScore(defaultIfNull(raidSession.getTotalScore(), 0) + baseScore);
 
-            if (activeCoreWord != null
-                    && matchedWord != null
-                    && activeCoreWord.getWord() != null
-                    && Objects.equals(activeCoreWord.getWord().getWordId(), matchedWord.getWordId())
-                    && !solvedIds.contains(activeCoreWord.getStageCoreWordId())) {
+            if (solvedCoreCandidate) {
                 raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), activeCoreWord));
                 solvedIds.add(activeCoreWord.getStageCoreWordId());
                 solvedCoreBySubmit = true;
                 raidSession.setBossHpRemaining(0);
             }
 
-            updateWordMastery(raidSession.getGameSession().getUser(), matchedWord, true, solvedCoreBySubmit);
+            if (matchedWord != null) {
+                updateWordMastery(raidSession.getGameSession().getUser(), matchedWord, true, solvedCoreBySubmit);
+            }
             updateStageWordProgress(raidSession, 1, solvedCoreBySubmit ? 1 : 0);
 
             if (raidSession.getBossHpRemaining() <= 0) {
@@ -266,13 +373,20 @@ public class LexRaidServiceImpl implements LexRaidService {
             raidSession.setRageValue(defaultIfNull(raidSession.getRageValue(), 0) + 1);
         }
 
+        String wordCategory = !valid
+                ? "INVALID"
+                : (solvedCoreBySubmit ? "CORE" : (isTopicWord ? "TOPIC" : "GLOBAL"));
+        String rejectionReason = valid ? null : resolveWordRejectionReason(lengthValid, pathValid, boardValid, alreadyUsed);
+        boolean hasMeaningCard = matchedWord != null
+                && (blankToNull(matchedWord.getMeaningVi()) != null || blankToNull(matchedWord.getMeaningEn()) != null);
+
         WordSubmitEvent event = new WordSubmitEvent();
         event.setRaidSession(raidSession);
-        event.setRoundNo(defaultIfNull(request.getRoundNo(), raidSession.getCurrentRound()));
-        event.setSubmittedWord(request.getSubmittedWord());
+        event.setRoundNo(defaultIfNull(request != null ? request.getRoundNo() : null, raidSession.getCurrentRound()));
+        event.setSubmittedWord(submittedRaw);
         event.setVocabularyWord(matchedWord);
-        event.setWordType(valid ? (solvedCoreBySubmit ? "CORE" : "NORMAL") : "INVALID");
-        event.setPathJson(toPathJson(request.getPath()));
+        event.setWordType(wordCategory);
+        event.setPathJson(toPathJson(submittedPath));
         event.setLengthValue(length);
         event.setBaseScore(baseScore);
         event.setDamageValue(totalDamage);
@@ -280,13 +394,13 @@ public class LexRaidServiceImpl implements LexRaidService {
         event.setManaGain(manaGain);
         event.setComboAfter(comboAfter);
         event.setIsValid(valid);
-        event.setRejectionReason(valid ? null : (alreadyUsed ? "Word da duoc dung trong tran nay" : "Word khong hop le"));
+        event.setRejectionReason(rejectionReason);
         wordSubmitEventRepository.save(event);
 
-        if (blankToNull(request.getBoardJson()) != null) {
+        if (request != null && blankToNull(request.getBoardJson()) != null) {
             LexRaidSessionSyncRequest sync = new LexRaidSessionSyncRequest();
             sync.setBoardJson(request.getBoardJson());
-            sync.setSelectedPathJson(toPathJson(request.getPath()));
+            sync.setSelectedPathJson(toPathJson(submittedPath));
             sync.setCurrentRound(raidSession.getCurrentRound());
             saveSnapshotIfPresent(raidSession, sync, "POST_SUBMIT");
         }
@@ -295,12 +409,12 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         StageCoreWord nextActiveCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
         int activeCoreIndex = resolveActiveCoreIndex(coreWords, nextActiveCoreWord);
-        List<VocabularyWord> vocabulary = vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(set.getVocabularySetId());
+        List<List<String>> nextBoard = buildBoard(stage, vocabulary, nextActiveCoreWord);
 
         return LexRaidActionResultDto.builder()
                 .accepted(valid)
                 .actionType("SUBMIT_WORD")
-                .submittedWord(request.getSubmittedWord())
+                .submittedWord(submittedRaw)
                 .normalizedWord(normalizedWord)
                 .vocabularyWordId(matchedWord != null ? matchedWord.getWordId() : null)
                 .damageDealt(hpDamage)
@@ -312,8 +426,8 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .bossShieldRemaining(raidSession.getBossShieldRemaining())
                 .rageValue(raidSession.getRageValue())
                 .raidStatus(raidSession.getStatus())
-                .resultCode(raidSession.getGameSession().getResultCode())
-                .rejectionReason(valid ? null : (alreadyUsed ? "Word da duoc dung trong tran nay" : "Word khong hop le"))
+                .resultCode(raidSession.getGameSession() != null ? raidSession.getGameSession().getResultCode() : null)
+                .rejectionReason(rejectionReason)
                 .clueProgressJson(raidSession.getClueProgressJson())
                 .unlockedClues(valid && matchedWord != null ? List.of(buildWordMeaning(matchedWord)) : List.of())
                 .activeCoreIndex(activeCoreIndex)
@@ -321,8 +435,13 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .activeCoreWord(nextActiveCoreWord != null && nextActiveCoreWord.getWord() != null ? nextActiveCoreWord.getWord().getWordText() : null)
                 .activeClueText(resolveClueText(nextActiveCoreWord))
                 .coreSolved(solvedCoreBySubmit)
+                .wordCategory(wordCategory)
+                .topicBonusApplied(valid && isTopicWord)
+                .bonusDamage(bonusDamage)
+                .manaAfter(manaAfter)
+                .hasMeaningCard(hasMeaningCard)
                 .coreWords(toCoreWordDtos(coreWords, solvedIds))
-                .board(buildBoard(stage, vocabulary, nextActiveCoreWord))
+                .board(nextBoard)
                 .session(toSessionDto(raidSession))
                 .build();
     }
@@ -624,23 +743,133 @@ public class LexRaidServiceImpl implements LexRaidService {
     private boolean pathFormsWord(List<WordPathTileDto> path, String normalizedWord) {
         if (path == null || path.isEmpty()) return false;
         StringBuilder sb = new StringBuilder();
-        WordPathTileDto prev = null;
         Set<String> seen = new HashSet<>();
         for (WordPathTileDto tile : path) {
             if (tile == null || tile.getRow() == null || tile.getCol() == null || blankToNull(tile.getValue()) == null) {
                 return false;
             }
+            if (tile.getRow() < 0 || tile.getCol() < 0) {
+                return false;
+            }
             String key = tile.getRow() + ":" + tile.getCol();
             if (!seen.add(key)) return false;
-            if (prev != null) {
-                int dr = Math.abs(tile.getRow() - prev.getRow());
-                int dc = Math.abs(tile.getCol() - prev.getCol());
-                if (dr > 1 || dc > 1 || (dr == 0 && dc == 0)) return false;
-            }
             sb.append(normalizeWord(tile.getValue()));
-            prev = tile;
         }
         return sb.toString().equals(normalizedWord);
+    }
+
+    private boolean pathMatchesBoard(List<WordPathTileDto> path, List<List<String>> board) {
+        if (path == null || path.isEmpty() || board == null || board.isEmpty()) {
+            return false;
+        }
+        for (WordPathTileDto tile : path) {
+            int r = tile.getRow();
+            int c = tile.getCol();
+            if (r < 0 || r >= board.size()) {
+                return false;
+            }
+            List<String> row = board.get(r);
+            if (row == null || c < 0 || c >= row.size()) {
+                return false;
+            }
+            String cellLetter = normalizeWord(row.get(c));
+            String tileLetter = normalizeWord(tile.getValue());
+            if (cellLetter.isEmpty() || !cellLetter.equals(tileLetter)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String resolveWordRejectionReason(boolean lengthValid, boolean pathValid, boolean boardValid, boolean alreadyUsed) {
+        if (!lengthValid) return "Tu phai co do dai tu 3 den 12 ky tu";
+        if (!pathValid) return "Duong chon o chu khong hop le hoac bi trung o";
+        if (!boardValid) return "O chu khong khop voi bang hien tai";
+        if (alreadyUsed) return "Word da duoc dung trong tran nay";
+        return "Tu khong co trong tu dien tieng Anh";
+    }
+
+    private void saveInitialBoardSnapshot(RaidSession raidSession, Stage stage) {
+        if (raidSession == null || raidSession.getRaidSessionId() == null || stage == null) {
+            return;
+        }
+        List<StageCoreWord> coreWords = stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(stage.getStageId());
+        StageCoreWord activeCoreWord = resolveActiveCoreWord(coreWords, Set.of());
+        VocabularySet set = stage.getVocabularySet();
+        List<VocabularyWord> vocab = set != null
+                ? vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(set.getVocabularySetId())
+                : List.of();
+        List<List<String>> initialBoard = buildBoard(stage, vocab, activeCoreWord);
+
+        LexRaidSessionSyncRequest initSync = new LexRaidSessionSyncRequest();
+        initSync.setBoardJson(toBoardJson(initialBoard));
+        initSync.setCurrentRound(1);
+        saveSnapshotIfPresent(raidSession, initSync, "SESSION_START");
+    }
+
+    private List<List<String>> resolveAuthoritativeBoard(
+            RaidSession raidSession,
+            Stage stage,
+            List<VocabularyWord> vocabulary,
+            StageCoreWord activeCoreWord
+    ) {
+        if (raidSession != null && raidSession.getRaidSessionId() != null) {
+            Optional<BoardSnapshot> latestSnapshot = boardSnapshotRepository
+                    .findTopByRaidSessionRaidSessionIdOrderBySnapshotNoDesc(raidSession.getRaidSessionId());
+            if (latestSnapshot.isPresent()) {
+                List<List<String>> parsed = parseBoardJson(latestSnapshot.get().getBoardJson());
+                if (!parsed.isEmpty()) {
+                    return parsed;
+                }
+            }
+        }
+        return buildBoard(stage, vocabulary, activeCoreWord);
+    }
+
+    private List<List<String>> parseBoardJson(String boardJson) {
+        String clean = blankToNull(boardJson);
+        if (clean == null) {
+            return List.of();
+        }
+        List<List<String>> rows = new ArrayList<>();
+        Matcher rowMatcher = Pattern.compile("\\[([^\\[\\]]+)\\]").matcher(clean);
+        while (rowMatcher.find()) {
+            String rowContent = rowMatcher.group(1);
+            Matcher tokenMatcher = Pattern.compile("\"([^\"]+)\"|([A-Za-z]+)").matcher(rowContent);
+            List<String> row = new ArrayList<>();
+            while (tokenMatcher.find()) {
+                String token = tokenMatcher.group(1) != null ? tokenMatcher.group(1) : tokenMatcher.group(2);
+                String norm = normalizeWord(token);
+                if (!norm.isEmpty()) {
+                    row.add(norm);
+                }
+            }
+            if (!row.isEmpty()) {
+                rows.add(row);
+            }
+        }
+        return rows;
+    }
+
+    private String toBoardJson(List<List<String>> board) {
+        if (board == null || board.isEmpty()) {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[");
+        for (int r = 0; r < board.size(); r++) {
+            if (r > 0) sb.append(',');
+            sb.append('[');
+            List<String> row = board.get(r);
+            if (row != null) {
+                for (int c = 0; c < row.size(); c++) {
+                    if (c > 0) sb.append(',');
+                    sb.append('"').append(escapeJson(row.get(c))).append('"');
+                }
+            }
+            sb.append(']');
+        }
+        sb.append(']');
+        return sb.toString();
     }
 
     private String appendCoreWordProgress(String currentJson, StageCoreWord coreWord) {

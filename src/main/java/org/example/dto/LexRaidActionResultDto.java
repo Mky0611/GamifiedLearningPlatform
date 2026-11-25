@@ -35,6 +35,11 @@ public class LexRaidActionResultDto {
     private String activeCoreWord;
     private String activeClueText;
     private boolean coreSolved;
+    private String wordCategory;
+    private boolean topicBonusApplied;
+    private Integer bonusDamage;
+    private Integer manaAfter;
+    private boolean hasMeaningCard;
     private List<LexRaidCoreWordDto> coreWords;
     private List<List<String>> board;
     private LexRaidSessionDto session;
