@@ -1,0 +1,1804 @@
+{
+  "schema": "lex-raid.p5-asset-delta/1",
+  "generatedAt": "2026-11-26",
+  "integratedCount": 63,
+  "excludedBacklog": [
+    {
+      "id": "hero:monk",
+      "source": "UI Extra/Tiny Swords (Free Pack)/Units/Monk",
+      "status": "LICENSE_PENDING",
+      "reason": "No LICENSE file in Tiny Swords (Free Pack) subfolder; excluded from public runtime per safety policy."
+    },
+    {
+      "id": "hero:rogue",
+      "source": "UI Extra/spritesheets/rogue.png",
+      "status": "BACKLOG_STYLE_AND_PROVENANCE",
+      "reason": "32x32 4-dir top-down chibi mismatches 192px/210px side-view Combat Heroes and lacks standalone Hero license notice."
+    }
+  ],
+  "assets": [
+    {
+      "id": "hero-arcane_mage-idle",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/idle.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/idle.png",
+      "sha256": "65fb4d3e444e2a306ef06855717179d0c74fd93d710d2ad5d07bfb71a4df8213",
+      "sheetWidth": 1260,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        60,
+        50,
+        150,
+        166
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 6,
+      "frameDurationMs": 125,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": null,
+      "loop": true,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-run",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/run.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/run.png",
+      "sha256": "e511e9f8a46568f6ae1f879ab0c0026ce9f0805a7c5373fbf71ab5233b3afe2e",
+      "sheetWidth": 1470,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        56,
+        50,
+        155,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 7,
+      "frameDurationMs": 83,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": null,
+      "loop": true,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-jump",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/jump.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/jump.png",
+      "sha256": "1de74f11d9adcc4f8c873f876faa261514514dfe969e00fa8fac01b7a4a191c9",
+      "sheetWidth": 1260,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        56,
+        38,
+        154,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 6,
+      "frameDurationMs": 100,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": null,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-attack1",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/attack1.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/attack1.png",
+      "sha256": "9869cc7125ce03339ed141ff608e44dcfb7b22f09bd590986ed600b162fd05fe",
+      "sheetWidth": 840,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        31,
+        28,
+        179,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 4,
+      "frameDurationMs": 83,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        145,
+        108
+      ],
+      "impactFrame": 2,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-attack2",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/attack2.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/attack2.png",
+      "sha256": "d67ccf74421a00a00e19590d52244acc5c7cef5ea1357871b0f10b0b5c4972e2",
+      "sheetWidth": 840,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        24,
+        54,
+        187,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 4,
+      "frameDurationMs": 71,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        145,
+        108
+      ],
+      "impactFrame": 2,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-attack3",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/attack3.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/attack3.png",
+      "sha256": "53f39902c7d59719736df2f0882578919148e8f19368aa56e1d806c196a92c9b",
+      "sheetWidth": 840,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        39,
+        9,
+        169,
+        180
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 4,
+      "frameDurationMs": 100,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        145,
+        108
+      ],
+      "impactFrame": 2,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-drink",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/drink.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/drink.png",
+      "sha256": "78eeffe0e9a02887108bece883595ba15638b8a17dc836566222fb090678b3e5",
+      "sheetWidth": 1260,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        59,
+        41,
+        150,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 6,
+      "frameDurationMs": 125,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": 3,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-hit",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/hit.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/hit.png",
+      "sha256": "6a751f4305b2a83d4d70db3caa0fd569c83bdbac301c19630d9041c8292019d5",
+      "sheetWidth": 840,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        60,
+        47,
+        152,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 4,
+      "frameDurationMs": 100,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": null,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "hero-arcane_mage-death",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/death.png",
+      "canonicalPath": "/ui/assets/units/arcane_mage/death.png",
+      "sha256": "fd3a1443b44d63720a023d4bac205960859147d976e926c45037e197896b2410",
+      "sheetWidth": 1470,
+      "sheetHeight": 180,
+      "alphaBounds": [
+        52,
+        56,
+        159,
+        167
+      ],
+      "frameWidth": 210,
+      "frameHeight": 180,
+      "frameCount": 7,
+      "frameDurationMs": 100,
+      "pivot": [
+        105,
+        166
+      ],
+      "origin": [
+        0.5,
+        0.9222
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        105,
+        108
+      ],
+      "impactFrame": null,
+      "loop": false,
+      "license": "Free/Commercial Game Usage (No Standalone Asset Redistribution; AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "portrait-hero-arcane_mage",
+      "sourcePack": "free-arcane-mage-v1.1 (NightCat Works OÜ)",
+      "originalPath": "UI Extra/characters/arcane_mage/strips/idle.png#frame0",
+      "canonicalPath": "/ui/assets/ui/avatars/portrait-hero-arcane_mage.png",
+      "sha256": "35f23fec22b121c83b0f2b63ffc7fb39220f700d881d3373d44a0d2dd4952b16",
+      "sheetWidth": 64,
+      "sheetHeight": 64,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 1,
+      "license": "Free/Commercial Game Usage (AI-assisted disclosure preserved)",
+      "attribution": "Arcane Mage v1.1 by NightCat Works OÜ",
+      "usedBy": [
+        "hero:arcane_mage"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-arcane-beam",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/arcane/arcane-beam/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-arcane-beam.png",
+      "sha256": "8b1d45525edf6081db04c6fcc82598df39bc11289d43106ee312345f0c04801e",
+      "sheetWidth": 1344,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        4,
+        1,
+        1336,
+        63
+      ],
+      "frameWidth": 168,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 75,
+      "pivot": [
+        18,
+        32
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        18,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:arcane_beam"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-magic-circle",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/arcane/magic-circle/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-magic-circle.png",
+      "sha256": "01df3007f654bbe3a708157d9a94b3075d727c95bb62a454e67476c65a5e53b8",
+      "sheetWidth": 768,
+      "sheetHeight": 192,
+      "alphaBounds": [
+        5,
+        26,
+        765,
+        186
+      ],
+      "frameWidth": 96,
+      "frameHeight": 64,
+      "frameCount": 20,
+      "frameDurationMs": 80,
+      "pivot": [
+        48,
+        47
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        48,
+        47
+      ],
+      "impactFrame": 10,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:arcane_beam",
+        "skill:meteor_fall",
+        "skill:astral_cataclysm"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-blink-dash",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/arcane/blink-dash/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-blink-dash.png",
+      "sha256": "03e7346d2d6bdb0c7fa54033eaad1e9d25f5dfcf64eee054bf0508cc8ff9b9f1",
+      "sheetWidth": 1024,
+      "sheetHeight": 144,
+      "alphaBounds": [
+        10,
+        1,
+        1015,
+        127
+      ],
+      "frameWidth": 128,
+      "frameHeight": 48,
+      "frameCount": 22,
+      "frameDurationMs": 60,
+      "pivot": [
+        64,
+        24
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        64,
+        24
+      ],
+      "impactFrame": 11,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:phantom_dash",
+        "skill:impaling_charge"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-rune-trap",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/arcane/rune-trap/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-rune-trap.png",
+      "sha256": "f57b881f446345075b2eb34299f4caf1afcb12aeaa8b4323d9d782b04f88481a",
+      "sheetWidth": 512,
+      "sheetHeight": 144,
+      "alphaBounds": [
+        10,
+        0,
+        502,
+        110
+      ],
+      "frameWidth": 64,
+      "frameHeight": 48,
+      "frameCount": 19,
+      "frameDurationMs": 65,
+      "pivot": [
+        32,
+        39
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        32,
+        39
+      ],
+      "impactFrame": 9,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:rune_prison"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-holy-cast",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/holy/holy-cast/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-holy-cast.png",
+      "sha256": "b862e63865f47afa9660a79fa4734e6e693de3864dcab33faab088586e6caffe",
+      "sheetWidth": 512,
+      "sheetHeight": 128,
+      "alphaBounds": [
+        4,
+        13,
+        494,
+        117
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 16,
+      "frameDurationMs": 60,
+      "pivot": [
+        32,
+        28
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        32,
+        28
+      ],
+      "impactFrame": 8,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:holy_light",
+        "skill:divine_aegis"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-holy-heal",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/holy/holy-heal/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-holy-heal.png",
+      "sha256": "1a556f7457fc475d524c132e1f124593fb1edcbdca49cbea0a45dd2ec88dd030",
+      "sheetWidth": 512,
+      "sheetHeight": 288,
+      "alphaBounds": [
+        15,
+        28,
+        499,
+        261
+      ],
+      "frameWidth": 64,
+      "frameHeight": 96,
+      "frameCount": 21,
+      "frameDurationMs": 80,
+      "pivot": [
+        32,
+        86
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        32,
+        86
+      ],
+      "impactFrame": 10,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:holy_light",
+        "skill:sacred_recovery"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-holy-sword-fall",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/holy/holy-sword-fall/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-holy-sword-fall.png",
+      "sha256": "4e4b3b4d26219adfabe9c8c8ef94286dd370033c304825a360adec3514661919",
+      "sheetWidth": 832,
+      "sheetHeight": 224,
+      "alphaBounds": [
+        24,
+        1,
+        812,
+        224
+      ],
+      "frameWidth": 104,
+      "frameHeight": 112,
+      "frameCount": 14,
+      "frameDurationMs": 60,
+      "pivot": [
+        52,
+        100
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        52,
+        100
+      ],
+      "impactFrame": 7,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:lexical_judgment"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-divine-beam",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/holy/divine-beam/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-divine-beam.png",
+      "sha256": "3b3a9765a731185e1c523991967fac689a0d3c20c56e360523358fc7c990dfdb",
+      "sheetWidth": 384,
+      "sheetHeight": 288,
+      "alphaBounds": [
+        7,
+        0,
+        377,
+        276
+      ],
+      "frameWidth": 48,
+      "frameHeight": 96,
+      "frameCount": 19,
+      "frameDurationMs": 70,
+      "pivot": [
+        24,
+        88
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        24,
+        88
+      ],
+      "impactFrame": 9,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:heavens_pillar"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-shield-bubble",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/holy/shield-bubble/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-shield-bubble.png",
+      "sha256": "fa53ce6ff807d8b102180a2b3027660f2a04aff7ce7eea6bab7db3abd4682283",
+      "sheetWidth": 576,
+      "sheetHeight": 176,
+      "alphaBounds": [
+        1,
+        2,
+        573,
+        172
+      ],
+      "frameWidth": 72,
+      "frameHeight": 88,
+      "frameCount": 16,
+      "frameDurationMs": 75,
+      "pivot": [
+        36,
+        84
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        36,
+        84
+      ],
+      "impactFrame": 8,
+      "loop": true,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:royal_guard",
+        "skill:divine_aegis",
+        "skill:iron_fortress"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-meteor-strike",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/fire/meteor-strike/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-meteor-strike.png",
+      "sha256": "fddccb38585457c5c57f5216b836cb7bfe98c0d164dc5483119ea6957f53d6bf",
+      "sheetWidth": 768,
+      "sheetHeight": 384,
+      "alphaBounds": [
+        4,
+        0,
+        768,
+        356
+      ],
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frameCount": 26,
+      "frameDurationMs": 60,
+      "pivot": [
+        47,
+        82
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        47,
+        82
+      ],
+      "impactFrame": 13,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:meteor_fall"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-ground-slam",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/impacts/ground-slam/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-ground-slam.png",
+      "sha256": "fa272dcbc2e070a07a8b4b412a56076b3831c85f0f491887e416b55aca371071",
+      "sheetWidth": 1024,
+      "sheetHeight": 192,
+      "alphaBounds": [
+        0,
+        2,
+        1020,
+        172
+      ],
+      "frameWidth": 128,
+      "frameHeight": 64,
+      "frameCount": 19,
+      "frameDurationMs": 70,
+      "pivot": [
+        64,
+        44
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        64,
+        44
+      ],
+      "impactFrame": 9,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "skill:earthbreaker",
+        "skill:shield_bash"
+      ]
+    },
+    {
+      "id": "pvfx-pvfx-unlock-burst",
+      "sourcePack": "pvfx-foundry (Pixel VFX Studio)",
+      "originalPath": "UI Extra/effects/ui/level-up/lit/grid/sprite-sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/pvfx-unlock-burst.png",
+      "sha256": "2d75b5a4fc513236bc0df1c490072d01eafe40644b3c20d638de9fe94882a430",
+      "sheetWidth": 512,
+      "sheetHeight": 288,
+      "alphaBounds": [
+        7,
+        4,
+        504,
+        246
+      ],
+      "frameWidth": 64,
+      "frameHeight": 96,
+      "frameCount": 20,
+      "frameDurationMs": 70,
+      "pivot": [
+        32,
+        88
+      ],
+      "direction": "RIGHT",
+      "castAnchor": [
+        32,
+        88
+      ],
+      "impactFrame": 10,
+      "loop": false,
+      "license": "CC0 1.0 Public Domain",
+      "attribution": "Pixel VFX Studio (pixelfx MIT notice preserved)",
+      "usedBy": [
+        "ui:reward_unlock"
+      ]
+    },
+    {
+      "id": "proj-steel-64",
+      "sourcePack": "FreePixelProjectiles_Free_v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Projectiles_and_Bolts/effects/01_steel_projectile/64x64/steel_projectile_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/proj-steel-64.png",
+      "sha256": "88fa4a4ef050a12959300c4ba91de1bf73ce005365c93c844b0fa372ed442176",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        8,
+        27,
+        495,
+        37
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        16,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:quick_shot",
+        "skill:piercing_arrow",
+        "skill:triple_shot",
+        "skill:dragon_lance"
+      ]
+    },
+    {
+      "id": "proj-arcane-64",
+      "sourcePack": "FreePixelProjectiles_Free_v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Projectiles_and_Bolts/effects/02_arcane_projectile/64x64/arcane_projectile_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/proj-arcane-64.png",
+      "sha256": "76e0ddd58ca42b02cb9aea46860618193b132590d244e3fde1ae5fdb02445e14",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        11,
+        21,
+        490,
+        43
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        16,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:magic_bolt",
+        "skill:astral_cataclysm"
+      ]
+    },
+    {
+      "id": "proj-plasma-64",
+      "sourcePack": "FreePixelProjectiles_Free_v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Projectiles_and_Bolts/effects/03_plasma_projectile/64x64/plasma_projectile_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/proj-plasma-64.png",
+      "sha256": "6627940e25b5184da73564ff186be0f8438d48e55844fba89b1568e8202e905a",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        2,
+        19,
+        493,
+        46
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        16,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:celestial_arrow",
+        "skill:thunder_strike"
+      ]
+    },
+    {
+      "id": "impact-steel-64",
+      "sourcePack": "FreePixelProjectiles_Free_v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Projectiles_and_Bolts/effects/09_steel_impact/64x64/steel_impact_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/impact-steel-64.png",
+      "sha256": "9893b510a524caf3ee223b09c014d7ff6ae63434698b382fddb217936736f403",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        22,
+        8,
+        438,
+        54
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        16,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": false,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:quick_shot",
+        "skill:piercing_arrow",
+        "skill:rain_of_arrows"
+      ]
+    },
+    {
+      "id": "impact-arcane-64",
+      "sourcePack": "FreePixelProjectiles_Free_v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Projectiles_and_Bolts/effects/10_arcane_impact/64x64/arcane_impact_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/impact-arcane-64.png",
+      "sha256": "f31846c22efb541469ac43d8472e59dd58b9d649ea58d54115efd346f1c37183",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        21,
+        8,
+        438,
+        56
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        16,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": false,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:magic_bolt",
+        "skill:arcane_beam"
+      ]
+    },
+    {
+      "id": "spell-fireball-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/02_fireball/64x64/fireball_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-fireball-64.png",
+      "sha256": "436b3b239fe266bcbac78fa42af8a82f75b186f7f643a06fb0c227a6c289a617",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        4,
+        18,
+        509,
+        46
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:fireball"
+      ]
+    },
+    {
+      "id": "spell-fire-burst-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/03_fire_burst/64x64/fire_burst_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-fire-burst-64.png",
+      "sha256": "4b2d5e2d8fa2cf67c933ca269e44d9beff3f90cd732fe5e8c39f52145739d7a0",
+      "sheetWidth": 640,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        25,
+        0,
+        635,
+        56
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 10,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 5,
+      "loop": false,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:fireball",
+        "skill:fire_blade"
+      ]
+    },
+    {
+      "id": "spell-ice-shard-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/07_ice_shard/64x64/ice_shard_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-ice-shard-64.png",
+      "sha256": "62d5118f401e43bf18d122759f5dc90e32728498bd4c3e0fd4c3c14dca770f33",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        1,
+        21,
+        509,
+        42
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:glacial_prison"
+      ]
+    },
+    {
+      "id": "spell-ice-shatter-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/08_ice_shatter/64x64/ice_shatter_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-ice-shatter-64.png",
+      "sha256": "b803852e63f432c955cdbb04f3d19d5e4b1f1ebb93833e641b31a87ffbf9180e",
+      "sheetWidth": 640,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        16,
+        1,
+        639,
+        64
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 10,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 5,
+      "loop": false,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:glacial_prison",
+        "skill:frost_seal"
+      ]
+    },
+    {
+      "id": "spell-spark-orb-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/12_spark_orb/64x64/spark_orb_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-spark-orb-64.png",
+      "sha256": "51b46150712995c6309012340d93155c4f2dfee9d245ef3166b1c3ce38f034d5",
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        2,
+        17,
+        500,
+        47
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 8,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 4,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:thunderstorm",
+        "skill:thunder_strike"
+      ]
+    },
+    {
+      "id": "spell-lightning-strike-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/13_lightning_strike/64x64/lightning_strike_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-lightning-strike-64.png",
+      "sha256": "98eb130d2d2d8046ff11fac99669d78ad2989b971d65f52a0e86e7fbc7847c67",
+      "sheetWidth": 640,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        22,
+        0,
+        639,
+        64
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 10,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 5,
+      "loop": false,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:thunderstorm",
+        "skill:thunder_strike"
+      ]
+    },
+    {
+      "id": "spell-rune-ring-64",
+      "sourcePack": "free-pixel-spell-effects-v1.0.3 (Mira Forge)",
+      "originalPath": "UI Extra/Free_Pixel_Spell_Effects/effects/19_rune_ring/64x64/rune_ring_64x64_sheet.png",
+      "canonicalPath": "/ui/assets/effects/vfx/p5/spell-rune-ring-64.png",
+      "sha256": "a67d5d9d8ee0898bf960d42d3a8de7d89a7836f2f15c6b7b73479aafc7e9bfca",
+      "sheetWidth": 768,
+      "sheetHeight": 64,
+      "alphaBounds": [
+        8,
+        8,
+        760,
+        56
+      ],
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 12,
+      "frameDurationMs": 83,
+      "pivot": [
+        32,
+        32
+      ],
+      "direction": "E",
+      "castAnchor": [
+        32,
+        32
+      ],
+      "impactFrame": 6,
+      "loop": true,
+      "license": "Mira Forge Free Pack License v1.0 (Personal/Commercial project use; no standalone redistribution)",
+      "attribution": "Mira Forge",
+      "usedBy": [
+        "skill:rune_prison",
+        "skill:astral_cataclysm"
+      ]
+    },
+    {
+      "id": "byte-skill-locked@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/skill-locked@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/skill-locked@2x.png",
+      "sha256": "7531dfd00ee810ffd858719ebe06a6e84b6761c24712b89cf9f5dc082f0a3683",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-skill-available@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/skill-available@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/skill-available@2x.png",
+      "sha256": "f9b0046fe81647e3e154fdd9414740ff4b5f98f60c2a0998596f538c565b4142",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-skill-unlocked@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/skill-unlocked@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/skill-unlocked@2x.png",
+      "sha256": "f63b964dbcc18dec43e702aea9960d411924b63d4a4cb04d2b2b4aacc4b84d4d",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-skill-maxed@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/skill-maxed@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/skill-maxed@2x.png",
+      "sha256": "af4058c702d1cded3289fb0aaeefd2d1adc2083f23bee08ab6adb06a2d195977",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-link-straight@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/link-straight@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/link-straight@2x.png",
+      "sha256": "866b11b747d55d274df6c9fb8f1f2bcbbde647c015d1f3df5d057a8d512f457d",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-link-straight-active@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/link-straight-active@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/link-straight-active@2x.png",
+      "sha256": "08d0e6a4ffd102be7887fcacd98c25df472f396626a23622ba2c43e34e279832",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-link-elbow@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/link-elbow@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/link-elbow@2x.png",
+      "sha256": "9e8963c32c0aa6b1eaf897e163d155de6bd53a3844540218643f87650f3e53c0",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-link-elbow-active@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/link-elbow-active@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/link-elbow-active@2x.png",
+      "sha256": "6ed40cd5d369b75ffc674db3be32c7ffa2768ee81164fd291f8c11e2f3f564b5",
+      "sheetWidth": 128,
+      "sheetHeight": 128,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-star-full@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/star-full@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/star-full@2x.png",
+      "sha256": "ac5ace6be099d6a80facdeb77057b38bf3a460ffaa9e7434a9ad460bda79333b",
+      "sheetWidth": 72,
+      "sheetHeight": 72,
+      "frameWidth": 72,
+      "frameHeight": 72,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-star-empty@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/star-empty@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/star-empty@2x.png",
+      "sha256": "446ea0972370c12d64d907489af7dcdb54a5eb0642fb4b84903925a1a2e6b3fc",
+      "sheetWidth": 72,
+      "sheetHeight": 72,
+      "frameWidth": 72,
+      "frameHeight": 72,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-level-badge@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/level-badge@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/level-badge@2x.png",
+      "sha256": "b547e261f3fca8340851f5958fd767147a0abed1c9d874e32c9b93b88b0dbece",
+      "sheetWidth": 96,
+      "sheetHeight": 96,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-mastery-locked@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/mastery-locked@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/mastery-locked@2x.png",
+      "sha256": "171a31ae8a1fa74dfbd6d2c491e4c350b09c5d8549eff7a531370a18f6a04edd",
+      "sheetWidth": 144,
+      "sheetHeight": 144,
+      "frameWidth": 144,
+      "frameHeight": 144,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "byte-mastery-unlocked@2x",
+      "sourcePack": "byte-progression-kit (Oğuzhan Girgin)",
+      "originalPath": "UI Extra/byte-progression-kit/png/mastery-unlocked@2x.png",
+      "canonicalPath": "/ui/assets/ui/progression/mastery-unlocked@2x.png",
+      "sha256": "854a77cfaa2586dab311a3abd70f6e599791420589d3dc2495b081066f639eec",
+      "sheetWidth": 144,
+      "sheetHeight": 144,
+      "frameWidth": 144,
+      "frameHeight": 144,
+      "frameCount": 1,
+      "license": "CC-BY-4.0",
+      "attribution": "\"Byte Progression Kit\" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit",
+      "usedBy": [
+        "ui:skill_tree",
+        "ui:chapter_map"
+      ]
+    },
+    {
+      "id": "questwood-Skills-arcane_orb",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/arcane_orb.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/arcane_orb.png",
+      "sha256": "2d0762f4ef95056da87cc90cfb587594871715824b749b63fa7f2b80683d09d2",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-arrow_volley",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/arrow_volley.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/arrow_volley.png",
+      "sha256": "c609bd354b0938b38d744107d2f6d0bbe90ae96ab154c45d7f7463657857f6e3",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-earth_spike",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/earth_spike.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/earth_spike.png",
+      "sha256": "2ff4e3c34a8e2fec49e808711879af1bf3640554316562dfdac9c4d94ba86a41",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-fireball",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/fireball.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/fireball.png",
+      "sha256": "df8c751e12b64d92cdfa0ad72fe53f03286be7e3d6b0b2a41300e19439927c27",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-healing_spark",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/healing_spark.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/healing_spark.png",
+      "sha256": "b4206f84cc71e8205a105279eaf8e29219860630d823018c4b3e2723be47353e",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-holy_beam",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/holy_beam.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/holy_beam.png",
+      "sha256": "658212a471d69ca0486ef5ce6961f8f40705712b6c7a78b52f0dfdf3a81892ca",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-ice_spike",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/ice_spike.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/ice_spike.png",
+      "sha256": "4c091d47dbb5c55e15cb2db0e971f255b209443c7a5f65708f1694234d747de7",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-lightning_burst",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/lightning_burst.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/lightning_burst.png",
+      "sha256": "03ceec4b25a7c9e6a67f452d4632cb2beff2765803bf5233c31e445816cf7434",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-magic_barrier",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/magic_barrier.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/magic_barrier.png",
+      "sha256": "18b7768d7c1a4369cf9afc8e8074c297dfe8ca235d1fd447e3f08a7a5d9526df",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Skills-shadow_step",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Skills/shadow_step.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Skills/shadow_step.png",
+      "sha256": "116ed472ee868c1fa83582900fbb34c8b8f7c0de710a3963573db68d6440e650",
+      "sheetWidth": 24,
+      "sheetHeight": 24,
+      "frameWidth": 24,
+      "frameHeight": 24,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Buttons-slot_normal",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Buttons/slot_normal.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Buttons/slot_normal.png",
+      "sha256": "be74b0189ec7e53b6b61c36e1e13bedf39285187a7254e18deec606453bc685b",
+      "sheetWidth": 48,
+      "sheetHeight": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Buttons-slot_selected",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Buttons/slot_selected.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Buttons/slot_selected.png",
+      "sha256": "cee38eff3a1352e31620bbf522cb73f36a127bbaeca57a8e7c25e7e755830d5a",
+      "sheetWidth": 48,
+      "sheetHeight": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Buttons-slot_disabled",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Buttons/slot_disabled.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Buttons/slot_disabled.png",
+      "sha256": "3465225405112c1fba4a5bd0a82c691a90a7eac4b51be1727f5c4973f22af18c",
+      "sheetWidth": 48,
+      "sheetHeight": 48,
+      "frameWidth": 48,
+      "frameHeight": 48,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Windows-skill_tree_panel",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Windows/skill_tree_panel.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Windows/skill_tree_panel.png",
+      "sha256": "fc2aee9f461b50f0c28e0ba36ae8c29379671c5b04a9527421f836d93e2e35c7",
+      "sheetWidth": 192,
+      "sheetHeight": 192,
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Windows-reward_panel",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Windows/reward_panel.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Windows/reward_panel.png",
+      "sha256": "d9535f07bf800a37a52f38d14816e24b1f1211af9a73e5690fd67542d6f6ad76",
+      "sheetWidth": 256,
+      "sheetHeight": 192,
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    },
+    {
+      "id": "questwood-Windows-portrait_frame",
+      "sourcePack": "Questwood-Pixel-UI-Complete-v1.2 (breathinghuman)",
+      "originalPath": "UI Extra/PNG_1x/Windows/portrait_frame.png",
+      "canonicalPath": "/ui/assets/ui/questwood/Windows/portrait_frame.png",
+      "sha256": "c23a99d84ef1db8bb50967a6e20481c6fba40f4a70929bb19f95067b99a5a4a5",
+      "sheetWidth": 96,
+      "sheetHeight": 96,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frameCount": 1,
+      "license": "Questwood Usage Terms (Non-exclusive free/commercial project use; no standalone redistribution; AI-assisted disclosure)",
+      "attribution": "breathinghuman (Questwood Pixel UI v1.2)",
+      "usedBy": [
+        "ui:character_hall",
+        "ui:spellbook",
+        "ui:skill_tree",
+        "ui:reward_modal"
+      ]
+    }
+  ]
+}

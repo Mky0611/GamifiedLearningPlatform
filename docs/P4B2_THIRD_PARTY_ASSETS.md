@@ -37,3 +37,21 @@ Every asset integrated from `UI Extra/` into `src/main/resources/FrontEnd/assets
 ## 4. Existing Repository Assets (`Tiny Swords` & `Pixel Frog`)
 - Reused in-place (`warrior`, `archer`, `lancer`, `Warrior_Attack2.png`, existing `bosses/*`, and gapped `ui/{banners,bars,papers,table,tiny}/*` stitched into contiguous `assets/ui/slices/*.png`).
 - **Pending Policy**: Remaining `428` files inside `UI Extra/Tiny Swords (Free Pack)` without an explicit bundled LICENSE remain excluded (`LICENSE_PENDING`) and will NOT be committed or deployed.
+
+## 5. Phase P5 Additions (Path of Legends — 63 Curated Assets, `docs/P5_ASSET_DELTA.json`)
+- **Byte Progression Kit (Credit Required — CC-BY-4.0)**
+  - **Credit**: `"Byte Progression Kit" by Oğuzhan Girgin, licensed under CC-BY-4.0 — https://www.colorosse.com/assets/2d/ui/byte-progression-kit`
+  - **Integrated Files**: 13 Skill Tree node/connector/star/mastery assets under `assets/ui/progression/*.png`.
+- **Free Arcane Mage v1.1 (NightCat Works OÜ)**
+  - **License**: Free/Commercial Game Usage; raw asset redistribution prohibited; AI-assisted disclosure preserved (`UI Extra/characters/arcane_mage/README.txt`, `AI_DISCLOSURE.txt`).
+  - **Integrated Files**: 9 sprite strips (`210x180`, anchor `105,166`) under `assets/units/arcane_mage/*.png` + `assets/ui/avatars/portrait-hero-arcane_mage.png`.
+- **PVFX Foundry (`CC0 1.0`)**
+  - **Source**: `UI Extra/effects/*/lit/grid/` (`PROVENANCE.json`, `THIRD_PARTY_NOTICES.txt` — CC0 1.0).
+  - **Integrated Files**: 12 curated spell/beam/circle/heal/shield/meteor sheets under `assets/effects/vfx/p5/pvfx-*.png`.
+- **Mira Forge Free Pixel Projectiles & Bolts v1.0.3 & Free Pixel Spell Effects v1.0.3**
+  - **License**: Free for personal & commercial games; raw pack redistribution prohibited; non-AI procedural pixel art.
+  - **Integrated Files**: 12 64x64 projectile/impact/spell sheets under `assets/effects/vfx/p5/{proj,impact,spell}-*-64.png`.
+- **Questwood Pixel UI v1.2 (`breathinghuman`)**
+  - **License**: Permitted game UI integration (`UI Extra/License.txt`; AI-assisted disclosure preserved).
+  - **Integrated Files**: 16 curated icon/slot/panel textures under `assets/ui/questwood/{Skills,Buttons,Windows}/*.png`.
+- **Phase P5 Backlog Exclusions**: `hero:monk` (`UI Extra/Tiny Swords (Free Pack)/Units/Monk` — `LICENSE_PENDING`) and `hero:rogue` (`UI Extra/spritesheets/rogue.png` — `32x32` top-down style mismatch & no standalone hero license) remain strictly excluded from public runtime.
