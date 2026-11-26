@@ -1,9 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/app", "destination": "/", "permanent": true },
+    { "source": "/app/", "destination": "/", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
-    { "source": "/app", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
-    { "source": "/app/", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
+    { "source": "/robots.txt", "destination": "/src/main/resources/FrontEnd/robots.txt" },
+    { "source": "/sitemap.xml", "destination": "/src/main/resources/FrontEnd/sitemap.xml" },
+    { "source": "/404.html", "destination": "/src/main/resources/FrontEnd/404.html" },
     { "source": "/app/home", "destination": "/src/main/resources/FrontEnd/src/pages/home.html" },
     { "source": "/app/auth", "destination": "/src/main/resources/FrontEnd/src/pages/auth.html" },
     { "source": "/app/minigame", "destination": "/src/main/resources/FrontEnd/src/pages/minigame.html" },

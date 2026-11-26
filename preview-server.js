@@ -8,6 +8,7 @@ const MIME = {
   '.css':'text/css; charset=utf-8',
   '.js':'application/javascript; charset=utf-8',
   '.txt':'text/plain; charset=utf-8',
+  '.xml':'application/xml; charset=utf-8',
   '.json':'application/json; charset=utf-8',
   '.png':'image/png',
   '.jpg':'image/jpeg',
@@ -36,6 +37,9 @@ function resolvePath(urlPath){
   if(clean === '/app/volcard') return path.join(ROOT,'src/pages/volcard.html');
   if(clean === '/app/account') return path.join(ROOT,'src/pages/account.html');
   if(clean === '/app/typography') return path.join(ROOT,'src/pages/typography-specimen.html');
+  if(clean === '/robots.txt') return path.join(ROOT,'robots.txt');
+  if(clean === '/sitemap.xml') return path.join(ROOT,'sitemap.xml');
+  if(clean === '/404' || clean === '/404.html') return path.join(ROOT,'404.html');
   if(clean.startsWith('/ui/')) return path.join(ROOT, clean.slice(4));
   if(clean.startsWith('/assets/')) return path.join(ROOT, clean.slice(1));
   if(clean.startsWith('/src/')) return path.join(ROOT, clean.slice(1));
