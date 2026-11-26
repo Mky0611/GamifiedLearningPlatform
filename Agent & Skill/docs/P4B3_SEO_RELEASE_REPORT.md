@@ -16,7 +16,7 @@
   - `/app/home` giữ tương thích điều hướng nhưng khai báo `<link rel="canonical" href="https://gamified-learning-platform-sandy.vercel.app/">` để tránh phân mảnh trùng lặp.
 - **Phân tầng Indexable vs Noindex:**
   - **Index (`7` URL trong `sitemap.xml`):** `/`, `/app/minigame`, `/app/volcard`, `/app/quiz`, `/app/memory`, `/app/speed-math`, `/app/code-puzzle`.
-  - **Noindex (`noindex, nofollow` + `Disallow` trong `robots.txt`):** `/app/account`, `/app/auth`, `/app/typography`, `/404.html`.
+  - **Noindex (`<meta name="robots" content="noindex, nofollow">`):** `/app/account`, `/app/auth`, `/app/typography`, `/404.html`. `robots.txt` để `Allow: /` (không dùng `Disallow` chặn các URL public noindex và không coi `robots.txt` là cơ chế bảo mật) nhằm giúp crawler đọc trực tiếp thẻ `noindex`.
 - **404 Handling:** Đường dẫn không khớp rewrite trả về mã HTTP `404` thực tế (không trả về HTTP `200` của Home), kèm trang `404.html`.
 - **Rich Metadata & Schema.org:** Mỗi trang indexable có `<title>` & `<meta name="description">` riêng, `og:image` (`1200×630` `assets/imgs/og-preview.png`), `twitter:card=summary_large_image`, và JSON-LD (`WebSite`/`EducationalApplication`, `VideoGame`, `LearningResource`) hợp lệ.
 

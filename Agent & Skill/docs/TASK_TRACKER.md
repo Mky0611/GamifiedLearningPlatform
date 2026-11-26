@@ -14,10 +14,10 @@
 | **SEC** | Security Post-Audit & Credential Sanitization | **STATIC PASS** | Không lộ secret/token hay QA hook ra public domain. |
 | **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật; Backend live SQL `NOT TESTED`. |
 | **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS / STATIC REVIEW** | DB seed audit; giữ nguyên dịch vụ & dữ liệu. |
-| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS** | Java 21 Mockito tests pass (`25/25`). |
+| **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS** | Java 21 Mockito tests pass (`26/26`). |
 | **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS** | `vercel.json` routing clean, `/api/**` trả về 404 kích hoạt Preview fallback. |
 | **P4-B / B.2** | Visual Redesign, 9-Slice UI, Animation FSM & World Env | **STATIC PASS (43/43) & BROWSER PASS** | Curated runtime assets, FSM pooled VFX, Canvas 2D fallback, 9/9 viewports PASS. |
-| **P4-B.3** | Final Polish, Contrast Fix, 5-Wave QA, SEO & Production Release | **BACKEND UNIT PASS (25/25), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (0)** | Hoàn tất Milestones A–H (`5d8ecaa`), sẵn sàng deploy **Vercel Production** & verify live. |
+| **P4-B.3** | Final Polish, Post-Release Correction, 5-Wave QA, SEO & Production Release | **BACKEND UNIT PASS (26/26), STATIC PASS (43/43), SCOPED CONTRAST (0), SEO PASS, BROWSER PASS (0)** | Hoàn tất tới `870faac`, deploy **Vercel Production** & verify live. |
 | **P5** | Docker, CI/CD & SQL Server Migration Apply | `TODO (DRAFT ONLY)` | Bản nháp DDL/API tại `docs/P4B3_BACKEND_DRAFT.md`. |
 
 ---

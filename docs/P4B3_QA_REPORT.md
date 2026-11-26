@@ -2,7 +2,7 @@
 
 **Nhánh:** `feature/p4b3-rpg-combat-learning`  
 **Ngày kiểm định:** 2026-11-26  
-**Code SHA đã kiểm định:** `5d8ecaa`
+**Code SHA đã kiểm định:** `870faac`
 
 ---
 
@@ -10,12 +10,12 @@
 
 | Hạng mục kiểm thử | Công cụ / Lệnh | Mức chứng nhận | Kết quả quan sát thực tế |
 | :--- | :--- | :---: | :--- |
-| Backend Service Unit Tests (5 suites Mockito) | `mvn.cmd -o -DargLine=-javaagent:... -Dtest=AccountProfileServiceTest,LexRaidGlobalLexiconTest,LexRaidProgressionTest,QuizProgressionTest,RpgProgressionServiceTest test` | **BACKEND UNIT PASS** | **25/25 PASS**, `0` failures, `0` errors (`AccountProfileServiceTest` 2/2, `LexRaidGlobalLexiconTest` 5/5, `LexRaidProgressionTest` 4/4, `QuizProgressionTest` 5/5, `RpgProgressionServiceTest` 9/9) |
+| Backend Service Unit Tests (5 suites Mockito) | `mvn.cmd -o -DargLine=-javaagent:... -Dtest=AccountProfileServiceTest,LexRaidGlobalLexiconTest,LexRaidProgressionTest,QuizProgressionTest,RpgProgressionServiceTest test` | **BACKEND UNIT PASS** | **26/26 PASS**, `0` failures, `0` errors (`AccountProfileServiceTest` 2/2, `LexRaidGlobalLexiconTest` 6/6 gồm `POST_CORE_GUESS -> nextBoard -> submitWord`, `LexRaidProgressionTest` 4/4, `QuizProgressionTest` 5/5, `RpgProgressionServiceTest` 9/9) |
 | Full Spring Boot Context + SQL Server (`MainTests`) | `mvn.cmd -o test` | **NOT TESTED (DB Offline)** | Không chạy trên môi trường tĩnh không có SQL Server cục bộ |
 | Static Asset & Alignment Verification | `python src/main/resources/tools/test_p4b_verification.py` | **STATIC PASS** | **43/43 STATIC PASS**, `0` failed |
 | Case Sensitivity & Asset Index Check | `python src/main/resources/tools/check_case_sensitivity.py` | **STATIC PASS** | `130/130` Phaser URLs hợp lệ, `0` missing, `0` case mismatches |
 | Solvability 100-Seed Check | `build_common_vocab.py` + `LexRaidBalance` | **UNIT PASS** | **100/100 seeds PASS**, `minCommon: 95`, `2L_GO: true`, `2L_QQ: false` |
-| Chromium Computed WCAG AA Contrast Audit | `node src/main/resources/tools/audit_contrast_chromium.js` | **BROWSER PASS** | **0 contrast issues** trên 9 trang (Daylight + Moonlight + Quiz answered + Volcard flipped + Combat HUD) |
+| Chromium Scoped Contrast Audit | `node src/main/resources/tools/audit_contrast_chromium.js` | **SCOPED BROWSER PASS** | **0 issues** trong phạm vi kiểm tra DOM text, gradient stops, opacity blending, placeholders & interactive/disabled states trên 9 trang (không thay thế kiểm định toàn diện trên raster art) |
 | SEO & Routing Verification | `node src/main/resources/tools/verify_seo.js` | **HTTP PASS** | `11` routes + `robots.txt` + `sitemap.xml` (`7` URLs) + `/nonexistent` `404` + JSON-LD + `og-preview.png` hợp lệ |
 | Chromium Headless Full Acceptance Suite | `node "Agent & Skill/scripts/chromium_p4b2_acceptance.js"` | **BROWSER PASS** | **Total failures: 0** (Desktop + Mobile trên 9 trang, `9/9` viewports `320x568`..`1920x1080`, Phaser + Canvas fallback, full 5-wave playthrough hợp lệ, Wave 5 Chapter Boss Entrance & HUD, Victory/Review, Battle Ended/Defeat, rejection tests) |
 

@@ -7,6 +7,12 @@
 
 ---
 
+## [P4-B.3 Post-Release Correction] — 2026-11-26 (`870faac`)
+- **Authoritative Core Word Board (`LexRaidServiceImpl.guessCoreWord`):** Sinh `nextBoard` một lần khi giải đúng Core Word còn lượt, lưu `POST_CORE_GUESS` snapshot trong transaction và trả đúng bảng đó cho client; bổ sung regression test `Core Word -> nextBoard -> submitWord -> POST_SUBMIT` (`26/26` Mockito PASS). Ghi nhận cho **P4-C**: Demo mode (`55` DMG, giữ wave nếu Boss còn HP) và Backend (`bossHpRemaining = 0`, `rewardDamage = max(20, bonusDamage)`) hiện có công thức Core Word damage khác nhau.
+- **Encounter Boss Pool (`encounter-registry.js`, `minigame.js`):** Giữ cố định Chapter Boss lore ở Campaign khi không bật Random Encounter; mở pool boss ngẫu nhiên ở Practice hoặc `?encounter=random`, giữ deterministic seed cho `?qa=1`, không ảnh hưởng backend session.
+- **QA & Contrast Hardening:** Sửa assertion bắt buộc quan sát `#bossEntranceBanner` hiển thị thực, kiểm tra Victory thật, tách riêng Defeat `playerHp === 0`, chờ sprite load trước ảnh chụp và ép chạy đủ `fire_blade`/`frost_seal`/`thunder_strike`; mở rộng `audit_contrast_chromium.js` sang gradient stops, opacity blending, placeholders và sửa `.skill-preview-chip:disabled` trong `minigame.css`.
+- **SEO `robots.txt`:** Gỡ `Disallow` cho các trang `noindex` công khai (`/app/account`, `/app/auth`, `/app/typography`) để crawler đọc được `<meta name="robots" content="noindex, nofollow">`.
+
 ## [P4-B.3 Final Release] — 2026-11-26: Vocabulary Pool, 5-Wave Combat Polish, Contrast Fix, Technical SEO & Production Release
 - **Common Vocabulary & Continuous Core Word Loop (`9787501`):** Tạo `common-words.txt` (`2,789` từ thông dụng) và `lexicon-manifest.json` từ bộ `77,017` từ (`en-wl/wordlist/v2`), mở khóa 24 từ 2 chữ cái (`GO`, `DO`, `BE`, `UP`, `IN`...), đạt 100/100 seed khả giải (`minCommon: 95`), tự động nạp từ khóa & gợi ý mới sau khi giải Core Word, ghi nhận từ sai/dùng gợi ý vào `glp.wordJournal`.
 - **Spell VFX, Boss Entrance & Boss HUD (`fae6a84`):** Phân biệt VFX từng phép, floating damage text, status aura trên Boss, sửa co giãn bóng Boss, encounter ngẫu nhiên mỗi trận (cố định khi `?qa=1`), Dramatic Boss Entrance + Chapter Boss HUD (`.boss-panel.is-chapter-boss`, `#bossCrownBadge`) ở Wave 5.
