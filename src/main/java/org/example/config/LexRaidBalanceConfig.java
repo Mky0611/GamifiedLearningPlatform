@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class LexRaidBalanceConfig {
 
     public static final int MIN_WORD_LENGTH = 3;
+    public static final int ABSOLUTE_MIN_WHITELIST_LENGTH = 2;
     public static final int MAX_WORD_LENGTH = 12;
     public static final int DAMAGE_PER_CHAR = 5;
     public static final int DAMAGE_PER_COMBO = 2;
@@ -23,7 +24,7 @@ public class LexRaidBalanceConfig {
     public static final int CORE_SOLVE_MANA = 2;
 
     public int computeBaseDamage(int wordLength, int comboAfter) {
-        if (wordLength < MIN_WORD_LENGTH) {
+        if (wordLength < ABSOLUTE_MIN_WHITELIST_LENGTH) {
             return 0;
         }
         return (wordLength * DAMAGE_PER_CHAR) + (Math.max(0, comboAfter) * DAMAGE_PER_COMBO);
@@ -38,7 +39,7 @@ public class LexRaidBalanceConfig {
     }
 
     public int computeManaGain(int wordLength, boolean isTopicWord, boolean isCoreWord) {
-        if (wordLength < MIN_WORD_LENGTH) {
+        if (wordLength < ABSOLUTE_MIN_WHITELIST_LENGTH) {
             return 0;
         }
         int baseMana = Math.max(MIN_MANA_GAIN, Math.min(MAX_MANA_GAIN, wordLength / 2));

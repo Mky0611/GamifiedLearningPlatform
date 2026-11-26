@@ -6,6 +6,7 @@
 (function () {
   const BALANCE = {
     minWordLength: 3,
+    whitelistMinLength: 2,
     maxWordLength: 12,
     damagePerChar: 5,
     damagePerCombo: 2,
@@ -23,6 +24,12 @@
       4: { timeSec: 28, freeHints: 1, bossAtkBase: 12, shieldFactor: 1.3, traitsUnlocked: true }
     }
   };
+
+  // Curated 24 high-frequency everyday 2-letter English words (synchronized with backend EnglishLexiconService)
+  const TWO_LETTER_WHITELIST = new Set([
+    'AM', 'AN', 'AS', 'AT', 'BE', 'BY', 'DO', 'GO', 'HE', 'IF', 'IN', 'IS',
+    'IT', 'ME', 'MY', 'NO', 'OF', 'ON', 'OR', 'SO', 'TO', 'UP', 'US', 'WE'
+  ]);
 
   // Curated immediate starter set while async full 76k en-wl/v2 dictionary loads cleanly in background
   const SEED_ENGLISH_WORDS = new Set([
@@ -74,35 +81,112 @@
     'YELLOW','YES','YIELD','YOU','YOUNG','ZERO','ZONE'
   ]);
 
-  let lexiconSet = new Set(SEED_ENGLISH_WORDS);
+  let lexiconSet = new Set([...SEED_ENGLISH_WORDS, ...TWO_LETTER_WHITELIST]);
+  let commonSet = new Set([...SEED_ENGLISH_WORDS, ...TWO_LETTER_WHITELIST]);
   let lexiconLoaded = false;
   let lexiconLoadingPromise = null;
+  let lexiconStatus = {
+    status: 'STARTER_ONLY',
+    fullLoaded: false,
+    commonLoaded: false,
+    fullCount: lexiconSet.size,
+    commonCount: commonSet.size,
+    checksumMatch: null,
+    manifest: null
+  };
 
   function normalizeWord(word) {
     return String(word || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
   }
 
-  async function loadOfflineLexicon(url = '/ui/assets/data/english-words.txt') {
+  async function computeSha256Hex(text) {
+    try {
+      if (typeof crypto !== 'undefined' && crypto.subtle && typeof TextEncoder !== 'undefined') {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+        return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  async function loadOfflineLexicon(url = '/ui/assets/data/english-words.txt', commonUrl = '/ui/assets/data/common-words.txt', manifestUrl = '/ui/assets/data/lexicon-manifest.json') {
     if (lexiconLoaded) return lexiconSet;
     if (lexiconLoadingPromise) return lexiconLoadingPromise;
     lexiconLoadingPromise = (async () => {
       try {
-        if (typeof fetch !== 'function') return lexiconSet;
-        const res = await fetch(url, { cache: 'force-cache' });
-        if (!res.ok) return lexiconSet;
-        const txt = await res.text();
-        const lines = txt.split(/\r?\n/);
-        const merged = new Set(SEED_ENGLISH_WORDS);
-        for (let i = 0; i < lines.length; i++) {
-          const w = lines[i].trim().toUpperCase();
-          if (w.length >= BALANCE.minWordLength && w.length <= BALANCE.maxWordLength) {
-            merged.add(w);
-          }
+        if (typeof fetch !== 'function') {
+          lexiconStatus.status = 'DEGRADED_STARTER';
+          return lexiconSet;
         }
-        lexiconSet = merged;
-        lexiconLoaded = true;
+        const [fullRes, commonRes, manRes] = await Promise.all([
+          fetch(url, { cache: 'force-cache' }).catch(() => null),
+          fetch(commonUrl, { cache: 'force-cache' }).catch(() => null),
+          fetch(manifestUrl, { cache: 'force-cache' }).catch(() => null)
+        ]);
+        let manifest = null;
+        if (manRes && manRes.ok) {
+          try { manifest = await manRes.json(); } catch (e) {}
+        }
+        let fullOk = false;
+        let commonOk = false;
+        let fullShaActual = null;
+        let commonShaActual = null;
+
+        if (fullRes && fullRes.ok) {
+          const txt = await fullRes.text();
+          fullShaActual = await computeSha256Hex(txt.replace(/\r\n/g, '\n'));
+          const lines = txt.split(/\r?\n/);
+          const merged = new Set([...SEED_ENGLISH_WORDS, ...TWO_LETTER_WHITELIST]);
+          for (let i = 0; i < lines.length; i++) {
+            const w = lines[i].trim().toUpperCase();
+            if ((w.length >= BALANCE.minWordLength && w.length <= BALANCE.maxWordLength) || TWO_LETTER_WHITELIST.has(w)) {
+              merged.add(w);
+            }
+          }
+          lexiconSet = merged;
+          fullOk = merged.size > 5000;
+        }
+
+        if (commonRes && commonRes.ok) {
+          const cTxt = await commonRes.text();
+          commonShaActual = await computeSha256Hex(cTxt.replace(/\r\n/g, '\n'));
+          const cLines = cTxt.split(/\r?\n/);
+          const cMerged = new Set([...TWO_LETTER_WHITELIST]);
+          for (let i = 0; i < cLines.length; i++) {
+            const w = cLines[i].trim().toUpperCase();
+            if ((w.length >= BALANCE.minWordLength && w.length <= BALANCE.maxWordLength) || TWO_LETTER_WHITELIST.has(w)) {
+              cMerged.add(w);
+            }
+          }
+          commonSet = cMerged;
+          commonOk = cMerged.size >= 1000;
+        }
+
+        const checksumMatch = (manifest && fullShaActual && commonShaActual)
+          ? (manifest.fullSha256 === fullShaActual && manifest.commonSha256 === commonShaActual)
+          : null;
+
+        lexiconLoaded = fullOk;
+        lexiconStatus = {
+          status: fullOk ? (commonOk ? 'FULL_READY' : 'PARTIAL_COMMON_MISSING') : 'DEGRADED_STARTER',
+          fullLoaded: fullOk,
+          commonLoaded: commonOk,
+          fullCount: lexiconSet.size,
+          commonCount: commonSet.size,
+          checksumMatch,
+          manifest
+        };
       } catch (e) {
-        // Keep starter lexicon cleanly if offline
+        lexiconLoaded = false;
+        lexiconStatus = {
+          status: 'DEGRADED_STARTER',
+          fullLoaded: false,
+          commonLoaded: false,
+          fullCount: lexiconSet.size,
+          commonCount: commonSet.size,
+          checksumMatch: false,
+          manifest: null
+        };
       }
       return lexiconSet;
     })();
@@ -111,9 +195,20 @@
 
   function isEnglishLexiconWord(word, extraAllowedSet = null) {
     const clean = normalizeWord(word);
+    if (clean.length === 2) {
+      if (extraAllowedSet && extraAllowedSet.has(clean)) return true;
+      return TWO_LETTER_WHITELIST.has(clean);
+    }
     if (clean.length < BALANCE.minWordLength || clean.length > BALANCE.maxWordLength) return false;
     if (extraAllowedSet && extraAllowedSet.has(clean)) return true;
     return lexiconSet.has(clean);
+  }
+
+  function isCommonEnglishWord(word) {
+    const clean = normalizeWord(word);
+    if (clean.length === 2) return TWO_LETTER_WHITELIST.has(clean);
+    if (clean.length < BALANCE.minWordLength || clean.length > BALANCE.maxWordLength) return false;
+    return commonSet.has(clean);
   }
 
   function getChapterRules(chapterNo = 1, mode = 'campaign') {
@@ -135,7 +230,7 @@
 
   function calculateAttackMetrics(wordLength, comboAfter, isTopicWord) {
     const len = Math.max(0, Number(wordLength || 0));
-    if (len < BALANCE.minWordLength) {
+    if (len < BALANCE.whitelistMinLength) {
       return { baseDamage: 0, bonusDamage: 0, totalDamage: 0, manaGain: 0 };
     }
     const baseDamage = (len * BALANCE.damagePerChar) + (Math.max(0, Number(comboAfter || 0)) * BALANCE.damagePerCombo);
@@ -148,10 +243,14 @@
     return { baseDamage, bonusDamage, totalDamage, manaGain };
   }
 
-  // Balanced English letter frequency pool (~42% vowels, common consonants, avoids dead Q/X/Z floods)
-  const FREQ_POOL = 'EEEEEEEAAAAAIIIIIOOOOUUUTTTTNNNNSSSSRRRRHHHHLLLLDDDCCCMPPBBFFGGVWYYK';
+  // Everyday recognizable anchors + rare-letter guards (avoid >1 Q/X/Z/J unless Core/Topic requires)
+  const FREQ_POOL = 'EEEEEEEAAAAAIIIIIOOOOUUUTTTTNNNNSSSSRRRRHHHHLLLLDDDDCCCMMMPPPBBBFFFGGWWYYK';
   const VOWELS = 'AEIOU';
-  const COMMON_3_4_ANCHORS = ['TIME', 'GAME', 'WORD', 'RAID', 'PLAY', 'BOOK', 'STAR', 'FIRE', 'WIND', 'HOPE', 'CODE', 'DATA', 'MIND', 'GOLD'];
+  const COMMON_3_5_ANCHORS = [
+    'TIME', 'WATER', 'BOOK', 'HOME', 'WORK', 'FOOD', 'TREE', 'STAR', 'FIRE', 'WIND',
+    'HOPE', 'GAME', 'WORD', 'PLAY', 'MIND', 'GOLD', 'LIGHT', 'HOUSE', 'SMILE', 'MUSIC',
+    'EARTH', 'PLANT', 'APPLE', 'BREAD', 'CLOUD', 'RIVER', 'HEART', 'TRAIN', 'WORLD', 'STUDY'
+  ];
 
   function mulberry32(seedNum) {
     let a = (Number(seedNum) || 1337) >>> 0;
@@ -175,7 +274,8 @@
     const matched = [];
     for (let i = 0; i < wordList.length; i++) {
       const w = normalizeWord(wordList[i]);
-      if (w.length < 3 || w.length > 10) continue;
+      if (w.length < 2 || w.length > 10) continue;
+      if (w.length === 2 && !TWO_LETTER_WHITELIST.has(w)) continue;
       const need = {};
       let ok = true;
       for (let j = 0; j < w.length; j++) {
@@ -185,20 +285,24 @@
       }
       if (ok) {
         count += 1;
-        if (matched.length < 18) matched.push(w);
+        if (matched.length < 24) matched.push(w);
       }
     }
     return { count, matched };
   }
 
-  function generateSolvableBoard({ coreWord = 'LEARN', topicWords = [], rows = 5, cols = 5, seed = Date.now(), minGlobalWords = 8 } = {}) {
+  function generateSolvableBoard({ coreWord = 'LEARN', topicWords = [], rows = 5, cols = 5, seed = Date.now(), minGlobalWords = 8, minCommonWords = 6, commonPoolOverride = null } = {}) {
     const cleanCore = normalizeWord(coreWord) || 'LEARN';
     const cleanTopics = topicWords.map(normalizeWord).filter((w) => w.length >= 3 && w.length <= 8 && w !== cleanCore);
-    const probePool = Array.from(new Set([...cleanTopics, ...COMMON_3_4_ANCHORS, ...Array.from(SEED_ENGLISH_WORDS).slice(0, 120)]));
+    const activeCommonPool = Array.isArray(commonPoolOverride) && commonPoolOverride.length
+      ? commonPoolOverride
+      : [...COMMON_3_5_ANCHORS, ...Array.from(commonSet).filter((w) => w.length >= 3 && w.length <= 6).slice(0, 320)];
+    const probePool = Array.from(new Set([...cleanTopics, ...activeCommonPool, ...Array.from(SEED_ENGLISH_WORDS).slice(0, 140)]));
 
     let bestBoard = null;
     let bestScore = -1;
-    const maxAttempts = 6;
+    let bestCommonEstimate = 0;
+    const maxAttempts = 8;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const rng = mulberry32(Number(seed) + attempt * 977);
@@ -206,18 +310,37 @@
         Array.from({ length: cols }, () => FREQ_POOL[Math.floor(rng() * FREQ_POOL.length)])
       );
 
-      // Build guaranteed letters: Core Word + up to 2 topic words + 1 vowel/anchor buffer
+      // Build guaranteed letters using overlap compression: Core Word + up to 2 topic words + 2 common everyday anchors
       const guaranteed = cleanCore.split('');
-      for (let t = 0; t < cleanTopics.length && guaranteed.length + cleanTopics[t].length <= rows * cols - 5; t++) {
-        guaranteed.push(...cleanTopics[t].split(''));
-        if (t >= 1) break;
+      const addWordLettersWithBudget = (w, reserveLeft) => {
+        if (!w) return;
+        if (guaranteed.length + w.length <= rows * cols - reserveLeft) {
+          guaranteed.push(...w.split(''));
+          return;
+        }
+        // Only add missing letters not yet in guaranteed pool so multiple everyday words fit cleanly
+        const have = {};
+        guaranteed.forEach((ch) => { have[ch] = (have[ch] || 0) + 1; });
+        const need = {};
+        w.split('').forEach((ch) => { need[ch] = (need[ch] || 0) + 1; });
+        const delta = [];
+        Object.keys(need).forEach((ch) => {
+          const diff = need[ch] - (have[ch] || 0);
+          for (let k = 0; k < diff; k++) delta.push(ch);
+        });
+        if (guaranteed.length + delta.length <= rows * cols - Math.max(0, reserveLeft - 2)) {
+          guaranteed.push(...delta);
+        }
+      };
+
+      for (let t = 0; t < cleanTopics.length && t < 2; t++) {
+        addWordLettersWithBudget(cleanTopics[t], 5);
       }
-      if (guaranteed.length <= rows * cols - 4) {
-        const anchor = COMMON_3_4_ANCHORS[Math.floor(rng() * COMMON_3_4_ANCHORS.length)];
-        guaranteed.push(...anchor.split(''));
+      for (let a = 0; a < 2; a++) {
+        const anchor = COMMON_3_5_ANCHORS[Math.floor(rng() * COMMON_3_5_ANCHORS.length)];
+        addWordLettersWithBudget(anchor, 3);
       }
 
-      // Shuffle positions near center & place guaranteed letters
       const cells = [];
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) cells.push({ r, c });
@@ -230,14 +353,14 @@
         board[cells[i].r][cells[i].c] = guaranteed[i];
       }
 
-      // Enforce healthy vowel floor (>= 7 vowels on 5x5)
+      // Enforce healthy vowel floor (>= 32% vowels -> 8+ on 5x5)
       let vowelCount = 0;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           if (VOWELS.includes(board[r][c])) vowelCount += 1;
         }
       }
-      for (let i = guaranteed.length; i < cells.length && vowelCount < Math.ceil(rows * cols * 0.30); i++) {
+      for (let i = guaranteed.length; i < cells.length && vowelCount < Math.ceil(rows * cols * 0.32); i++) {
         const cell = cells[i];
         if (!VOWELS.includes(board[cell.r][cell.c])) {
           board[cell.r][cell.c] = VOWELS[Math.floor(rng() * VOWELS.length)];
@@ -246,26 +369,44 @@
       }
 
       const check = countFormableWords(board, probePool);
-      if (check.count >= minGlobalWords) {
-        return { board, formableEstimate: check.count, attempt: attempt + 1 };
+      const commonCheck = countFormableWords(board, activeCommonPool);
+      if (check.count >= minGlobalWords && commonCheck.count >= minCommonWords) {
+        return {
+          board,
+          formableEstimate: check.count,
+          commonEstimate: commonCheck.count,
+          matchedSample: commonCheck.matched.slice(0, 8),
+          attempt: attempt + 1
+        };
       }
-      if (check.count > bestScore) {
-        bestScore = check.count;
+      if (check.count + commonCheck.count > bestScore) {
+        bestScore = check.count + commonCheck.count;
         bestBoard = board;
+        bestCommonEstimate = commonCheck.count;
       }
     }
 
-    return { board: bestBoard, formableEstimate: Math.max(0, bestScore), attempt: maxAttempts };
+    const finalCheck = countFormableWords(bestBoard, probePool);
+    return {
+      board: bestBoard,
+      formableEstimate: finalCheck.count,
+      commonEstimate: bestCommonEstimate,
+      attempt: maxAttempts
+    };
   }
 
   window.LexRaidBalance = {
     BALANCE,
     SEED_ENGLISH_WORDS,
+    TWO_LETTER_WHITELIST,
     normalizeWord,
     loadOfflineLexicon,
     isEnglishLexiconWord,
+    isCommonEnglishWord,
     isLexiconLoaded: () => lexiconLoaded,
+    getLexiconStatus: () => ({ ...lexiconStatus }),
     getLexiconSize: () => lexiconSet.size,
+    getCommonLexiconSize: () => commonSet.size,
     getChapterRules,
     calculateAttackMetrics,
     countFormableWords,

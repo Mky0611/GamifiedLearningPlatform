@@ -1,0 +1,43 @@
+{
+  "source": "en-wl/wordlist v2 (english-words.txt verified offline base) + curated everyday common vocabulary intersection + 24 high-frequency 2-letter words",
+  "license": "LICENSE_EN_WL.txt",
+  "fullCount": 77017,
+  "fullSha256": "78be2d1a0deba7b555e46da427631f6b8eb6898c905e347929b68ee1d9f0bde7",
+  "commonCount": 2789,
+  "commonSha256": "f69c37ab74821f452ef1b0cffd57c21bf2861dba659add1d2362cf9032136ad9",
+  "categoryIntersections": {
+    "daily_life": 412,
+    "family_people": 65,
+    "food_drink": 138,
+    "animals_nature": 341,
+    "verbs": 1079,
+    "adjectives_travel_school_work": 904,
+    "basic_tech": 878
+  },
+  "twoLetterWhitelist": [
+    "AM",
+    "AN",
+    "AS",
+    "AT",
+    "BE",
+    "BY",
+    "DO",
+    "GO",
+    "HE",
+    "IF",
+    "IN",
+    "IS",
+    "IT",
+    "ME",
+    "MY",
+    "NO",
+    "OF",
+    "ON",
+    "OR",
+    "SO",
+    "TO",
+    "UP",
+    "US",
+    "WE"
+  ]
+}

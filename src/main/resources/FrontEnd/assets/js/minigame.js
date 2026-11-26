@@ -62,7 +62,9 @@
     bossStatuses: {},
     timerPaused: false,
     skillDeck: 'knight',
-    meaningHintShown: false
+    meaningHintShown: false,
+    lexicalUnlocked: false,
+    wrongWords: []
   };
 
   function isQaEnvironment(){
@@ -216,21 +218,43 @@
       };
     }).filter((entry)=>entry.coreWord);
 
-    if(mapped.length) return mapped;
-
-    const fallback = normalizeWord(state.runtime?.coreWord || '');
-    if(fallback){
-      return [{
-        stageCoreWordId: state.runtime?.stageCoreWordId || null,
-        coreWord: fallback,
-        clueText: state.runtime?.clueText || state.runtime?.clue || ''
-      }];
+    if (!mapped.length) {
+      const fallback = normalizeWord(state.runtime?.coreWord || '');
+      if (fallback) {
+        mapped.push({
+          stageCoreWordId: state.runtime?.stageCoreWordId || null,
+          coreWord: fallback,
+          clueText: state.runtime?.clueText || state.runtime?.clue || 'Tìm topic words để mở clue rồi đoán core word.'
+        });
+      }
     }
+
+    // In multi-wave Preview Mode, append unused topic vocabulary words so solving one Core Word
+    // smoothly advances to a fresh Core Word with its own clue & board without repeating the same word.
+    if (!state.raidSessionId) {
+      const seen = new Set(mapped.map((e) => e.coreWord));
+      const vocab = Array.isArray(state.runtime?.vocabulary) ? state.runtime.vocabulary : [];
+      vocab.forEach((v) => {
+        const w = normalizeWord(v?.wordText || v?.normalizedText || v?.word || '');
+        if (w && w.length >= 3 && w.length <= 8 && !seen.has(w)) {
+          seen.add(w);
+          const meaning = v?.meaningVi || v?.meaningEn || null;
+          const pos = v?.partOfSpeech ? `${v.partOfSpeech} · ` : '';
+          mapped.push({
+            stageCoreWordId: null,
+            coreWord: w,
+            clueText: meaning ? `${pos}${meaning}` : `Từ khóa chủ đề gồm ${w.length} chữ cái — ghép các chữ trên bảng để tấn công.`
+          });
+        }
+      });
+    }
+
+    if(mapped.length) return mapped;
 
     return [{
       stageCoreWordId: null,
       coreWord: 'LEARN',
-      clueText: 'Tìm topic words để mở clue rồi đoán core word.'
+      clueText: 'Động từ chỉ việc học hỏi, tiếp thu kiến thức.'
     }];
   }
 
@@ -253,8 +277,13 @@
     const baseClue = getActiveCoreEntry()?.clueText || state.runtime?.clueText || state.runtime?.clue || 'Tìm topic words để mở clue rồi đoán core word.';
     if (!state.meaningHintShown) return baseClue;
     const word = getActiveCoreWord();
-    const firstLetter = word ? word[0] : '?';
-    return `Gợi ý: ${baseClue} (${word.length} chữ cái · Bắt đầu bằng "${firstLetter}")`;
+    const rules = getEffectiveChapterRules();
+    const allowFirstLetter = state.playMode === 'practice' || rules.chapterNo <= 1;
+    if (allowFirstLetter) {
+      const firstLetter = word ? word[0] : '?';
+      return `Gợi ý: ${baseClue} (${word.length} chữ cái · Bắt đầu bằng "${firstLetter}")`;
+    }
+    return `Gợi ý ngữ cảnh: ${baseClue} (${word.length} chữ cái)`;
   }
 
   function applyBoardFromPayload(board){
@@ -312,10 +341,16 @@
 
   function advanceCoreWord(){
     const entries = getCoreWordEntries();
+    state.meaningHintShown = false;
+    state.revealedIndexes = [];
     if(state.currentCoreIndex < entries.length - 1){
       state.currentCoreIndex += 1;
       state.guessed = false;
-      state.revealedIndexes = [];
+      return true;
+    }
+    if (!state.raidSessionId && entries.length > 1) {
+      state.currentCoreIndex = 0;
+      state.guessed = false;
       return true;
     }
     state.guessed = true;
@@ -482,7 +517,10 @@
 
   function isValidWord(word){
     const normalized = normalizeWord(word);
-    if(normalized.length < 3 || normalized.length > 12) return false;
+    if(normalized.length < 2 || normalized.length > 12) return false;
+    if (normalized.length === 2) {
+      return Boolean(window.LexRaidBalance && window.LexRaidBalance.TWO_LETTER_WHITELIST?.has(normalized));
+    }
     if (isTopicWord(normalized)) return true;
     return Boolean(window.LexRaidBalance && window.LexRaidBalance.isEnglishLexiconWord(normalized));
   }
@@ -1376,23 +1414,38 @@
       const coreDesc = coreMeta && (coreMeta.meaningVi || coreMeta.meaningEn)
         ? `${coreMeta.meaningVi || coreMeta.meaningEn}`
         : getActiveClueText();
-      const prompts = state.discoveredWords.slice(0, 4);
+      // Prioritize solved CORE words + Topic words for meaningful review
+      const sortedDiscovered = [...state.discoveredWords].sort((a, b) => {
+        const rank = (x) => (x.solvedAsCore ? 0 : (x.wordCategory === 'TOPIC' ? 1 : 2));
+        return rank(a) - rank(b);
+      });
+      const prompts = sortedDiscovered.slice(0, 5);
       const promptHtml = prompts.length
-        ? prompts.map((item) => {
+        ? prompts.map((item, idx) => {
             const desc = item.meaningText
               ? window.appApi.escapeHtml(item.meaningText)
               : 'Từ tiếng Anh hợp lệ — bấm Ôn Volcard để luyện sâu.';
-            return `<div class="review-prompt-chip"><strong>${window.appApi.escapeHtml(item.word)}</strong> <span class="small-muted">(${item.wordCategory})</span> · ${desc}</div>`;
+            return `<div class="review-prompt-chip" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <span><strong>${window.appApi.escapeHtml(item.word)}</strong> <span class="small-muted">(${item.wordCategory}${item.solvedAsCore ? ' · Đã giải' : ''})</span> · ${desc}</span>
+              <button type="button" class="pixel-chip-btn review-tts-btn" data-tts-word="${window.appApi.escapeHtml(item.word)}" style="min-height:28px;padding:2px 8px"><i class="bi bi-volume-up-fill"></i></button>
+            </div>`;
           }).join('')
-        : `<div class="review-prompt-chip">Core Word: <strong>${window.appApi.escapeHtml(coreWord)}</strong> — ${window.appApi.escapeHtml(coreDesc)}</div>`;
+        : `<div class="review-prompt-chip">Core Word hiện tại: <strong>${window.appApi.escapeHtml(coreWord)}</strong> — ${window.appApi.escapeHtml(coreDesc)}</div>`;
+      const wrongSummary = state.wrongWords.length
+        ? `<div class="small-muted">Cần ôn lại (${state.wrongWords.length}): <strong>${window.appApi.escapeHtml(state.wrongWords.slice(0, 5).join(', '))}</strong></div>`
+        : '';
       reviewPanel.style.display = 'grid';
       reviewPanel.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
           <strong><i class="bi bi-journal-bookmark-fill"></i> Sổ Tay Từ Vựng Trận Đấu</strong>
-          <span>Tìm thấy ${state.discoveredWords.length} từ (${state.topicCount} từ chủ đề · ${state.hintsUsedCount} gợi ý)</span>
+          <span>Tìm thấy ${state.discoveredWords.length} từ (${state.topicCount} chủ đề · ${state.hintsUsedCount} gợi ý)</span>
         </div>
-        <div class="small-muted">Core Word: <strong>${window.appApi.escapeHtml(coreWord)}</strong> · ${window.appApi.escapeHtml(coreDesc)}</div>
+        <div class="small-muted">Từ khóa đang giải: <strong>${window.appApi.escapeHtml(coreWord)}</strong> · ${window.appApi.escapeHtml(coreDesc)}</div>
+        ${wrongSummary}
         <div class="review-prompt-list">${promptHtml}</div>`;
+      reviewPanel.querySelectorAll('.review-tts-btn').forEach((btn) => {
+        btn.onclick = () => speakEnglishWord(btn.dataset.ttsWord);
+      });
     } else if (reviewPanel && stateType === 'PENDING') {
       reviewPanel.style.display = 'none';
     }
@@ -1512,8 +1565,9 @@
     state.isSubmitting = true;
     try {
       const word = normalizeWord(state.currentWord);
-      if(word.length < 3){
-        renderStatus('Từ phải có ít nhất 3 ký tự.');
+      const isWhitelist2 = word.length === 2 && isValidWord(word);
+      if(word.length < 2 || (word.length === 2 && !isWhitelist2)){
+        renderStatus('Từ phải có ít nhất 3 ký tự (hoặc từ 2 ký tự thông dụng như GO, DO, BE, UP, IN).');
         return;
       }
       if(!state.selected.length){
@@ -1531,7 +1585,15 @@
         return;
       }
       if(!isValidWord(word)){
-        flashInvalidSelection(invalidKeys, 'Từ không có trong từ điển tiếng Anh hoặc chủ đề, reset lựa chọn.');
+        if (!state.wrongWords.includes(word)) state.wrongWords.push(word);
+        const chNo = Number(state.stage?.chapterNo || 1);
+        if (chNo <= 1) {
+          state.combo = Math.max(1, Math.floor(state.combo / 2));
+        } else {
+          state.combo = 1;
+        }
+        fillBars();
+        flashInvalidSelection(invalidKeys, 'Từ chưa có trong từ điển tiếng Anh — giữ vững nhịp và thử lại!');
         return;
       }
 
@@ -1611,16 +1673,20 @@
           accepted = true;
           coreSolved = true;
           wordCategory = 'CORE';
-          state.score += 40 + metrics.totalDamage;
+          state.lexicalUnlocked = true;
+          const coreStrike = Math.max(45, metrics.totalDamage + 24);
+          damageDealt = coreStrike;
+          state.score += 45 + metrics.totalDamage;
           state.combo = nextCombo;
-          state.bossHp = 0;
           state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + Math.min(state.maxPreviewMana, manaGain + 2));
           state.topicCount += 1;
           if(word.length >= 5) state.longWord += 1;
+          state.bossShield = 0;
+          state.bossHp = Math.max(0, state.bossHp - coreStrike);
           const moved = advanceCoreWord();
           movedCoreFromSubmit = moved;
-          state.guessed = !moved;
-          state.revealedIndexes = moved ? [] : Array.from({ length: word.length }, (_, index) => index);
+          state.revealedIndexes = [];
+          state.meaningHintShown = false;
         } else {
           wordCategory = isTopicMatch ? 'TOPIC' : 'GLOBAL';
           const wave = getCurrentWaveEntry();
@@ -1688,22 +1754,24 @@
       if (typeof renderSkillBar === 'function') renderSkillBar();
 
       const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
-      if(coreSolved) {
-        if (movedCoreFromSubmit || hasMorePreviewWaves) {
-          triggerBossDeathAndNextWave();
-        } else {
+      if(state.bossHp <= 0){
+        if ((coreSolved && movedCoreFromSubmit) || advanceCoreWord() || hasMorePreviewWaves){
+          if (hasMorePreviewWaves) {
+            triggerBossDeathAndNextWave();
+          } else {
+            triggerBossDeathAndVictory();
+          }
+        }else{
           triggerBossDeathAndVictory();
         }
         return;
       }
 
-      if(state.bossHp <= 0){
-        const moved = advanceCoreWord();
-        if(moved || hasMorePreviewWaves){
-          triggerBossDeathAndNextWave();
-        }else{
-          triggerBossDeathAndVictory();
-        }
+      if (coreSolved && !state.raidSessionId) {
+        rebuildBoardForActiveCoreWord(true);
+        renderCore();
+        renderStatus(`Giải đúng Core Word ${word}! Đã mở khóa Lexical Judgment & chuyển sang từ khóa mới: ${getActiveCoreWord().length} chữ cái.`, 'success');
+        tickTimer(true);
         return;
       }
 
@@ -1782,30 +1850,54 @@
       }
 
       if(guess === target){
-        state.score += 80;
-        state.bossHp = 0;
+        const solvedMeta = findVocabMetadata(target);
+        const solvedMeaning = solvedMeta ? [solvedMeta.partOfSpeech, solvedMeta.meaningVi || solvedMeta.meaningEn].filter(Boolean).join(' · ') : getActiveClueText();
+        const solvedEntry = {
+          word: target,
+          wordCategory: 'CORE',
+          damageDealt: 55,
+          manaGain: 2,
+          meaningText: solvedMeaning || null,
+          hasMeaningCard: Boolean(solvedMeaning),
+          solvedAsCore: true
+        };
+        recordWordJournal(solvedEntry);
+        renderWordFeedback(solvedEntry);
+        state.lexicalUnlocked = true;
+        state.score += 65;
+        state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 2);
         state.bossShield = 0;
+        state.bossHp = Math.max(0, state.bossHp - 55);
         syncRendererState({ playAttack: true });
         setHeroMode('attack', 650);
         playFrameMonster(state.bossTheme, 'hit', 500);
 
-        const moved = advanceCoreWord();
+        advanceCoreWord();
+        state.meaningHintShown = false;
+        state.revealedIndexes = [];
         const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
-        state.guessed = !moved && !hasMorePreviewWaves;
-        state.revealedIndexes = (moved || hasMorePreviewWaves) ? [] : Array.from({ length: target.length }, (_, index) => index);
-
         fillBars();
         renderCore();
         renderObjectives();
+        if (typeof renderSkillBar === 'function') renderSkillBar();
 
-        if(moved || hasMorePreviewWaves){
-          renderStatus('Lexical Judgment! Core Word khai mở đòn kết liễu quái vật!', 'success');
-          triggerBossDeathAndNextWave();
-        }else{
-          triggerBossDeathAndVictory();
+        if(state.bossHp <= 0){
+          if(hasMorePreviewWaves){
+            renderStatus(`Core Word ${target} kết liễu quái vật! Đợt tiếp theo đang tiến vào...`, 'success');
+            triggerBossDeathAndNextWave();
+          }else{
+            triggerBossDeathAndVictory();
+          }
+          return;
         }
+
+        rebuildBoardForActiveCoreWord(true);
+        renderStatus(`Chính xác "${target}"! Mở khóa Lexical Judgment · Từ khóa mới đã sẵn sàng trên bảng.`, 'success');
+        resetSelection();
+        tickTimer(true);
         return;
       } else {
+        if (!state.wrongWords.includes(guess)) state.wrongWords.push(guess);
         renderStatus('Sai core word, path reset và boss phản công.');
         bossTurn('Đoán sai core word, boss phản công.');
       }
@@ -1833,8 +1925,8 @@
     if (skill.minCombo && state.combo < skill.minCombo) {
       return { ok: false, code: 'COMBO', reason: `${skill.name} yêu cầu Combo >= x${skill.minCombo} (hiện tại x${state.combo}).` };
     }
-    if (skill.requiresCoreClue && !(state.revealedIndexes.length >= 1 || state.coreGuess >= 1 || state.guessed)) {
-      return { ok: false, code: 'CORE_CLUE', reason: `${skill.name} yêu cầu mở ít nhất 1 manh mối Core Word trước.` };
+    if (skill.requiresCoreClue && !(state.revealedIndexes.length >= 1 || state.coreGuess >= 1 || state.guessed || state.lexicalUnlocked)) {
+      return { ok: false, code: 'CORE_CLUE', reason: `${skill.name} yêu cầu mở ít nhất 1 manh mối Core Word hoặc giải 1 từ khóa.` };
     }
     if (skill.manaCost > state.previewMana) {
       return { ok: false, code: 'NO_MANA', reason: `Chưa đủ Preview Mana (${state.previewMana}/${skill.manaCost}). Ghép từ hợp lệ để hồi MP!` };
@@ -2021,7 +2113,7 @@
   }
 
   async function init(){
-    window.LexRaidBalance?.loadOfflineLexicon();
+    const lexiconPromise = window.LexRaidBalance?.loadOfflineLexicon();
     await applyLoadout();
     window.appApi.renderNavUser();
     window.appApi.bindMobileNav();
@@ -2054,8 +2146,26 @@
     }catch(error){
       state.runtime = {
         coreWord: 'LEARN',
-        clueText: 'A verb about gaining knowledge.',
-        vocabulary: [{ wordText: 'learn' }, { wordText: 'raid' }, { wordText: 'clue' }, { wordText: 'word' }, { wordText: 'game' }, { wordText: 'battle' }],
+        clueText: 'Động từ chỉ việc học hỏi, tiếp thu kiến thức.',
+        coreWords: [
+          { coreWord: 'LEARN', clueText: 'Động từ chỉ việc học hỏi, tiếp thu kiến thức.' },
+          { coreWord: 'CACHE', clueText: 'Bộ nhớ đệm tăng tốc truy xuất dữ liệu.' },
+          { coreWord: 'QUERY', clueText: 'Câu truy vấn tìm kiếm hoặc trích xuất dữ liệu.' },
+          { coreWord: 'STACK', clueText: 'Ngăn xếp dữ liệu LIFO hoặc chồng tài liệu.' },
+          { coreWord: 'LIGHT', clueText: 'Ánh sáng hoặc tính từ mang nghĩa nhẹ, sáng sủa.' }
+        ],
+        vocabulary: [
+          { wordText: 'learn', partOfSpeech: 'verb', meaningVi: 'học hỏi, tiếp thu kiến thức' },
+          { wordText: 'cache', partOfSpeech: 'noun', meaningVi: 'bộ nhớ đệm' },
+          { wordText: 'query', partOfSpeech: 'noun', meaningVi: 'câu truy vấn' },
+          { wordText: 'stack', partOfSpeech: 'noun', meaningVi: 'ngăn xếp' },
+          { wordText: 'light', partOfSpeech: 'noun', meaningVi: 'ánh sáng; nhẹ' },
+          { wordText: 'raid', partOfSpeech: 'noun', meaningVi: 'cuộc đột kích' },
+          { wordText: 'clue', partOfSpeech: 'noun', meaningVi: 'manh mối, gợi ý' },
+          { wordText: 'word', partOfSpeech: 'noun', meaningVi: 'từ vựng' },
+          { wordText: 'game', partOfSpeech: 'noun', meaningVi: 'trò chơi' },
+          { wordText: 'battle', partOfSpeech: 'noun', meaningVi: 'trận chiến' }
+        ],
         objectives: [
           { objectiveType: 'TOPIC_WORD_COUNT', description: 'Tạo 3 topic words', targetValue: 3 },
           { objectiveType: 'CORE_GUESS_COUNT', description: 'Đoán core word 1 lần', targetValue: 1 }
@@ -2078,6 +2188,10 @@
     state.bossMaxShield = Number(state.stage?.boss?.baseShield || 30);
     state.bossHp = state.bossMaxHp;
     state.bossShield = state.bossMaxShield;
+
+    if (lexiconPromise) {
+      await lexiconPromise.catch(() => null);
+    }
 
     if(!applyBoardFromPayload(state.runtime?.board)){
       state.board = buildFallbackBoard(getActiveCoreWord(), state.stage.boardRows || 5, state.stage.boardCols || 5);
@@ -2119,6 +2233,13 @@
     fillBars();
     renderBoard(true);
     playFrameMonster(state.bossTheme, 'idle');
+    const lexStatus = window.LexRaidBalance?.getLexiconStatus?.();
+    if (lexStatus && lexStatus.status === 'DEGRADED_STARTER') {
+      renderStatus('Đang dùng từ điển khởi đầu giới hạn (chưa tải được toàn bộ từ điển offline).', 'warning', {
+        badge: 'Từ điển rút gọn',
+        isPreview: true
+      });
+    }
     // Start turn timer only after interactive board is mounted and rendered
     tickTimer(true);
 
