@@ -327,7 +327,30 @@ class CDPClient {
     })()`);
   }
 
+  async waitForSpritesReady() {
+    await this.eval(`new Promise((resolve) => {
+      const deadline = Date.now() + 3500;
+      function check() {
+        const imgs = Array.from(document.querySelectorAll('img')).filter((img) => {
+          const r = img.getBoundingClientRect();
+          const st = getComputedStyle(img);
+          return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 0 && r.height > 0;
+        });
+        const imgsOk = imgs.every((img) => img.complete && img.naturalWidth > 0);
+        const scene = typeof window.__LEX_RAID_SCENE_STATE__ === 'function' ? window.__LEX_RAID_SCENE_STATE__() : null;
+        const sceneOk = !document.getElementById('raidPhaserMount') || (scene && scene.heroDisplayH > 0 && scene.bossDisplayH > 0);
+        if ((imgsOk && sceneOk) || Date.now() >= deadline) {
+          resolve({ imgsOk, sceneOk });
+          return;
+        }
+        setTimeout(check, 80);
+      }
+      check();
+    })`);
+  }
+
   async screenshot(outFile, fullPage = false) {
+    await this.waitForSpritesReady();
     const res = await this.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: fullPage }, this.sessionId);
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
     fs.writeFileSync(outFile, Buffer.from(res.data, 'base64'));
@@ -961,29 +984,51 @@ async function main() {
       fail('P4-B.3 Mode / Chapter / 5-Wave check failed: ' + JSON.stringify({ practiceCheck, ch2Check }));
     }
 
-    // Cast Fire Blade + Frost Seal + Thunder Strike from Spell Deck
+    // Task 2 Check: Campaign keeps lore Chapter Boss while Practice/Random picks from Boss pool cleanly (deterministic in ?qa=1)
+    const encounterModesCheck = await cdp.eval(`(() => {
+      const campBoss = window.__LEX_RAID_TEST_HOOKS__.getWaveState().wavePlanThemes.find(w => w.waveIndex === 5)?.theme;
+      return { campBoss };
+    })()`);
+    await cdp.clickSelector('#modePracticeBtn');
+    await new Promise((r) => setTimeout(r, 120));
+    const practiceEncounterCheck = await cdp.eval(`({
+      pracBoss: window.__LEX_RAID_TEST_HOOKS__.getWaveState().wavePlanThemes.find(w => w.waveIndex === 5)?.theme,
+      mode: window.__LEX_RAID_TEST_HOOKS__.getPlayMode()
+    })`);
+    await cdp.clickSelector('#modeCampaignBtn');
+    await new Promise((r) => setTimeout(r, 120));
+    if (encounterModesCheck.campBoss !== 'crabby' || !practiceEncounterCheck.pracBoss || practiceEncounterCheck.mode !== 'practice') {
+      fail('Task 2 Random/Lore encounter mode check failed: ' + JSON.stringify({ encounterModesCheck, practiceEncounterCheck }));
+    }
+
+    // Cast Fire Blade + Frost Seal + Thunder Strike (recharging mana if needed so EVERY spell actually casts)
     await cdp.clickSelector('#skillDeckToggle');
     await new Promise((r) => setTimeout(r, 100));
     await cdp.clickSelector('[data-skill-id="fire_blade"]');
     await new Promise((r) => setTimeout(r, 1300));
     await cdp.clickSelector('[data-skill-id="frost_seal"]');
     await new Promise((r) => setTimeout(r, 1300));
-    // Recharge mana via a valid board word if needed, then cast thunder_strike
-    await submitTopicWordOnBoard().catch(() => null);
-    await new Promise((r) => setTimeout(r, 500));
+    for (let m = 0; m < 4; m++) {
+      const ready = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
+      if (ready) break;
+      await submitTopicWordOnBoard().catch(() => null);
+      await new Promise((r) => setTimeout(r, 450));
+    }
     const thunderBtnReady = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
+    let thunderCast = false;
     if (thunderBtnReady) {
       await cdp.clickSelector('[data-skill-id="thunder_strike"]');
       await new Promise((r) => setTimeout(r, 1300));
+      thunderCast = true;
     }
     const spellState = await cdp.eval(`({
       skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(),
       scene: window.__LEX_RAID_SCENE_STATE__(),
       statusHtml: document.getElementById('bossStatusPills')?.innerHTML || '',
-      thunderTried: ${JSON.stringify(true)}
+      thunderCast: ${JSON.stringify(thunderCast)}
     })`);
-    if (!spellState.skill.bossStatuses.burn || !spellState.skill.bossStatuses.frost || spellState.scene.fsmState !== 'IDLE' || !spellState.statusHtml.includes('Thiêu đốt')) {
-      fail('P4-B.3 Fire Blade / Frost Seal status check failed: ' + JSON.stringify(spellState));
+    if (!thunderCast || !spellState.skill.bossStatuses.burn || !spellState.skill.bossStatuses.frost || !spellState.skill.bossStatuses.stun || !(spellState.skill.cooldowns.thunder_strike > 0) || spellState.scene.fsmState !== 'IDLE' || spellState.scene.activeVfxCount !== 0 || !spellState.statusHtml.includes('Thiêu đốt')) {
+      fail('P4-B.3 Fire Blade / Frost Seal / Thunder Strike VFX check failed: ' + JSON.stringify(spellState));
     }
 
     // Rejection & 2-letter validation & Continuous Core Word + Full 5-Wave Valid Action Playthrough
@@ -1066,20 +1111,25 @@ async function main() {
 
     while (guardSteps < 55) {
       guardSteps++;
-      const st = await cdp.eval(`({
-        finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
-        transitioning: Boolean(window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy && window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()),
-        wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
-        core: window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord(),
-        revealed: window.__LEX_RAID_TEST_HOOKS__.getRevealedCount(),
-        bossPanelChapter: document.querySelector('.boss-panel')?.classList.contains('is-chapter-boss'),
-        crownVisible: getComputedStyle(document.getElementById('bossCrownBadge') || document.body).display !== 'none',
-        entranceVisible: document.getElementById('bossEntranceBanner')?.classList.contains('is-visible')
-      })`);
+      const st = await cdp.eval(`(() => {
+        const b = document.getElementById('bossEntranceBanner');
+        const br = b ? b.getBoundingClientRect() : null;
+        const bs = b ? getComputedStyle(b) : null;
+        return {
+          finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
+          transitioning: Boolean(window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy && window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()),
+          wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
+          core: window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord(),
+          revealed: window.__LEX_RAID_TEST_HOOKS__.getRevealedCount(),
+          bossPanelChapter: document.querySelector('.boss-panel')?.classList.contains('is-chapter-boss'),
+          crownVisible: getComputedStyle(document.getElementById('bossCrownBadge') || document.body).display !== 'none',
+          entranceVisible: Boolean(b && b.classList.contains('is-visible') && bs && parseFloat(bs.opacity) > 0 && br && br.width > 50 && br.height > 20 && (b.innerText || '').trim().length > 4)
+        };
+      })()`);
       if (st.wave.waveIndex >= 2) sawWave2Natural = true;
       if (st.wave.waveIndex === 5) {
         if (st.bossPanelChapter && st.crownVisible) sawWave5BossHud = true;
-        if (st.entranceVisible || st.wave.bossRarity === 'CHAPTER_BOSS') sawWave5BossEntrance = true;
+        if (st.entranceVisible) sawWave5BossEntrance = true;
       }
       if (st.finished) break;
 
@@ -1110,31 +1160,53 @@ async function main() {
       } else {
         await submitTopicWordOnBoard().catch(() => null);
       }
-      await new Promise((r) => setTimeout(r, 950));
+      // Fine-grained sub-poll catches #bossEntranceBanner genuinely rendered during Wave 4 -> Wave 5 transition
+      for (let tick = 0; tick < 8; tick++) {
+        await new Promise((r) => setTimeout(r, 120));
+        const probe = await cdp.eval(`(() => {
+          const b = document.getElementById('bossEntranceBanner');
+          const br = b ? b.getBoundingClientRect() : null;
+          const bs = b ? getComputedStyle(b) : null;
+          const w = window.__LEX_RAID_TEST_HOOKS__.getWaveState();
+          return {
+            waveIndex: w.waveIndex,
+            entranceVisible: Boolean(b && b.classList.contains('is-visible') && bs && parseFloat(bs.opacity) > 0 && br && br.width > 50 && br.height > 20 && (b.innerText || '').trim().length > 4)
+          };
+        })()`);
+        if (probe.waveIndex === 5 && probe.entranceVisible) {
+          sawWave5BossEntrance = true;
+        }
+      }
     }
 
     const wave5AndFinishCheck = await cdp.eval(`({
       finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
       wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
+      bossHp: window.__LEX_RAID_TEST_HOOKS__.getBossHp(),
       finishVisible: document.getElementById('finishOverlay')?.classList.contains('is-open'),
+      finishTitle: document.getElementById('finishTitle')?.innerText || '',
+      finishHeading: document.getElementById('finishHeading')?.innerText || '',
+      star1Active: document.getElementById('finishStar1')?.classList.contains('is-active'),
       reviewVisible: Boolean(document.getElementById('finishReviewPanel')?.innerText.includes('Sổ Tay Từ Vựng')),
       score: window.__LEX_RAID_TEST_HOOKS__.getScore(),
       activeVfx: window.__LEX_RAID_SCENE_STATE__()?.activeVfxCount ?? -1
     })`);
-    if (!sawWave2Natural || !sawCoreRotation || !sawWave5BossHud || !sawWave5BossEntrance || !wave5AndFinishCheck.finished || !wave5AndFinishCheck.finishVisible || !wave5AndFinishCheck.reviewVisible) {
-      fail('P4-B.3 Full 5-wave valid playthrough failed: ' + JSON.stringify({
+    if (!sawWave2Natural || !sawCoreRotation || !sawWave5BossHud || !sawWave5BossEntrance || !wave5AndFinishCheck.finished || !wave5AndFinishCheck.finishVisible || !wave5AndFinishCheck.reviewVisible || wave5AndFinishCheck.bossHp !== 0 || wave5AndFinishCheck.finishTitle.toUpperCase() !== 'VICTORY' || !wave5AndFinishCheck.finishHeading.includes('Boss Defeated') || !wave5AndFinishCheck.star1Active || wave5AndFinishCheck.score <= 0) {
+      fail('P4-B.3 Full 5-wave valid playthrough failed real Victory / Boss Entrance checks: ' + JSON.stringify({
         sawWave2Natural, sawCoreRotation, sawWave5BossHud, sawWave5BossEntrance, guardSteps, wave5AndFinishCheck
       }));
     }
     await cdp.screenshot(path.join(OUTPUT_DIR, 'battle_p4b3_wave5_victory_desktop.png'), false);
 
-    // 5) Defeat overlay check via Boss Counterattacks
+    // 5) True HP=0 Defeat state check (Practice mode bypasses turn limit so Boss turns drain Player HP to 0)
     await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1400);
-    for (let i = 0; i < 12; i++) {
+    await cdp.clickSelector('#modePracticeBtn');
+    await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.setChapterPreview(4)`);
+    for (let i = 0; i < 25; i++) {
       const done = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.isFinished()`);
       if (done) break;
       await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.triggerBossTurn()`);
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 150));
     }
     const defeatCheck = await cdp.eval(`({
       finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
@@ -1144,8 +1216,8 @@ async function main() {
       title: document.getElementById('finishTitle')?.innerText || '',
       heading: document.getElementById('finishHeading')?.innerText || ''
     })`);
-    if (!defeatCheck.finished || !defeatCheck.finishOpen || (defeatCheck.hp > 0 && !defeatCheck.title.includes('ENDED'))) {
-      fail('P4-B.3 Defeat / Battle Ended state check failed: ' + JSON.stringify(defeatCheck));
+    if (!defeatCheck.finished || !defeatCheck.finishOpen || defeatCheck.hp !== 0 || !defeatCheck.title.toUpperCase().includes('ENDED') || defeatCheck.heading.includes('Boss Defeated')) {
+      fail('P4-B.3 True HP=0 Defeat state check failed: ' + JSON.stringify(defeatCheck));
     }
 
     // 6) SEO & 404 Route checks

@@ -337,4 +337,115 @@ class LexRaidGlobalLexiconTest {
         assertFalse(blockedRes.isAccepted());
         assertEquals("INVALID", blockedRes.getWordCategory());
     }
+
+    @Test
+    void persistsAuthoritativeNextBoardOnGuessCoreWordAndAcceptsSubsequentSubmitWord() {
+        VocabularyWord wordLearn = new VocabularyWord();
+        wordLearn.setWordId(61L);
+        wordLearn.setWordText("LEARN");
+        wordLearn.setNormalizedText("LEARN");
+        wordLearn.setMeaningVi("hoc hoi");
+
+        VocabularyWord wordStack = new VocabularyWord();
+        wordStack.setWordId(62L);
+        wordStack.setWordText("STACK");
+        wordStack.setNormalizedText("STACK");
+        wordStack.setMeaningVi("ngan xep");
+
+        StageCoreWord cw1 = new StageCoreWord();
+        cw1.setStageCoreWordId(301L);
+        cw1.setRevealOrder(1);
+        cw1.setWord(wordLearn);
+        cw1.setBonusDamage(40);
+        cw1.setBonusXp(25);
+
+        StageCoreWord cw2 = new StageCoreWord();
+        cw2.setStageCoreWordId(302L);
+        cw2.setRevealOrder(2);
+        cw2.setWord(wordStack);
+        cw2.setBonusDamage(50);
+        cw2.setBonusXp(35);
+
+        VocabularyWord wordCache = new VocabularyWord();
+        wordCache.setWordId(63L);
+        wordCache.setWordText("CACHE");
+        wordCache.setNormalizedText("CACHE");
+        wordCache.setMeaningVi("bo nho dem");
+
+        when(stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(1L)).thenReturn(List.of(cw1, cw2));
+        when(vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(20L))
+                .thenReturn(List.of(wordLearn, wordCache, wordStack));
+
+        // Maintain live authoritative snapshot stack across start/guessCoreWord/submitWord
+        final java.util.concurrent.atomic.AtomicReference<BoardSnapshot> latestSnap =
+                new java.util.concurrent.atomic.AtomicReference<>(snapshot);
+        when(boardSnapshotRepository.findTopByRaidSessionRaidSessionIdOrderBySnapshotNoDesc(200L))
+                .thenAnswer(inv -> Optional.ofNullable(latestSnap.get()));
+        when(boardSnapshotRepository.countByRaidSessionRaidSessionId(200L))
+                .thenAnswer(inv -> (long) latestSnap.get().getSnapshotNo());
+        when(boardSnapshotRepository.save(any())).thenAnswer(inv -> {
+            BoardSnapshot saved = inv.getArgument(0);
+            latestSnap.set(saved);
+            return saved;
+        });
+
+        org.example.dto.LexRaidGuessCoreWordRequest guessReq = new org.example.dto.LexRaidGuessCoreWordRequest();
+        guessReq.setStageCoreWordId(301L);
+        guessReq.setGuessedWord("LEARN");
+
+        LexRaidActionResultDto guessRes = service.guessCoreWord(200L, guessReq);
+        assertTrue(guessRes.isAccepted());
+        assertEquals("STACK", guessRes.getActiveCoreWord());
+        assertNotNull(guessRes.getBoard());
+        assertEquals(5, guessRes.getBoard().size());
+        assertEquals("POST_CORE_GUESS", latestSnap.get().getReasonCode());
+
+        // Step A: Form non-finishing topic word "CACHE" from returned authoritative nextBoard
+        List<WordPathTileDto> cachePath = findWordPathOnBoard(guessRes.getBoard(), "CACHE");
+        when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "CACHE"))
+                .thenReturn(Optional.of(wordCache));
+        LexRaidSubmitWordRequest submitCacheReq = new LexRaidSubmitWordRequest();
+        submitCacheReq.setSubmittedWord("CACHE");
+        submitCacheReq.setPath(cachePath);
+        submitCacheReq.setBoardJson("[[\"Z\",\"Z\",\"Z\",\"Z\",\"Z\"]]");
+
+        LexRaidActionResultDto cacheRes = service.submitWord(200L, submitCacheReq);
+        assertTrue(cacheRes.isAccepted(), "submitWord must validate against persisted nextBoard from guessCoreWord");
+        assertEquals("TOPIC", cacheRes.getWordCategory());
+        assertEquals("POST_SUBMIT", latestSnap.get().getReasonCode());
+
+        // Step B: Solve final Core Word "STACK" using the persisted POST_SUBMIT snapshot -> WON
+        List<WordPathTileDto> stackPath = findWordPathOnBoard(cacheRes.getBoard(), "STACK");
+        when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "STACK"))
+                .thenReturn(Optional.of(wordStack));
+        LexRaidSubmitWordRequest submitAfterCore = new LexRaidSubmitWordRequest();
+        submitAfterCore.setSubmittedWord("STACK");
+        submitAfterCore.setPath(stackPath);
+        submitAfterCore.setBoardJson("[[\"Z\",\"Z\",\"Z\",\"Z\",\"Z\"]]");
+
+        LexRaidActionResultDto submitRes = service.submitWord(200L, submitAfterCore);
+        assertTrue(submitRes.isAccepted(), "submitWord must validate against persisted POST_SUBMIT board");
+        assertEquals("CORE", submitRes.getWordCategory());
+        assertEquals("WON", submitRes.getRaidStatus());
+    }
+
+    private List<WordPathTileDto> findWordPathOnBoard(List<List<String>> board, String word) {
+        List<WordPathTileDto> path = new java.util.ArrayList<>();
+        boolean[][] used = new boolean[board.size()][board.get(0).size()];
+        for (char ch : word.toCharArray()) {
+            boolean found = false;
+            for (int r = 0; r < board.size() && !found; r++) {
+                List<String> row = board.get(r);
+                for (int c = 0; c < row.size() && !found; c++) {
+                    if (!used[r][c] && String.valueOf(ch).equalsIgnoreCase(row.get(c))) {
+                        used[r][c] = true;
+                        path.add(tile(r, c, row.get(c)));
+                        found = true;
+                    }
+                }
+            }
+            assertTrue(found, "Persisted board must contain letter " + ch + " for word " + word);
+        }
+        return path;
+    }
 }

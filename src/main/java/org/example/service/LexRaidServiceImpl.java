@@ -555,7 +555,21 @@ public class LexRaidServiceImpl implements LexRaidService {
         raidSessionRepository.save(raidSession);
         StageCoreWord nextActiveCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
         int activeCoreIndex = resolveActiveCoreIndex(coreWords, nextActiveCoreWord);
-        List<VocabularyWord> vocabulary = vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(stage.getVocabularySet().getVocabularySetId());
+        VocabularySet set = stage.getVocabularySet();
+        List<VocabularyWord> vocabulary = set != null
+                ? vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(set.getVocabularySetId())
+                : List.of();
+        List<List<String>> currentAuthoritativeBoard = resolveAuthoritativeBoard(raidSession, stage, vocabulary, stageCoreWord);
+        long nextSeedSalt = solvedIds.size() * 31L + defaultIfNull(raidSession.getCurrentRound(), 1);
+        List<List<String>> nextBoard = (correct && !finalizeWonNow)
+                ? buildBoard(stage, vocabulary, nextActiveCoreWord, nextSeedSalt)
+                : currentAuthoritativeBoard;
+        if (correct && !finalizeWonNow) {
+            LexRaidSessionSyncRequest serverSnapshot = new LexRaidSessionSyncRequest();
+            serverSnapshot.setBoardJson(toBoardJson(nextBoard));
+            serverSnapshot.setCurrentRound(raidSession.getCurrentRound());
+            saveSnapshotIfPresent(raidSession, serverSnapshot, "POST_CORE_GUESS");
+        }
         return LexRaidActionResultDto.builder()
                 .accepted(correct)
                 .actionType("GUESS_CORE_WORD")
@@ -581,7 +595,7 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .activeClueText(resolveClueText(nextActiveCoreWord))
                 .coreSolved(correct)
                 .coreWords(toCoreWordDtos(coreWords, solvedIds))
-                .board(buildBoard(stage, vocabulary, nextActiveCoreWord))
+                .board(nextBoard)
                 .session(toSessionDto(raidSession))
                 .build();
     }
@@ -1137,11 +1151,16 @@ public class LexRaidServiceImpl implements LexRaidService {
     }
 
     private List<List<String>> buildBoard(Stage stage, List<VocabularyWord> vocabulary, StageCoreWord coreWord) {
+        return buildBoard(stage, vocabulary, coreWord, 0L);
+    }
+
+    private List<List<String>> buildBoard(Stage stage, List<VocabularyWord> vocabulary, StageCoreWord coreWord, long seedSalt) {
         int rows = stage.getBoardRows() != null ? stage.getBoardRows() : 5;
         int cols = stage.getBoardCols() != null ? stage.getBoardCols() : 5;
         int totalCells = rows * cols;
 
-        Random random = new Random(stage.getStageId() != null ? stage.getStageId() : 1L);
+        long baseSeed = stage.getStageId() != null ? stage.getStageId() : 1L;
+        Random random = new Random(baseSeed + seedSalt * 101L);
 
         // Step 1: Initialize all board cells with frequency-balanced English letters (42% vowels)
         List<List<String>> board = new ArrayList<>();

@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /app/account
-Disallow: /app/auth
-Disallow: /app/typography
 
 Sitemap: https://gamified-learning-platform-sandy.vercel.app/sitemap.xml

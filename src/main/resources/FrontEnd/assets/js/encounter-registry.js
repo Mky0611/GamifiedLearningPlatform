@@ -16,7 +16,7 @@
     NORMAL: ['crabby', 'slime', 'seashell', 'pink', 'fierce'],
     ELITE: ['fierce', 'pink', 'skeleton', 'totem1', 'cannon'],
     GUARDIAN: ['totem2', 'totem3', 'cannon', 'skeleton', 'crabby'],
-    CHAPTER_BOSS: ['captain', 'totem3', 'skeleton']
+    CHAPTER_BOSS: ['captain', 'totem3', 'skeleton', 'crabby', 'cannon']
   };
 
   const MONSTER_TRAITS = {
@@ -134,18 +134,24 @@
     };
   }
 
-  function generateFiveWavePlan({ chapterNo = 1, seed = 101, chapterBossTheme = null } = {}) {
+  function generateFiveWavePlan({ chapterNo = 1, seed = 101, chapterBossTheme = null, encounterMode = 'campaign', lockLoreBoss = true } = {}) {
     const ch = Math.max(1, Number(chapterNo || 1));
     const rng = mulberry32(seed + ch * 409);
     const plan = [];
     let prevTheme = null;
+    const preserveLoreBoss = Boolean(lockLoreBoss && encounterMode !== 'random' && chapterBossTheme);
 
     for (let i = 0; i < WAVE_TIERS.length; i++) {
       const tier = WAVE_TIERS[i];
       let theme;
       if (tier.rarity === 'CHAPTER_BOSS') {
-        const fallbackBoss = POOLS.CHAPTER_BOSS[(ch - 1) % POOLS.CHAPTER_BOSS.length];
-        theme = chapterBossTheme || fallbackBoss;
+        if (preserveLoreBoss) {
+          theme = chapterBossTheme;
+        } else {
+          const bossPool = POOLS.CHAPTER_BOSS.filter((t) => t !== prevTheme);
+          const pickIdx = Math.floor(rng() * bossPool.length);
+          theme = bossPool[pickIdx] || POOLS.CHAPTER_BOSS[0];
+        }
       } else {
         const pool = POOLS[tier.rarity].filter((t) => t !== prevTheme);
         theme = pool[Math.floor(rng() * pool.length)] || POOLS[tier.rarity][0];

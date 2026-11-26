@@ -24,12 +24,12 @@ function get(urlPath) {
     if (!cond) failures.push(msg);
   };
 
-  // 1. robots.txt & sitemap.xml & 404
+  // 1. robots.txt (must NOT disallow noindex pages so crawlers can read <meta name="robots" content="noindex">), sitemap.xml & 404
   const robots = await get('/robots.txt');
   check(robots.status === 200, `/robots.txt status ${robots.status}`);
   check(robots.body.includes(`Sitemap: ${PROD_ORIGIN}/sitemap.xml`), 'robots missing canonical sitemap');
-  check(robots.body.includes('Disallow: /app/account'), 'robots missing /app/account disallow');
-  check(robots.body.includes('Disallow: /app/auth'), 'robots missing /app/auth disallow');
+  check(!robots.body.includes('Disallow: /app/account') && !robots.body.includes('Disallow: /app/auth'),
+    'robots.txt must allow crawlers to fetch public noindex routes so they can read meta robots=noindex');
 
   const sitemap = await get('/sitemap.xml');
   check(sitemap.status === 200, `/sitemap.xml status ${sitemap.status}`);

@@ -595,15 +595,22 @@
     }
     const ch = Number(state.stage?.chapterNo || 1);
     const paramSeed = Number(query.get('seed'));
+    const wantsRandomEncounter = state.playMode === 'practice' || query.get('encounter') === 'random';
+    const encounterMode = query.get('encounter') === 'random'
+      ? 'random'
+      : (state.playMode === 'practice' ? 'practice' : 'campaign');
+    const lockLoreBoss = !wantsRandomEncounter && Boolean(detectBossTheme());
     const seed = (Number.isFinite(paramSeed) && paramSeed > 0)
       ? paramSeed
       : (isQaEnvironment()
-        ? Number(state.stage?.stageId || 1) * 97 + ch * 31
+        ? Number(state.stage?.stageId || 1) * 97 + ch * 31 + (encounterMode === 'practice' ? 19 : 0)
         : ((Date.now() ^ Math.floor(Math.random() * 1000000)) >>> 0));
     state.wavePlan = window.LexRaidEncounters.generateFiveWavePlan({
       chapterNo: ch,
       seed,
-      chapterBossTheme: detectBossTheme()
+      chapterBossTheme: detectBossTheme(),
+      encounterMode,
+      lockLoreBoss
     });
     state.totalWaves = state.wavePlan.length || 5;
   }
@@ -681,6 +688,12 @@
     }
     const rules = getEffectiveChapterRules();
     state.hintCharges = rules.freeHints;
+    if (!state.raidSessionId && state.turn === 0 && !state.discoveredWords.length && !state.finished) {
+      initEncounterPlan();
+      applyWaveEncounter(1, true);
+      fillBars();
+      syncRendererState();
+    }
     updateHintControls();
     parseStageChip();
     tickTimer(true);

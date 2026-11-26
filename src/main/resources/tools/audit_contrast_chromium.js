@@ -85,9 +85,20 @@ class CDP {
 const AUDIT_SCRIPT = `(() => {
   function parseColor(str) {
     if (!str) return null;
+    const hex = str.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hex) {
+      let h = hex[1];
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16), a: 1 };
+    }
     const m = str.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/);
     if (!m) return null;
     return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] };
+  }
+  function extractGradientStops(bgImage) {
+    if (!bgImage || bgImage === 'none' || !bgImage.includes('gradient')) return [];
+    const tokens = bgImage.match(/rgba?\\([^)]+\\)|#[0-9a-fA-F]{3,6}/g) || [];
+    return tokens.map(parseColor).filter((c) => c && c.a > 0);
   }
   function blend(fg, bg) {
     const a = fg.a;
@@ -104,58 +115,97 @@ const AUDIT_SCRIPT = `(() => {
     const l1 = lum(c1), l2 = lum(c2);
     return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
   }
-  function getEffectiveBg(el) {
-    const chain = [];
+  function getEffectiveBgCandidates(el) {
+    const layers = [];
     let cur = el;
     while (cur && cur.nodeType === 1) {
       const st = getComputedStyle(cur);
+      const op = Math.max(0, Math.min(1, parseFloat(st.opacity ?? '1')));
       const bg = parseColor(st.backgroundColor);
-      if (bg && bg.a > 0) chain.unshift(bg);
+      const gradStops = extractGradientStops(st.backgroundImage);
+      layers.unshift({ bg: bg && bg.a > 0 ? { ...bg, a: bg.a * op } : null, gradStops: gradStops.map((g) => ({ ...g, a: g.a * op })) });
       cur = cur.parentElement;
     }
-    let acc = { r: 243, g: 238, b: 220, a: 1 };
+    let base = { r: 243, g: 238, b: 220, a: 1 };
     const docTheme = document.documentElement.dataset.theme;
-    if (docTheme === 'moonlight' || docTheme === 'combat') acc = { r: 33, g: 42, b: 52, a: 1 };
-    for (const c of chain) acc = blend(c, acc);
-    return acc;
+    if (docTheme === 'moonlight' || docTheme === 'combat') base = { r: 33, g: 42, b: 52, a: 1 };
+    let candidates = [base];
+    for (const layer of layers) {
+      if (layer.bg) {
+        candidates = candidates.map((b) => blend(layer.bg, b));
+      }
+      if (layer.gradStops.length > 0) {
+        const next = [];
+        for (const baseC of candidates.slice(0, 2)) {
+          for (const stop of layer.gradStops.slice(0, 4)) next.push(blend(stop, baseC));
+        }
+        candidates = next;
+      }
+    }
+    return candidates;
+  }
+  function getEffectiveOpacity(el) {
+    let op = 1;
+    let cur = el;
+    while (cur && cur.nodeType === 1) {
+      op *= Math.max(0, Math.min(1, parseFloat(getComputedStyle(cur).opacity ?? '1')));
+      cur = cur.parentElement;
+    }
+    return op;
   }
 
-  const els = document.querySelectorAll('h1,h2,h3,h4,p,a,button,label,span,strong,li,td,th,input,select,textarea,.section-title,.section-text,.muted,.small-muted,.quiz-option,.stat-pill,.hero-fact,.auth-cardlet,.topic-item,.set-item,.flash-meaning,.flash-word,.cefr-pill,.pixel-badge,.tile,.board-tile');
+  const els = document.querySelectorAll('h1,h2,h3,h4,p,a,button,label,span,strong,li,td,th,input,select,textarea,.section-title,.section-text,.muted,.small-muted,.quiz-option,.choice-btn,.option-card,.stat-pill,.hero-fact,.auth-cardlet,.topic-item,.set-item,.flash-meaning,.flash-word,.cefr-pill,.pixel-badge,.tile,.board-tile');
   const issues = [];
   const seen = new Set();
   for (const el of els) {
     const st = getComputedStyle(el);
-    if (st.display === 'none' || st.visibility === 'hidden' || parseFloat(st.opacity) === 0) continue;
+    const effOp = getEffectiveOpacity(el);
+    if (st.display === 'none' || st.visibility === 'hidden' || effOp === 0) continue;
     const rect = el.getBoundingClientRect();
     if (rect.width < 4 || rect.height < 4) continue;
-    const hasDirectText = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0) || el.tagName === 'INPUT';
+    const isInputLike = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA';
+    const hasDirectText = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0) || isInputLike;
     if (!hasDirectText) continue;
-    if (el.disabled) continue;
 
+    const bgCandidates = getEffectiveBgCandidates(el);
+    const checks = [];
     const fgRaw = parseColor(st.color);
-    if (!fgRaw) continue;
-    const bg = getEffectiveBg(el);
-    const fg = blend(fgRaw, bg);
-    const ratio = contrast(fg, bg);
+    if (fgRaw) checks.push({ label: 'text', raw: { ...fgRaw, a: fgRaw.a * effOp }, txt: (el.innerText || el.value || '').trim().slice(0, 45) });
+    if (isInputLike && el.placeholder && !el.value) {
+      const phColor = parseColor(getComputedStyle(el, '::placeholder').color);
+      if (phColor) checks.push({ label: 'placeholder', raw: { ...phColor, a: phColor.a * effOp }, txt: '[placeholder] ' + el.placeholder.slice(0, 35) });
+    }
+
     const fs = parseFloat(st.fontSize) || 14;
     const fw = parseInt(st.fontWeight, 10) || 400;
     const isLarge = fs >= 24 || (fs >= 18.66 && fw >= 700);
     const minReq = isLarge ? 3.0 : 4.5;
-    if (ratio < minReq) {
-      const txt = (el.tagName === 'INPUT' ? el.placeholder : el.innerText || '').trim().slice(0, 45);
-      const key = el.tagName + '|' + el.className + '|' + txt;
-      if (!seen.has(key)) {
-        seen.add(key);
-        issues.push({
-          tag: el.tagName,
-          id: el.id || '',
-          cls: String(el.className || '').slice(0, 50),
-          text: txt,
-          fg: st.color,
-          bg: 'rgb(' + bg.r + ',' + bg.g + ',' + bg.b + ')',
-          ratio: Number(ratio.toFixed(2)),
-          req: minReq
-        });
+
+    for (const chk of checks) {
+      let worstRatio = Infinity;
+      let worstBg = bgCandidates[0];
+      for (const bg of bgCandidates) {
+        const fg = blend(chk.raw, bg);
+        const r = contrast(fg, bg);
+        if (r < worstRatio) { worstRatio = r; worstBg = bg; }
+      }
+      if (worstRatio < minReq) {
+        const key = chk.label + '|' + el.tagName + '|' + el.className + '|' + chk.txt;
+        if (!seen.has(key)) {
+          seen.add(key);
+          issues.push({
+            kind: chk.label,
+            tag: el.tagName,
+            id: el.id || '',
+            cls: String(el.className || '').slice(0, 45),
+            text: chk.txt,
+            disabled: Boolean(el.disabled),
+            fg: st.color,
+            bg: 'rgb(' + worstBg.r + ',' + worstBg.g + ',' + worstBg.b + ')',
+            ratio: Number(worstRatio.toFixed(2)),
+            req: minReq
+          });
+        }
       }
     }
   }
@@ -203,11 +253,21 @@ const AUDIT_SCRIPT = `(() => {
           totalIssues += resFlip.issueCount;
           console.log(`${p}-flipped [${resFlip.theme}]: issues=${resFlip.issueCount}`);
           if (resFlip.issueCount > 0) resFlip.issues.forEach((it) => console.log('  ->', JSON.stringify(it)));
+        } else if (p === 'auth') {
+          await cdp.eval(`document.getElementById('registerTab')?.click()`);
+          await new Promise((r) => setTimeout(r, 180));
+          const resReg = await cdp.eval(AUDIT_SCRIPT);
+          totalIssues += resReg.issueCount;
+          console.log(`${p}-register [${resReg.theme}]: issues=${resReg.issueCount}`);
+          if (resReg.issueCount > 0) resReg.issues.forEach((it) => console.log('  ->', JSON.stringify(it)));
         }
       }
     }
   } finally {
     await cdp.close();
+  }
+  if (totalIssues === 0) {
+    console.log('SCOPED CONTRAST AUDIT PASS (DOM text, gradient stops, opacity blending, placeholders & tested interactive states; bitmap sprite art excluded).');
   }
   process.exit(totalIssues > 0 ? 1 : 0);
 })();
