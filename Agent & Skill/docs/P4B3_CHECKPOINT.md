@@ -1,14 +1,13 @@
 # LEX RAID — P4-B.3 CHECKPOINT
 
 **Nhánh:** `feature/p4b3-rpg-combat-learning`  
-**Cập nhật:** 2026-11-25  
+**Cập nhật:** 2026-11-26  
 
-## Trạng thái từng Milestone (P4-B.3)
-- [x] **Milestone A** (`0d94b86`): Mở rộng đấu trường (`960x360`, `.battle-stage` `727x273`), tăng scale Hero (`~1.56x`, `heroDisplayH=300`) & Boss theo độ hiếm (`1.0x..1.36x`), compact HUD, tile font `Be Vietnam Pro`.
-- [x] **Milestone B** (`d917f37`): Bộ từ điển tiếng Anh offline đã kiểm chứng `en-wl/wordlist/v2` (`76,993` từ tại `english-words.txt` + `LICENSE_EN_WL.txt`), Topic `+30%` Bonus, `LexRaidBalanceConfig`, `EnglishLexiconService`, xác thực `BoardSnapshot` không tái sử dụng ô trên `LexRaidServiceImpl`, và `LexRaidGlobalLexiconTest` (`3/3 PASS`).
-- [x] **Milestone C** (`22fc098`): Word Feedback Toast + TTS, Hint Toolbar (`Gợi ý nghĩa`, `Mở 1 chữ`, `Đổi bảng`), bộ sinh bàn cờ khả giải 20/20 seeds, `glp.wordJournal`, Post-Battle Review & Volcard link.
-- [x] **Milestone D** (`bad2934`): Campaign vs Practice mode, timer theo Chapter (`45s -> 38s -> 32s -> 28s`) tạm dừng theo modal/chuyển đợt, hệ thống `5-Wave` + `MONSTER_TRAITS` + Phase 2 (`encounter-registry.js`), Core Word Lexical Judgment.
-- [x] **Milestone E** (`bec8235`): `Fire Blade` (Burn), `Frost Seal` (Frost +4s), `Thunder Strike` (x2 Shield Break + Stun) kèm deck filter $\le 6$ nút, VFX pool `12`.
-- [x] **Milestone F** (`25834b7`): Giao diện Cozy **Daylight** & **Moonlight** chuẩn WCAG AA trên 8 trang ngoài trận + no-flash `theme-system.js` + nút Sun/Moon trên Navbar + bảo toàn Combat Theme.
-- [x] **Milestone G**: `docs/P4B3_BACKEND_DRAFT.md`, `23/23` Backend Mockito Unit Tests PASS, `43/43 STATIC PASS`, `chromium_p4b2_acceptance.js` `0 failures`, cập nhật toàn bộ tài liệu & bản mirror.
-- [ ] **Milestone H**: Push nhánh `feature/p4b3-rpg-combat-learning`, deploy **NEW Vercel Preview** (KHÔNG dùng `--prod`) & kiểm tra live URL.
+## Trạng thái từng Milestone (P4-B.3 Final Polish & Production Release)
+- [x] **Milestone A & B** (`9787501`): Từ điển thông dụng `common-words.txt` (`2,789` từ + `24` từ 2 chữ cái `GO`/`DO`/`BE`...), `lexicon-manifest.json` (`77,017` từ tổng thể), 100/100 seed khả giải (`minCommon: 95`), cảnh báo khởi động từ điển rút gọn, vòng lặp Core Word liên tục (từ khóa + gợi ý + bảng mới khi giải đúng), `glp.wordJournal` theo dõi từ sai/mở gợi ý.
+- [x] **Milestone C & D** (`fae6a84`): Hiệu ứng VFX riêng theo từng phép (`fire_blade`, `frost_seal`, `thunder_strike`, `blade_storm`, `lexical_judgment`), floating combat text, aura trạng thái trên Boss, hero hurt knockback, sửa lỗi co giãn bóng Boss `bossShadow`, scale theo độ hiếm (`1.0 / 1.22 / 1.38 / 1.56`), encounter ngẫu nhiên mỗi lượt (`?qa=1` giữ deterministic), Dramatic Boss Entrance & Boss HUD Wave 5 (`.boss-panel.is-chapter-boss`, `#bossCrownBadge`, telegraph).
+- [x] **Milestone E** (`a50a1ae`): Backend correctness trên `LexRaidServiceImpl` — bắt buộc tile path không rỗng, bỏ qua `boardJson` client giả mạo, lưu `POST_SUBMIT` `BoardSnapshot`, khóa session đã kết thúc, chặn `applySync` giả `currentRound`/`clueProgressJson`, persist `WordSubmitEvent`/`CoreWordGuessEvent` trước `finalizeGameSessionAndAward()`, whitelist từ 2 chữ cái & phạt combo nhẹ Chapter 1 (`25/25` Mockito PASS).
+- [x] **Milestone F** (`b91546e`): Tái cấu trúc semantic tokens Light/Dark trong `theme.css` (`--surface-*`, `--text-*`, `--border`, `--primary`, `--focus-ring`), gỡ inline color cứng trên các HTML/JS render và sửa `.hero-crest` `tan.png`; Chromium Contrast Audit `0` lỗi trên 9 trang (Daylight, Moonlight, Quiz answered, Volcard flipped, Combat).
+- [x] **Milestone G** (`8af521a`): SEO kỹ thuật chuẩn hóa (`https://gamified-learning-platform-sandy.vercel.app`), `robots.txt`, `sitemap.xml` (7 canonical routes), `404.html`, banner `og-preview.png` (1200×630), metadata/OG/Twitter/JSON-LD, `noindex` cho `account`/`auth`/`typography`, `verify_seo.js` PASS.
+- [x] **Milestone H** (`5d8ecaa`): Sửa lỗi `ReferenceError` biến `damageDealt`/`isTopicMatch` trong `guessCoreWord()` (`minigame.js`), hoàn thiện E2E playthrough đủ 5 Wave bằng thao tác hợp lệ + Defeat/Battle Ended + SEO/404 trong `chromium_p4b2_acceptance.js` (**0 failures**), `25/25` Java unit test PASS, `43/43` Static PASS, `0` lỗi case sensitivity.
+- [x] **Milestone I** (Release): Ghi `build-info.json`, đồng bộ tài liệu, push nhánh `feature/p4b3-rpg-combat-learning`, deploy **Vercel Production** (`vercel deploy --prod`) & kiểm chứng live domain `https://gamified-learning-platform-sandy.vercel.app/`.

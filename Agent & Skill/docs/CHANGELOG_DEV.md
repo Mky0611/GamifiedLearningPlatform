@@ -7,6 +7,14 @@
 
 ---
 
+## [P4-B.3 Final Release] — 2026-11-26: Vocabulary Pool, 5-Wave Combat Polish, Contrast Fix, Technical SEO & Production Release
+- **Common Vocabulary & Continuous Core Word Loop (`9787501`):** Tạo `common-words.txt` (`2,789` từ thông dụng) và `lexicon-manifest.json` từ bộ `77,017` từ (`en-wl/wordlist/v2`), mở khóa 24 từ 2 chữ cái (`GO`, `DO`, `BE`, `UP`, `IN`...), đạt 100/100 seed khả giải (`minCommon: 95`), tự động nạp từ khóa & gợi ý mới sau khi giải Core Word, ghi nhận từ sai/dùng gợi ý vào `glp.wordJournal`.
+- **Spell VFX, Boss Entrance & Boss HUD (`fae6a84`):** Phân biệt VFX từng phép, floating damage text, status aura trên Boss, sửa co giãn bóng Boss, encounter ngẫu nhiên mỗi trận (cố định khi `?qa=1`), Dramatic Boss Entrance + Chapter Boss HUD (`.boss-panel.is-chapter-boss`, `#bossCrownBadge`) ở Wave 5.
+- **Backend Correctness (`a50a1ae`):** Bắt buộc tile path không rỗng, bỏ qua `boardJson` giả mạo, lưu `POST_SUBMIT` `BoardSnapshot`, chặn thao tác sau khi đóng session, guard `applySync`, lưu event trước `finalizeGameSessionAndAward()`, mở rộng `LexRaidGlobalLexiconTest` (**25/25 Mockito PASS**).
+- **Light/Dark Semantic Tokens (`b91546e`):** Chuẩn hóa 16 semantic CSS variables trong `theme.css` cho `daylight`, `moonlight`, `combat`; gỡ inline styles và sửa `.hero-crest` `tan.png`, đạt **0 lỗi tương phản** trên cả 9 trang.
+- **Technical SEO & Production Routing (`8af521a`):** Thêm `robots.txt`, `sitemap.xml` (7 canonical routes), `404.html`, banner `og-preview.png` (1200×630), canonical/OG/Twitter/JSON-LD, `noindex` trên `/app/account`, `/app/auth`, `/app/typography`.
+- **5-Wave Real Playthrough & Bugfix (`5d8ecaa`):** Sửa lỗi `ReferenceError` biến `damageDealt`/`isTopicMatch` trong `guessCoreWord()` (`minigame.js`), kiểm chứng playthrough đủ 5 Wave bằng thao tác bảng chữ thật trong `chromium_p4b2_acceptance.js` (**0 failures**).
+
 ## [P4-B.3] — 2026-11-25: Expanded Battle Arena, Global English Lexicon, 5-Wave Encounters, Spells & Cozy Themes
 - **Milestone A (Arena, Scaling & HUD):** Mở rộng canvas đấu trường `960x360` (`groundY: 302`), nâng scale Hero (`1.56x` / `1.50x`, `heroDisplayH: 300`) và Boss theo `rarityScales` (`1.0x..1.36x`), thu gọn HUD, chuyển ô chữ bàn cờ sang `Be Vietnam Pro` 800/900.
 - **Milestone B (Global Lexicon & Topic Bonus):** Tạo `build_en_wl_lexicon.py` sinh `76,993` từ tiếng Anh chuẩn từ `en-wl/wordlist/v2` (`LICENSE_EN_WL.txt`), bổ sung `EnglishLexiconService`, `LexRaidBalanceConfig`, lưu `BoardSnapshot` khởi đầu & xác thực đường chọn không trùng ô trên `LexRaidServiceImpl`, kiểm chứng bởi `LexRaidGlobalLexiconTest` (`3/3 PASS`).

@@ -1,7 +1,8 @@
-# LEX RAID — P4-B.3 QA REPORT
+# LEX RAID — P4-B.3 QA REPORT (FINAL PRODUCTION RELEASE)
 
 **Nhánh:** `feature/p4b3-rpg-combat-learning`  
-**Ngày kiểm định:** 2026-11-25  
+**Ngày kiểm định:** 2026-11-26  
+**Code SHA đã kiểm định:** `5d8ecaa`
 
 ---
 
@@ -9,32 +10,22 @@
 
 | Hạng mục kiểm thử | Công cụ / Lệnh | Mức chứng nhận | Kết quả quan sát thực tế |
 | :--- | :--- | :---: | :--- |
-| Backend Service Unit Tests (5 test suites Mockito) | `mvn.cmd -o -Dtest=AccountProfileServiceTest,LexRaidGlobalLexiconTest,LexRaidProgressionTest,QuizProgressionTest,RpgProgressionServiceTest test` | **BACKEND UNIT PASS** | **23/23 PASS**, `0` failures, `0` errors (`LexRaidGlobalLexiconTest` 3/3 + `LexRaidProgressionTest` 4/4 + `AccountProfileServiceTest` 2/2 + `QuizProgressionTest` 5/5 + `RpgProgressionServiceTest` 9/9) |
-| Full Spring Boot Context + SQL Server (`MainTests`) | `mvn.cmd -o test` | **NOT TESTED (DB Offline)** | `MainTests.contextLoads` lỗi kết nối SQL Server (`Login failed for user 'sa'`) do không bật SQL Server cục bộ |
-| Static Asset & Alignment Verification | `python src/main/resources/tools/test_p4b_verification.py` | **STATIC PASS** | **43/43 STATIC PASS**, Hero/Boss foot alignment sai số $\le 0.0125\text{px}$ |
-| Case Sensitivity & Asset Index Check | `python src/main/resources/tools/check_case_sensitivity.py` | **STATIC PASS** | `472` files indexed, `130` Phaser URLs, `0` missing, `0` case mismatches |
-| Solvability 20-Seed Check | `LexRaidBalance.generateSolvableBoard` (`node -e`) | **UNIT PASS** | **20/20 seeds** tạo được Core Word + $\ge 8$ từ tiếng Anh hợp lệ |
-| Chromium Headless Full Acceptance Suite | `node "Agent & Skill/scripts/chromium_p4b2_acceptance.js"` | **BROWSER PASS** | **Total failures: 0** (`9` pages × desktop/mobile + `9/9` battle viewports + P4-B.2 + P4-B.3 + Canvas 2D fallback) |
-| Live Vercel Preview Probe | Xem bước Milestone H | *Chạy ở Milestone H* | Sẽ cập nhật sau khi `vercel deploy` Preview URL |
+| Backend Service Unit Tests (5 suites Mockito) | `mvn.cmd -o -DargLine=-javaagent:... -Dtest=AccountProfileServiceTest,LexRaidGlobalLexiconTest,LexRaidProgressionTest,QuizProgressionTest,RpgProgressionServiceTest test` | **BACKEND UNIT PASS** | **25/25 PASS**, `0` failures, `0` errors (`AccountProfileServiceTest` 2/2, `LexRaidGlobalLexiconTest` 5/5, `LexRaidProgressionTest` 4/4, `QuizProgressionTest` 5/5, `RpgProgressionServiceTest` 9/9) |
+| Full Spring Boot Context + SQL Server (`MainTests`) | `mvn.cmd -o test` | **NOT TESTED (DB Offline)** | Không chạy trên môi trường tĩnh không có SQL Server cục bộ |
+| Static Asset & Alignment Verification | `python src/main/resources/tools/test_p4b_verification.py` | **STATIC PASS** | **43/43 STATIC PASS**, `0` failed |
+| Case Sensitivity & Asset Index Check | `python src/main/resources/tools/check_case_sensitivity.py` | **STATIC PASS** | `130/130` Phaser URLs hợp lệ, `0` missing, `0` case mismatches |
+| Solvability 100-Seed Check | `build_common_vocab.py` + `LexRaidBalance` | **UNIT PASS** | **100/100 seeds PASS**, `minCommon: 95`, `2L_GO: true`, `2L_QQ: false` |
+| Chromium Computed WCAG AA Contrast Audit | `node src/main/resources/tools/audit_contrast_chromium.js` | **BROWSER PASS** | **0 contrast issues** trên 9 trang (Daylight + Moonlight + Quiz answered + Volcard flipped + Combat HUD) |
+| SEO & Routing Verification | `node src/main/resources/tools/verify_seo.js` | **HTTP PASS** | `11` routes + `robots.txt` + `sitemap.xml` (`7` URLs) + `/nonexistent` `404` + JSON-LD + `og-preview.png` hợp lệ |
+| Chromium Headless Full Acceptance Suite | `node "Agent & Skill/scripts/chromium_p4b2_acceptance.js"` | **BROWSER PASS** | **Total failures: 0** (Desktop + Mobile trên 9 trang, `9/9` viewports `320x568`..`1920x1080`, Phaser + Canvas fallback, full 5-wave playthrough hợp lệ, Wave 5 Chapter Boss Entrance & HUD, Victory/Review, Battle Ended/Defeat, rejection tests) |
 
 ---
 
-## 2. CHI TIẾT KẾT QUẢ BROWSER QA (`chromium_p4b2_acceptance.js`)
+## 2. CHI TIẾT KIỂM CHỨNG NỔI BẬT Ở ĐỢT RELEASE
 
-1. **Arena & Sprite Scale (Milestone A):**
-   - Arena desktop `1366x768`: `.battle-stage` đạt `727 x 273px`, Phaser canvas `960x360`, `groundY = 302`.
-   - `heroDisplayH = 300px` (`warrior`, scale `1.56`), `bossDisplayH = 114px` (Fierce Normal, scale `3.8`, nhân hệ số Rarity `1.0x..1.36x`).
-   - Toàn bộ **9/9 battle viewports (`320x568` `558/568` → `1920x1080` `769/1080`)**: `fit=true`, `tap=true`, `clear=true`, `attack=true`, `skills=6`.
-2. **Global English Lexicon & Learning Loop (Milestones B–C):**
-   - Bắn từ ngoài topic (`FIRE` — Global Lexicon `en-wl/wordlist/v2` `76,993` từ): gây `24 DMG`, `+2 MP`, hiện `#wordFeedbackToast` (`GLOBAL LEXICON`), nút `#wordTtsBtn`, thông báo trung thực `"Từ tiếng Anh hợp lệ (chưa có thẻ nghĩa đầy đủ trong DB)"` (không bịa nghĩa/CEFR), Mana giới hạn tối đa `6`.
-   - Hint Toolbar: `#hintMeaningBtn` giữ nguyên chiều dài & chữ cái đầu qua `#clueText` kể cả khi bấm tiếp `#hintRevealBtn` (`charges: 3 -> 2`, `revealed: 2`).
-   - `#finishReviewPanel` hiển thị Sổ Tay Từ Vựng trận đấu & link `/app/volcard`.
-3. **Difficulty Progression, 5-Wave & Spells (Milestones D–E):**
-   - `Practice Mode`: Timer `∞`, `freeHints = 99`.
-   - `Campaign Mode`: Chapter 1 (`45s`, `3` gợi ý) → Chapter 2 (`38s`, `2` gợi ý, `traitsUnlocked: true`), lộ trình 5 đợt (`NORMAL -> NORMAL -> ELITE -> GUARDIAN -> CHAPTER_BOSS`), chuyển sang Đợt 2 (`waveIndex = 2`) sạch sẽ.
-   - Chuyển deck sang `Phép (3)`: tung `Fire Blade` + `Frost Seal` kích hoạt badge `Thiêu đốt (2)` và `Băng giá (2)`, VFX pool `12` quay về `activeVfxCount = 0`, `fsmState = IDLE`.
-4. **Cozy Daylight & Moonlight Themes (Milestone F):**
-   - `/app/home` mặc định `daylight` → toggle `#themeToggleBtn` → `moonlight` → chuyển sang `/app/volcard` giữ `moonlight` (`overflow=false`) → vào `/app/minigame` giữ `combat` (`localStorage['glp.theme'] === 'moonlight'`) → thoát sang `/app/quiz` khôi phục `moonlight`.
-5. **Hiệu năng & Bộ nhớ (`browser_qa_report.json`):**
-   - `avgFrameMs = 16.67ms`, `p95FrameMs = 16.7ms`, `maxFrameMs = 16.8ms`, `longTaskCount = 0`.
-   - `JSHeapUsedSize`: `16,433,012` bytes trước combat → `21,954,756` bytes sau combat chuỗi đòn VFX; `0` lỗi console/page, `0` HTTP 404 tĩnh.
+1. **Full 5-Wave Valid Action Playthrough (`chromium_p4b2_acceptance.js`):**
+   - Thực hiện chọn ô chữ trên bảng thật và nhấn `#guessCoreBtn` / `#submitWordBtn` xuyên suốt Wave 1 (`fierce`) → Wave 2 (`slime`) → Wave 3 (`totem1` ELITE) → Wave 4 (`totem2` GUARDIAN) → Wave 5 (`crabby` CHAPTER_BOSS), đạt **Victory (`Score 811`, `Sổ Tay Từ Vựng Trận Đấu`)** với `activeVfx = 0` và phát hiện + sửa triệt để lỗi `ReferenceError: damageDealt is not defined` trong `guessCoreWord()` (`minigame.js`).
+   - Xác minh Wave 5 kích hoạt `#bossEntranceBanner`, `.boss-panel.is-chapter-boss` và `#bossCrownBadge`.
+2. **Light/Dark Contrast (`audit_contrast_chromium.js`):**
+   - Kiểm tra từng node chữ, input, placeholder, badge CEFR/Tier, đáp án Quiz đúng/sai, mặt trước/sau Flashcard và các bảng gỗ tối `pixel-panel-wood` trên Daylight & Moonlight: **0 lỗi**.
+3. **Production Deployment Probe:** Xem kết quả thực tế tại `docs/P4B3_SEO_RELEASE_REPORT.md` sau bước `vercel deploy --prod`.
