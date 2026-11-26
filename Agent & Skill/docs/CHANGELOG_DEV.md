@@ -3,9 +3,16 @@
 **Dự án:** Gamified Learning Platform — Lex Raid  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Giai đoạn:** P4-B.3 (RPG Combat, English Learning Loop & Cozy Fantasy Themes)
+**Giai đoạn:** P5 (Path of Legends — RPG Character Progression, Skill Evolution & 10 Animation Profiles)
 
 ---
+
+## [P5 Path of Legends — Frontend Demo & Combat Parity] — 2026-11-26
+- **P5 Asset Curation (`audit_p5_assets.py`, `P5_ASSET_DELTA.json`):** Tích hợp `63` asset đã xác minh license (`Arcane Mage v1.1` 9 strips `210x180`, 12 `PVFX` CC0, 12 `Mira Forge` 64px, 13 `Byte Progression Kit` CC-BY-4.0 kèm attribution, 16 `Questwood UI`); giữ `monk` (`LICENSE_PENDING`) và `rogue` (`32x32` mismatch) ngoài runtime công khai.
+- **Registry & Demo Progression (`raid-registry.js`, `progression-store.js`):** Xây dựng cấu trúc chuẩn cho `4` Hero playable, `27` kỹ năng tiến hóa `Lv 1..3`, `10` hồ sơ hoạt ảnh, `5` Stage Chapter; bảo tồn starter `warrior`/`archer`/`lancer`, chống equip sai class/vượt 4+1 slot và chống cấp trùng milestone.
+- **10 Animation Profiles & Lazy Loading (`boot-scene.js`, `battle-scene.js`, `raid-phaser-embed.js`):** Tối ưu nạp chọn lọc giảm còn `202` requests lúc vào trận (so với `407` ở P4-B.3); triển khai đủ 10 profile (`MELEE_SLASH`, `DASH_STRIKE`, `PROJECTILE`, `CHANNEL_BEAM`, `GROUND_CAST`, `SKY_STRIKE`, `SHIELD_CAST`, `SELF_HEAL`, `MULTI_HIT`, `ULTIMATE`), giữ Archer & Mage đứng tầm xa và hỗ trợ Canvas 2D fallback parity.
+- **Character Hall 6 Tabs & Chapter Unlocks (`account.*`, `minigame.*`, `base.css`):** Nâng cấp `/app/account` thành 6 tab (`Heroes & Avatar`, `Skill Tree`, `Spellbook & Dummy`, `Loadout (4+1)`, `Chapter Map`, `Word Mastery`), khắc phục sạch lỗi tương phản Daylight/Moonlight bằng semantic tokens (`0` contrast issues trên mọi trang & tab).
+- **Backend Parity & Draft (`LexRaidBalanceConfig`, `LexRaidServiceImpl`, `AccountServiceImpl`, `docs/P5_BACKEND_DRAFT.md`):** Thống nhất sát thương Core Word `>= 55`, ràng buộc kiểm tra stage-clear server-side trước khi lưu `arcane_mage`, và hoàn thành bản nháp DDL SQL Server P5 (`28/28` Mockito PASS; SQL Server live `NOT TESTED`).
 
 ## [P4-B.3 Post-Release Correction] — 2026-11-26 (`870faac`)
 - **Authoritative Core Word Board (`LexRaidServiceImpl.guessCoreWord`):** Sinh `nextBoard` một lần khi giải đúng Core Word còn lượt, lưu `POST_CORE_GUESS` snapshot trong transaction và trả đúng bảng đó cho client; bổ sung regression test `Core Word -> nextBoard -> submitWord -> POST_SUBMIT` (`26/26` Mockito PASS). Ghi nhận cho **P4-C**: Demo mode (`55` DMG, giữ wave nếu Boss còn HP) và Backend (`bossHpRemaining = 0`, `rewardDamage = max(20, bonusDamage)`) hiện có công thức Core Word damage khác nhau.

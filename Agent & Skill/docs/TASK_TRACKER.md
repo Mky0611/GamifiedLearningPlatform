@@ -18,18 +18,19 @@
 | **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS** | `vercel.json` routing clean, `/api/**` trả về 404 kích hoạt Preview fallback. |
 | **P4-B / B.2** | Visual Redesign, 9-Slice UI, Animation FSM & World Env | **STATIC PASS (43/43) & BROWSER PASS** | Curated runtime assets, FSM pooled VFX, Canvas 2D fallback, 9/9 viewports PASS. |
 | **P4-B.3** | Final Polish, Post-Release Correction, 5-Wave QA, SEO & Production Release | **BACKEND UNIT PASS (26/26), STATIC PASS (43/43), SCOPED CONTRAST (0), SEO PASS, BROWSER PASS (0)** | Hoàn tất tới `870faac`, deploy **Vercel Production** & verify live. |
-| **P5** | Docker, CI/CD & SQL Server Migration Apply | `TODO (DRAFT ONLY)` | Bản nháp DDL/API tại `docs/P4B3_BACKEND_DRAFT.md`. |
+| **P5 (Frontend Demo + Parity)** | Path of Legends: 4 Heroes (`Arcane Mage`), 27 Evolved Skills (Lv1–3), 10 Animation Profiles, 6-Tab Character Hall, Chapter Map | **BACKEND UNIT PASS (28/28), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (0)** | P5 progression chạy Demo cục bộ (`localStorage`), backend P5 migration vẫn ở dạng draft; SQL Server live `NOT TESTED`. |
+| **P5-DB / CI-CD** | Docker, CI/CD & SQL Server Migration Apply cho Skill Tree / Hero Ownership | `DRAFT ONLY` | Bản nháp DDL/API tại `docs/P5_BACKEND_DRAFT.md` chờ phê duyệt DB migration. |
 
 ---
 
-## 2. CHI TIẾT MILESTONES P4-B.3 RELEASE
+## 2. CHI TIẾT MILESTONES P5 PATH OF LEGENDS
 
-| Milestone | Nội dung | Bằng chứng / Commit | Kết quả |
+| Milestone | Nội dung | Bằng chứng / Tài liệu | Kết quả |
 | :---: | :--- | :--- | :---: |
-| **A–B** | Common vocab `2,789` words + 2-letter whitelist, 100-seed solvability, continuous Core Word loop | `9787501` | **DONE** |
-| **C–D** | Spell VFX + floating DMG, Boss Entrance Wave 5 & Chapter Boss HUD, per-run random encounter | `fae6a84` | **DONE** |
-| **E** | `LexRaidServiceImpl` path check, server-owned `BoardSnapshot`, closed session lock (`25/25` Mockito PASS) | `a50a1ae` | **DONE** |
-| **F** | Unified semantic tokens Light/Dark, 0 WCAG AA contrast issues across all 9 pages & states | `b91546e` | **DONE** |
-| **G** | Technical SEO (`robots.txt`, `sitemap.xml`, `og-preview.png`, canonical/JSON-LD/`noindex`, 404 routing) | `8af521a` | **DONE** |
-| **H** | Fix `guessCoreWord()` `ReferenceError`, 5-Wave real playthrough + Defeat + `25/25` + `43/43` + `0` failures | `5d8ecaa` | **DONE** |
-| **I** | Build info, docs sync, `git push`, `vercel deploy --prod` & live Production verification | `dpl_HsUgDxCtZ6TkdBKsadrYqRD8PR2m` | **DONE** |
+| **P5-A** | Audit & curate 63 asset mới (`Arcane Mage`, `PVFX`, `Mira Forge`, `Byte Kit`, `Questwood`), cô lập `monk`/`rogue` | `docs/P5_ASSET_DELTA.json`, `docs/P4B2_THIRD_PARTY_ASSETS.md` | **DONE** |
+| **P5-B** | `RaidRegistry` (4 Hero, 27 Skill, 10 Profile, 5 Stage) & `RaidProgressionStore` (`localStorage` demo + unlock rules) | `raid-registry.js`, `progression-store.js`, `api.js` | **DONE** |
+| **P5-C** | Selective boot, lazy VFX loading, 10 Animation Profiles, ranged hold-position & Canvas 2D fallback parity | `boot-scene.js`, `battle-scene.js`, `raid-phaser-embed.js` | **DONE** |
+| **P5-D/E** | Playable `Arcane Mage`, evolved Skill Bar (4+1), Victory Demo Reward Unlock Banner & Core Word 60 DMG parity | `minigame.html`, `minigame.css`, `minigame.js` | **DONE** |
+| **P5-F/G** | Nâng cấp `/app/account` thành 6-Tab Character Hall + Training Dummy Preview + sửa sạch contrast Daylight/Moonlight (`0` issues) | `account.html`, `account.css`, `account.js`, `base.css` | **DONE** |
+| **P5-H** | Parity `LexRaidBalanceConfig.computeCoreWordDamage`, stage-unlock check cho `arcane_mage`, `28/28` Mockito PASS & P5 SQL Draft | `LexRaidServiceImpl.java`, `AccountServiceImpl.java`, `docs/P5_BACKEND_DRAFT.md` | **DONE** |
+| **P5-I/J** | Extended Chromium QA (`0` failures), `P5_QA_REPORT.md`, stamp `build-info.json` (`95bdfa5`), push & deploy Production | `95bdfa5`, `docs/P5_QA_REPORT.md` | **DONE** |

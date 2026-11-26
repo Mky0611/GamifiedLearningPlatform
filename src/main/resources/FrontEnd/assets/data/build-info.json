@@ -1,9 +1,9 @@
 {
   "project": "GamifiedLearningPlatform — Lex Raid",
-  "release": "P4-B.3-post-release",
+  "release": "P5 — Path of Legends",
   "branch": "feature/p4b3-rpg-combat-learning",
-  "codeCommit": "870faac",
-  "builtAt": "2026-11-26T15:18:00+07:00",
+  "codeCommit": "95bdfa5",
+  "builtAt": "2026-11-26T17:14:00+07:00",
   "mode": "demo-static",
   "canonicalOrigin": "https://gamified-learning-platform-sandy.vercel.app"
 }
