@@ -32,4 +32,4 @@
 | **F** | Unified semantic tokens Light/Dark, 0 WCAG AA contrast issues across all 9 pages & states | `b91546e` | **DONE** |
 | **G** | Technical SEO (`robots.txt`, `sitemap.xml`, `og-preview.png`, canonical/JSON-LD/`noindex`, 404 routing) | `8af521a` | **DONE** |
 | **H** | Fix `guessCoreWord()` `ReferenceError`, 5-Wave real playthrough + Defeat + `25/25` + `43/43` + `0` failures | `5d8ecaa` | **DONE** |
-| **I** | Build info, docs sync, `git push`, `vercel deploy --prod` & live Production verification | Đang thực hiện | **IN PROGRESS** |
+| **I** | Build info, docs sync, `git push`, `vercel deploy --prod` & live Production verification | `dpl_HsUgDxCtZ6TkdBKsadrYqRD8PR2m` | **DONE** |
