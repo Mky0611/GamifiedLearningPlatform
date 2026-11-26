@@ -125,10 +125,10 @@
 .auth-form-card {
   display: grid;
   gap: 18px;
-  border: 4px solid var(--wood-frame, #3c2a1a);
-  background: #faebd2;
-  box-shadow: inset 0 0 0 2px var(--gold-base, #d49b29), 0 6px 0 0 rgba(0,0,0,0.5);
-  color: var(--wood-dark, #1c120c);
+  border: 4px solid var(--border, #3c2a1a);
+  background: var(--surface-panel, #faebd2);
+  box-shadow: inset 0 0 0 2px var(--primary, #d49b29), 0 6px 0 0 rgba(0,0,0,0.5);
+  color: var(--text-primary, #1c120c);
   align-content: start;
 }
 
@@ -140,25 +140,25 @@
 
 .auth-tab {
   padding: 10px 16px;
-  border: 3px solid var(--wood-frame, #3c2a1a);
-  background: #e6ce9e;
-  color: var(--wood-dark, #1c120c);
+  border: 3px solid var(--border, #3c2a1a);
+  background: var(--surface-elevated, #e6ce9e);
+  color: var(--text-primary, #1c120c);
   font-family: var(--font-display, 'Be Vietnam Pro', sans-serif);
   font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: inset 1px 1px 0 #fff5d6, inset -1px -1px 0 #ab8a55, 0 2px 0 0 rgba(0,0,0,0.3);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.22), 0 2px 0 0 rgba(0,0,0,0.3);
   transition: transform 0.1s ease;
 }
 
 .auth-tab:hover {
-  background: #f0deb8;
+  background: var(--surface-panel, #f0deb8);
   transform: translateY(-1px);
 }
 
 .auth-tab.is-active {
-  background: var(--gold-bright, #f6c344);
-  color: var(--wood-dark, #1c120c);
+  background: var(--primary-hover, #f6c344);
+  color: var(--text-on-primary, #1c120c);
   box-shadow: inset 2px 2px 0 #ffebb3, inset -2px -2px 0 #8f6010, 0 3px 0 0 rgba(0,0,0,0.5);
   border-color: #2b180d;
 }
@@ -183,7 +183,7 @@
   margin-bottom: 6px;
   font-weight: 800;
   font-size: 0.88rem;
-  color: var(--wood-dark, #1c120c);
+  color: var(--text-primary, #1c120c);
 }
 
 .form-control-soft {
@@ -191,16 +191,16 @@
   min-height: 44px;
   box-sizing: border-box;
   padding: 10px 14px;
-  border: 3px solid var(--wood-frame, #3c2a1a);
-  background: #fffdf8;
+  border: 3px solid var(--border, #3c2a1a);
+  background: var(--surface-input, #fffdf8);
   font-family: var(--font-body, sans-serif);
   font-size: 0.95rem;
-  color: var(--ink-deep, #140e0a);
+  color: var(--text-primary, #140e0a);
   outline: none;
 }
 
 .form-control-soft:focus {
-  border-color: var(--gold-base, #d49b29);
+  border-color: var(--primary, #d49b29);
   box-shadow: 0 0 0 3px rgba(212,155,41,0.3);
 }
 
@@ -222,11 +222,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--wood-frame, #3c2a1a);
-  background: #e6ce9e;
+  border: 2px solid var(--border, #3c2a1a);
+  background: var(--surface-elevated, #e6ce9e);
   padding: 4px 8px;
   cursor: pointer;
-  color: var(--wood-dark, #1c120c);
+  color: var(--text-primary, #1c120c);
 }
 
 .auth-helper-row {
@@ -234,15 +234,15 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  color: var(--ink-muted, #695241);
+  color: var(--text-muted, #695241);
   font-size: 0.82rem;
 }
 
 .auth-inline-note {
   padding: 12px 14px;
-  background: #f7ebd4;
-  border: 2px solid rgba(60,42,26,0.25);
-  color: var(--wood-dark, #1c120c);
+  background: var(--surface-elevated, #f7ebd4);
+  border: 2px solid var(--border, rgba(60,42,26,0.25));
+  color: var(--text-primary, #1c120c);
   font-size: 0.85rem;
   line-height: 1.4;
 }

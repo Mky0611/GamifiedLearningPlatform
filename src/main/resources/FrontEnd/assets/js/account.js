@@ -120,7 +120,7 @@
       <button class="option-card avatar-option ${avatar.code===state.avatarCode?'is-selected':''}" data-avatar="${avatar.code}" type="button">
         <span class="option-card__badge"><i class="bi bi-check2"></i></span>
         <div class="avatar-option__frame"><img src="${avatar.url}" alt="${avatar.name}"></div>
-        <div><strong style="display:block;font-size:1.05rem;color:var(--wood-dark, #1c120c)">${avatar.name}</strong><div class="muted" style="color:var(--ink-muted, #695241);font-size:0.85rem">${avatar.desc || 'Chân dung hiệp sĩ'}</div></div>
+        <div><strong style="display:block;font-size:1.05rem;color:var(--text-primary)">${avatar.name}</strong><div class="muted" style="color:var(--text-muted);font-size:0.85rem">${avatar.desc || 'Chân dung hiệp sĩ'}</div></div>
       </button>`).join('');
     const grid = document.getElementById('avatarGrid');
     grid.innerHTML = html;

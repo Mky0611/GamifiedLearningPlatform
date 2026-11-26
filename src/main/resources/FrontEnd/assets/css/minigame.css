@@ -75,7 +75,7 @@ body.raid-body{
 .hud-title-line{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .hud-compact-meta strong{font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:.86rem;font-weight:800;color:#ffebb3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hud-compact-meta .small-muted{color:#d7c2a7;font-size:.7rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hud-wave-pill{padding:2px 6px;background:#2e849e;color:#fff;border:2px solid #140d09;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.66rem;font-weight:700;white-space:nowrap}
+.hud-wave-pill{padding:2px 6px;background:#1f6a82;color:#fff;border:2px solid #140d09;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.66rem;font-weight:700;white-space:nowrap}
 
 .avatar-hero,.avatar-boss{
   width:44px;height:44px;flex-shrink:0;

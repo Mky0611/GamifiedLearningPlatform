@@ -225,14 +225,17 @@
 
 /* Front Face: Aged Parchment Scroll */
 .flash-face--front {
-  background:
+  background-color: #fff8e8;
+  background-image:
     radial-gradient(ellipse at center, #fffdf5 0%, #faebd2 70%, #ebd3a7 100%);
+  color: #1c120c;
 }
 
 /* Back Face: Ancient Leather Bound Tome */
 .flash-face--back {
   transform: rotateY(180deg);
-  background:
+  background-color: #1f130b;
+  background-image:
     linear-gradient(135deg, #2b1a10 0%, #1a0f08 50%, #2b1a10 100%);
   color: #eeddc5;
 }
@@ -335,13 +338,13 @@
 }
 
 .pixel-badge--cefr {
-  background: #2f81f7;
+  background: #1d5bbf;
   color: #fff;
   border-color: #133d7a;
 }
 
 .pixel-badge--tier {
-  background: #2ea44f;
+  background: #1e7634;
   color: #fff;
   border-color: #144923;
 }
@@ -384,9 +387,9 @@
 
 .empty-state {
   padding: 20px;
-  border: 3px dashed var(--wood-frame, #3c2a1a);
-  background: #f7e8c8;
-  color: var(--ink-muted, #695241);
+  border: 3px dashed var(--border, #3c2a1a);
+  background: var(--surface-elevated, #f7e8c8);
+  color: var(--text-primary, #281b12);
   font-family: var(--font-pixel, monospace);
   font-size: 0.9rem;
   text-align: center;
@@ -394,11 +397,11 @@
 
 .tts-disclaimer {
   font-size: 0.82rem;
-  color: var(--ink-muted, #695241);
+  color: var(--text-secondary, #4d3927);
   line-height: 1.45;
   padding: 12px 14px;
-  background: #efe0c0;
-  border: 2px solid rgba(60, 42, 26, 0.2);
+  background: var(--surface-elevated, #efe0c0);
+  border: 2px solid var(--border, rgba(60, 42, 26, 0.2));
 }
 
 @media (max-width: 980px) {
