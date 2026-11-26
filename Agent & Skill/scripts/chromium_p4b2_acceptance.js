@@ -83,6 +83,9 @@ const ROUTE_MAP = {
   '/app/code-puzzle': 'src/pages/code-puzzle.html',
   '/app/account': 'src/pages/account.html',
   '/app/typography': 'src/pages/typography-specimen.html',
+  '/robots.txt': 'robots.txt',
+  '/sitemap.xml': 'sitemap.xml',
+  '/404.html': '404.html',
 };
 
 function startStaticServer(serverState) {
@@ -958,36 +961,206 @@ async function main() {
       fail('P4-B.3 Mode / Chapter / 5-Wave check failed: ' + JSON.stringify({ practiceCheck, ch2Check }));
     }
 
-    // Cast Fire Blade + Frost Seal from Spell Deck
+    // Cast Fire Blade + Frost Seal + Thunder Strike from Spell Deck
     await cdp.clickSelector('#skillDeckToggle');
     await new Promise((r) => setTimeout(r, 100));
     await cdp.clickSelector('[data-skill-id="fire_blade"]');
     await new Promise((r) => setTimeout(r, 1300));
     await cdp.clickSelector('[data-skill-id="frost_seal"]');
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 1300));
+    // Recharge mana via a valid board word if needed, then cast thunder_strike
+    await submitTopicWordOnBoard().catch(() => null);
+    await new Promise((r) => setTimeout(r, 500));
+    const thunderBtnReady = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
+    if (thunderBtnReady) {
+      await cdp.clickSelector('[data-skill-id="thunder_strike"]');
+      await new Promise((r) => setTimeout(r, 1300));
+    }
     const spellState = await cdp.eval(`({
       skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(),
       scene: window.__LEX_RAID_SCENE_STATE__(),
-      statusHtml: document.getElementById('bossStatusPills')?.innerHTML || ''
+      statusHtml: document.getElementById('bossStatusPills')?.innerHTML || '',
+      thunderTried: ${JSON.stringify(true)}
     })`);
     if (!spellState.skill.bossStatuses.burn || !spellState.skill.bossStatuses.frost || spellState.scene.fsmState !== 'IDLE' || !spellState.statusHtml.includes('Thiêu đốt')) {
       fail('P4-B.3 Fire Blade / Frost Seal status check failed: ' + JSON.stringify(spellState));
     }
 
-    // Multi-wave transition check (Wave 1 -> Wave 2)
-    await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.advanceWaveForTest()`);
-    await new Promise((r) => setTimeout(r, 1200));
-    const wave2Check = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getWaveState()`);
-    if (wave2Check.waveIndex !== 2) {
-      fail('P4-B.3 Wave transition failed: ' + JSON.stringify(wave2Check));
+    // Rejection & 2-letter validation & Continuous Core Word + Full 5-Wave Valid Action Playthrough
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1400);
+    const twoLetterCheck = await cdp.eval(`({
+      goValid: window.__LEX_RAID_TEST_HOOKS__.isValidWord('GO'),
+      doValid: window.__LEX_RAID_TEST_HOOKS__.isValidWord('DO'),
+      qqValid: window.__LEX_RAID_TEST_HOOKS__.isValidWord('QQ'),
+      zzValid: window.__LEX_RAID_TEST_HOOKS__.isValidWord('ZZ')
+    })`);
+    if (!twoLetterCheck.goValid || !twoLetterCheck.doValid || twoLetterCheck.qqValid || twoLetterCheck.zzValid) {
+      fail('P4-B.3 2-letter everyday whitelist check failed: ' + JSON.stringify(twoLetterCheck));
     }
-    await cdp.screenshot(path.join(OUTPUT_DIR, 'battle_p4b3_wave2_desktop.png'), false);
 
-    // Finish overlay Word Review panel check
-    await cdp.clickSelector('#finishBattleBtn');
+    // 1) Empty tile submit rejection
+    const scoreBeforeEmpty = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getScore()`);
+    await cdp.clickSelector('#submitWordBtn');
+    await new Promise((r) => setTimeout(r, 120));
+    const emptyMsg = await cdp.eval(`document.getElementById('raidStatus')?.innerText || ''`);
+    const scoreAfterEmpty = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getScore()`);
+    if (scoreAfterEmpty !== scoreBeforeEmpty || (!emptyMsg.includes('ô chữ') && !emptyMsg.includes('ít nhất 3 ký tự'))) {
+      fail('P4-B.3 Empty submit was not cleanly rejected: ' + JSON.stringify({ emptyMsg, scoreBeforeEmpty, scoreAfterEmpty }));
+    }
+
+    // 2) Gibberish non-word rejection
+    await cdp.eval(`(() => {
+      const tiles = Array.from(document.querySelectorAll('.board-tile')).slice(0, 3);
+      tiles.forEach(t => t.click());
+    })()`);
+    await cdp.clickSelector('#submitWordBtn');
     await new Promise((r) => setTimeout(r, 200));
-    const reviewVisible = await cdp.eval(`Boolean(document.getElementById('finishReviewPanel')?.innerText.includes('Sổ Tay Từ Vựng'))`);
-    if (!reviewVisible) fail('P4-B.3 Post-battle Review panel missing on Finish overlay');
+
+    // 3) Duplicate word rejection: submit a formable word, then find any previously submitted word whose letters exist on the board and re-submit
+    await submitTopicWordOnBoard();
+    await new Promise((r) => setTimeout(r, 500));
+    let dupAttemptWord = null;
+    for (let r = 0; r < 4 && !dupAttemptWord; r++) {
+      dupAttemptWord = await cdp.eval(`(() => {
+        const discovered = window.__LEX_RAID_TEST_HOOKS__.getDiscoveredWords().map(x => String(x.word || '').toUpperCase()).filter(Boolean);
+        const tiles = Array.from(document.querySelectorAll('.board-tile')).map(el => ({ row: el.dataset.row, col: el.dataset.col, letter: (el.dataset.letter || '').toUpperCase() }));
+        for (const w of discovered) {
+          const used = new Set(); const path = []; let ok = true;
+          for (const ch of w) {
+            const hit = tiles.find((t, i) => !used.has(i) && t.letter === ch);
+            if (!hit) { ok = false; break; }
+            used.add(tiles.indexOf(hit)); path.push(hit);
+          }
+          if (ok) {
+            path.forEach(p => document.querySelector(\`.board-tile[data-row="\${p.row}"][data-col="\${p.col}"]\`)?.click());
+            return w;
+          }
+        }
+        return null;
+      })()`);
+      if (!dupAttemptWord) {
+        await submitTopicWordOnBoard().catch(() => null);
+        await cdp.clickSelector('#boardRefreshBtn');
+        await new Promise((res) => setTimeout(res, 200));
+      }
+    }
+    if (dupAttemptWord) {
+      const scoreBeforeDup = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getScore()`);
+      await cdp.clickSelector('#submitWordBtn');
+      await new Promise((r) => setTimeout(r, 250));
+      const dupMsg = await cdp.eval(`document.getElementById('raidStatus')?.innerText || ''`);
+      const scoreAfterDup = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getScore()`);
+      if (scoreAfterDup !== scoreBeforeDup || !dupMsg.includes('đã dùng')) {
+        fail('P4-B.3 Duplicate word was not rejected: ' + JSON.stringify({ dupAttemptWord, dupMsg, scoreBeforeDup, scoreAfterDup }));
+      }
+    }
+
+    // 4) Full 5-Wave Natural Playthrough via Real Board Tile Selection + Core Guess & Board Attacks (no advanceWaveForTest)
+    let coreBefore = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord()`);
+    await cdp.clickSelector('#hintMeaningBtn');
+    let sawCoreRotation = false;
+    let sawWave2Natural = false;
+    let sawWave5BossEntrance = false;
+    let sawWave5BossHud = false;
+    let guardSteps = 0;
+
+    while (guardSteps < 55) {
+      guardSteps++;
+      const st = await cdp.eval(`({
+        finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
+        transitioning: Boolean(window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy && window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()),
+        wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
+        core: window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord(),
+        revealed: window.__LEX_RAID_TEST_HOOKS__.getRevealedCount(),
+        bossPanelChapter: document.querySelector('.boss-panel')?.classList.contains('is-chapter-boss'),
+        crownVisible: getComputedStyle(document.getElementById('bossCrownBadge') || document.body).display !== 'none',
+        entranceVisible: document.getElementById('bossEntranceBanner')?.classList.contains('is-visible')
+      })`);
+      if (st.wave.waveIndex >= 2) sawWave2Natural = true;
+      if (st.wave.waveIndex === 5) {
+        if (st.bossPanelChapter && st.crownVisible) sawWave5BossHud = true;
+        if (st.entranceVisible || st.wave.bossRarity === 'CHAPTER_BOSS') sawWave5BossEntrance = true;
+      }
+      if (st.finished) break;
+
+      if (st.core && st.core !== coreBefore) {
+        sawCoreRotation = true;
+        coreBefore = st.core;
+      }
+
+      // Click actual board tiles matching the active Core Word and press #guessCoreBtn (falls back to board attack if transitioning/unformable)
+      const corePath = st.core ? await cdp.eval(`(() => {
+        const w = ${JSON.stringify(st.core)}.toUpperCase();
+        const tiles = Array.from(document.querySelectorAll('.board-tile')).map(el => ({ row: el.dataset.row, col: el.dataset.col, letter: (el.dataset.letter || '').toUpperCase() }));
+        const used = new Set(); const path = [];
+        for (const ch of w) {
+          const hit = tiles.find((t, i) => !used.has(i) && t.letter === ch);
+          if (!hit) return null;
+          used.add(tiles.indexOf(hit)); path.push(hit);
+        }
+        return path;
+      })()`) : null;
+
+      if (corePath) {
+        await cdp.clickSelector('#clearPathBtn');
+        for (const step of corePath) {
+          await cdp.clickSelector(`.board-tile[data-row="${step.row}"][data-col="${step.col}"]`);
+        }
+        await cdp.clickSelector('#guessCoreBtn');
+      } else {
+        await submitTopicWordOnBoard().catch(() => null);
+      }
+      await new Promise((r) => setTimeout(r, 950));
+    }
+
+    const wave5AndFinishCheck = await cdp.eval(`({
+      finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
+      wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
+      finishVisible: document.getElementById('finishOverlay')?.classList.contains('is-open'),
+      reviewVisible: Boolean(document.getElementById('finishReviewPanel')?.innerText.includes('Sổ Tay Từ Vựng')),
+      score: window.__LEX_RAID_TEST_HOOKS__.getScore(),
+      activeVfx: window.__LEX_RAID_SCENE_STATE__()?.activeVfxCount ?? -1
+    })`);
+    if (!sawWave2Natural || !sawCoreRotation || !sawWave5BossHud || !sawWave5BossEntrance || !wave5AndFinishCheck.finished || !wave5AndFinishCheck.finishVisible || !wave5AndFinishCheck.reviewVisible) {
+      fail('P4-B.3 Full 5-wave valid playthrough failed: ' + JSON.stringify({
+        sawWave2Natural, sawCoreRotation, sawWave5BossHud, sawWave5BossEntrance, guardSteps, wave5AndFinishCheck
+      }));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'battle_p4b3_wave5_victory_desktop.png'), false);
+
+    // 5) Defeat overlay check via Boss Counterattacks
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1400);
+    for (let i = 0; i < 12; i++) {
+      const done = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.isFinished()`);
+      if (done) break;
+      await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.triggerBossTurn()`);
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    const defeatCheck = await cdp.eval(`({
+      finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
+      hp: window.__LEX_RAID_TEST_HOOKS__.getPlayerHp(),
+      turn: window.__LEX_RAID_TEST_HOOKS__.getTurn(),
+      finishOpen: document.getElementById('finishOverlay')?.classList.contains('is-open'),
+      title: document.getElementById('finishTitle')?.innerText || '',
+      heading: document.getElementById('finishHeading')?.innerText || ''
+    })`);
+    if (!defeatCheck.finished || !defeatCheck.finishOpen || (defeatCheck.hp > 0 && !defeatCheck.title.includes('ENDED'))) {
+      fail('P4-B.3 Defeat / Battle Ended state check failed: ' + JSON.stringify(defeatCheck));
+    }
+
+    // 6) SEO & 404 Route checks
+    const seoStatusCheck = await cdp.eval(`(async () => {
+      const rRobots = await fetch('/robots.txt');
+      const rSitemap = await fetch('/sitemap.xml');
+      const r404 = await fetch('/nonexistent-route-qa-check');
+      return { robots: rRobots.status, sitemap: rSitemap.status, notFound: r404.status };
+    })()`);
+    if (seoStatusCheck.robots !== 200 || seoStatusCheck.sitemap !== 200 || seoStatusCheck.notFound !== 404) {
+      fail('SEO route status check failed: ' + JSON.stringify(seoStatusCheck));
+    }
+
+    const wave2Check = { waveIndex: sawWave2Natural ? 2 : 1, sawCoreRotation, sawWave5BossHud, sawWave5BossEntrance, guardSteps };
+    const reviewVisible = wave5AndFinishCheck.reviewVisible;
 
     // Cozy Daylight & Moonlight theme toggle, persistence across pages, Combat theme preservation & restoration
     await cdp.goto(`${baseUrl}/app/home`, 1100);

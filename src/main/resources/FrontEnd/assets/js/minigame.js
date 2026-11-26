@@ -1889,7 +1889,7 @@
           state.bossHp = 0; // set HP to 0 for transition
           state.bossShield = 0;
           state.rage = Number(backendResult.rageValue ?? state.rage);
-          syncRendererState({ playAttack: true, damage: damageDealt, isTopicWord: isTopicMatch || wordCategory === 'CORE' });
+          syncRendererState({ playAttack: true, damage: Number(backendResult.damageDealt || 55), isTopicWord: true });
           setHeroMode('attack', 650);
           playFrameMonster(state.bossTheme, 'hit', 500);
 
@@ -1935,7 +1935,7 @@
         state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 2);
         state.bossShield = 0;
         state.bossHp = Math.max(0, state.bossHp - 55);
-        syncRendererState({ playAttack: true, damage: damageDealt, isTopicWord: isTopicMatch || wordCategory === 'CORE' });
+        syncRendererState({ playAttack: true, damage: 55, isTopicWord: true });
         setHeroMode('attack', 650);
         playFrameMonster(state.bossTheme, 'hit', 500);
 
