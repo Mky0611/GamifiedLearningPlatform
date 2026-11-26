@@ -60,4 +60,8 @@ public class LexRaidBalanceConfig {
         int base = Math.max(10, wordLength * 8);
         return isTopicWord ? Math.round(base * 1.25f) : base;
     }
+
+    public int computeCoreWordDamage(int configuredBonusDamage, int wordLength) {
+        return Math.max(55, Math.max(configuredBonusDamage, wordLength * 10));
+    }
 }

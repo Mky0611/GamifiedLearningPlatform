@@ -260,6 +260,15 @@ const AUDIT_SCRIPT = `(() => {
           totalIssues += resReg.issueCount;
           console.log(`${p}-register [${resReg.theme}]: issues=${resReg.issueCount}`);
           if (resReg.issueCount > 0) resReg.issues.forEach((it) => console.log('  ->', JSON.stringify(it)));
+        } else if (p === 'account') {
+          for (const tabKey of ['tree', 'spellbook', 'loadout', 'chapters', 'mastery']) {
+            await cdp.eval(`document.querySelector('[data-hall-tab="${tabKey}"]')?.click()`);
+            await new Promise((r) => setTimeout(r, 220));
+            const resTab = await cdp.eval(AUDIT_SCRIPT);
+            totalIssues += resTab.issueCount;
+            console.log(`${p}-${tabKey} [${resTab.theme}]: issues=${resTab.issueCount}`);
+            if (resTab.issueCount > 0) resTab.issues.forEach((it) => console.log('  ->', JSON.stringify(it)));
+          }
         }
       }
     }

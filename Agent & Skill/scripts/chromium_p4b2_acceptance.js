@@ -563,7 +563,7 @@ async function main() {
         if (!tapOk) fail(`Battle ${vp.name} tap targets < 40px`);
         if (!clearOk) fail(`Battle ${vp.name} Clear button failed`);
         if (!attackOk) fail(`Battle ${vp.name} Attack word submit failed`);
-        if (rects.skillCount !== 6) fail(`Battle ${vp.name} expected 6 Knight skills, got ${rects.skillCount}`);
+        if (rects.skillCount < 4 || rects.skillCount > 5) fail(`Battle ${vp.name} expected P5 4+1 Loadout (4..5 skills), got ${rects.skillCount}`);
         if (logs.failedRequests.length || logs.pageErrors.length || logs.consoleErrors.length) {
           fail(`Battle ${vp.name} asset/page/console errors: ${JSON.stringify(logs)}`);
         }
@@ -616,7 +616,7 @@ async function main() {
     if (normalCheck.hasTestHooks || normalCheck.hasSceneState) {
       fail('QA hooks exposed in normal mode without ?qa=1: ' + JSON.stringify(normalCheck));
     }
-    if (normalCheck.skillCount !== 6 || normalLogs.consoleErrors.length || normalLogs.failedRequests.length || normalLogs.pageErrors.length) {
+    if (normalCheck.skillCount !== 5 || normalLogs.consoleErrors.length || normalLogs.failedRequests.length || normalLogs.pageErrors.length) {
       fail('Normal mode /app/minigame check failed: ' + JSON.stringify({ normalCheck, normalLogs }));
     }
     report.performance.minigameNormalNetwork = normalLogs.networkStats;
@@ -629,16 +629,14 @@ async function main() {
     const initScene = await cdp.eval(`window.__LEX_RAID_SCENE_STATE__ && window.__LEX_RAID_SCENE_STATE__()`);
     if (!initScene) fail('Mandatory __LEX_RAID_SCENE_STATE__ missing on /app/minigame?qa=1');
 
-    // Verify Blade Storm (Combo >= 2) & Lexical Judgment (Core Clue >= 1) start LOCKED
+    // Verify Lexical Judgment (Core Clue >= 1) starts LOCKED on default Loadout (and Blade Storm Combo >= 2 gating via castSkill)
     const initialLockCheck = await cdp.eval(`({
-      bladeDisabled: document.querySelector('[data-skill-id="blade_storm"]')?.disabled,
-      bladeReason: document.querySelector('[data-skill-id="blade_storm"]')?.dataset?.lockReason,
       lexicalDisabled: document.querySelector('[data-skill-id="lexical_judgment"]')?.disabled,
       lexicalReason: document.querySelector('[data-skill-id="lexical_judgment"]')?.dataset?.lockReason,
       bladeCast: window.__LEX_RAID_TEST_HOOKS__.castSkill('blade_storm'),
       lexicalCast: window.__LEX_RAID_TEST_HOOKS__.castSkill('lexical_judgment')
     })`);
-    if (!initialLockCheck.bladeDisabled || initialLockCheck.bladeReason !== 'COMBO' || initialLockCheck.bladeCast !== false) {
+    if (initialLockCheck.bladeCast !== false) {
       fail('Blade Storm failed to enforce Combo >= 2 precondition: ' + JSON.stringify(initialLockCheck));
     }
     if (!initialLockCheck.lexicalDisabled || initialLockCheck.lexicalReason !== 'CORE_CLUE' || initialLockCheck.lexicalCast !== false) {
@@ -780,6 +778,9 @@ async function main() {
     };
 
     // Fresh match Run B: unlock & cast Skill 4 (Blade Storm) & Skill 5 (Sacred Recovery)
+    await cdp.eval(`(() => {
+      window.RaidProgressionStore.setHeroLoadout('warrior', ['knight_slash', 'blade_storm', 'royal_guard', 'sacred_recovery', 'lexical_judgment']);
+    })()`);
     await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1400);
     const wordB = await submitTopicWordOnBoard();
     if (!wordB) fail('Could not find formable topic word on board for Run B');
@@ -793,7 +794,7 @@ async function main() {
       fail('Topic word attack did not unlock Blade Storm / Core clue: ' + JSON.stringify(unlockedB));
     }
     await cdp.clickSelector('[data-skill-id="blade_storm"]');
-    await new Promise((r) => setTimeout(r, 950));
+    await new Promise((r) => setTimeout(r, 1300));
     const afterBladeStorm = await cdp.eval(`({ skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(), scene: window.__LEX_RAID_SCENE_STATE__() })`);
     if (afterBladeStorm.skill.cooldowns.blade_storm !== 3 || afterBladeStorm.scene?.fsmState !== 'IDLE') {
       fail('Blade Storm cast failed: ' + JSON.stringify(afterBladeStorm));
@@ -809,6 +810,7 @@ async function main() {
     if (afterHeal.hp <= hpBeforeHeal || afterHeal.skill.cooldowns.sacred_recovery !== 3 || afterHeal.scene?.fsmState !== 'IDLE') {
       fail('Sacred Recovery failed to heal HP or settle: ' + JSON.stringify({ hpBeforeHeal, afterHeal }));
     }
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
 
     // Fresh match Run C: unlock & cast Skill 6 (Lexical Judgment, 4 MP, Core Clue >= 1) + Finished State guard
     await cdp.goto(`${baseUrl}/app/minigame?qa=1`, 1400);
@@ -942,12 +944,13 @@ async function main() {
         found: true,
         scoreAfter: window.__LEX_RAID_TEST_HOOKS__.getScore(),
         mana: window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana,
+        maxMana: window.RaidRegistry?.getHero(window.__LEX_RAID_TEST_HOOKS__.getUnitCode())?.maxMp || 8,
         toastVisible: document.getElementById('wordFeedbackToast')?.classList.contains('is-visible'),
         toastText: document.getElementById('wordFeedbackToast')?.innerText || '',
         hasTtsBtn: Boolean(document.getElementById('wordTtsBtn')),
         discovered: window.__LEX_RAID_TEST_HOOKS__.getDiscoveredWords().length
       }))()`);
-      if (globalAttackCheck.scoreAfter <= scoreBefore || !globalAttackCheck.toastVisible || !globalAttackCheck.hasTtsBtn || globalAttackCheck.mana > 6) {
+      if (globalAttackCheck.scoreAfter <= scoreBefore || !globalAttackCheck.toastVisible || !globalAttackCheck.hasTtsBtn || globalAttackCheck.mana > globalAttackCheck.maxMana) {
         fail('P4-B.3 Global English word attack failed: ' + JSON.stringify({ scoreBefore, globalAttackCheck }));
       }
     }
@@ -1001,25 +1004,27 @@ async function main() {
       fail('Task 2 Random/Lore encounter mode check failed: ' + JSON.stringify({ encounterModesCheck, practiceEncounterCheck }));
     }
 
-    // Cast Fire Blade + Frost Seal + Thunder Strike (recharging mana if needed so EVERY spell actually casts)
+    // Cast Thunder Strike (on active Shield -> StunOnBreak) + Fire Blade + Frost Seal
     await cdp.clickSelector('#skillDeckToggle');
     await new Promise((r) => setTimeout(r, 100));
-    await cdp.clickSelector('[data-skill-id="fire_blade"]');
-    await new Promise((r) => setTimeout(r, 1300));
-    await cdp.clickSelector('[data-skill-id="frost_seal"]');
-    await new Promise((r) => setTimeout(r, 1300));
-    for (let m = 0; m < 4; m++) {
-      const ready = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
-      if (ready) break;
-      await submitTopicWordOnBoard().catch(() => null);
-      await new Promise((r) => setTimeout(r, 450));
-    }
     const thunderBtnReady = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
     let thunderCast = false;
     if (thunderBtnReady) {
       await cdp.clickSelector('[data-skill-id="thunder_strike"]');
       await new Promise((r) => setTimeout(r, 1300));
       thunderCast = true;
+    }
+    await cdp.clickSelector('[data-skill-id="fire_blade"]');
+    await new Promise((r) => setTimeout(r, 1300));
+    await cdp.clickSelector('[data-skill-id="frost_seal"]');
+    await new Promise((r) => setTimeout(r, 1300));
+    if (!thunderCast) {
+      const retryReady = await cdp.eval(`Boolean(document.querySelector('[data-skill-id="thunder_strike"]') && !document.querySelector('[data-skill-id="thunder_strike"]').disabled)`);
+      if (retryReady) {
+        await cdp.clickSelector('[data-skill-id="thunder_strike"]');
+        await new Promise((r) => setTimeout(r, 1300));
+        thunderCast = true;
+      }
     }
     const spellState = await cdp.eval(`({
       skill: window.__LEX_RAID_TEST_HOOKS__.getSkillState(),
@@ -1273,6 +1278,311 @@ async function main() {
       }));
     }
 
+    // ===================== P5 PATH OF LEGENDS CHECKS =====================
+    // 1. Character Hall: 6 Tabs, Registry validation, Locked Hero block, Training Dummy Zero-Mutation Preview, Loadout Limits
+    await cdp.setViewport(1366, 768, false);
+    const p5HallLogs = await cdp.goto(`${baseUrl}/app/account`, 1200);
+    await cdp.eval(`localStorage.removeItem('glp.p5.demoProgression.v1')`);
+    await cdp.goto(`${baseUrl}/app/account`, 1200);
+
+    const p5RegistryCheck = await cdp.eval(`({
+      registry: window.RaidRegistry?.validateRegistry?.(),
+      unlockedHeroes: window.RaidProgressionStore?.loadState()?.unlockedHeroes,
+      selectLockedMage: window.RaidProgressionStore?.selectHero('arcane_mage'),
+      wrongClassLoadout: window.RaidProgressionStore?.setHeroLoadout('archer', ['knight_slash']),
+      over5Loadout: window.RaidProgressionStore?.setHeroLoadout('warrior', ['knight_slash','heavy_slash','royal_guard','sacred_recovery','blade_storm','fire_blade']),
+      spBefore: window.RaidProgressionStore?.loadState()?.skillPoints
+    })`);
+
+    if (!p5RegistryCheck.registry?.valid ||
+        p5RegistryCheck.registry.heroCount !== 4 ||
+        p5RegistryCheck.registry.skillCount !== 27 ||
+        p5RegistryCheck.selectLockedMage?.ok !== false ||
+        p5RegistryCheck.wrongClassLoadout?.ok !== false ||
+        p5RegistryCheck.over5Loadout?.ok !== false) {
+      fail('P5 Registry / Security / Loadout validation failed: ' + JSON.stringify(p5RegistryCheck));
+    }
+
+    // Check Skill Tree upgrade & Byte Kit visuals + Training Dummy zero reward mutation
+    await cdp.clickSelector('[data-hall-tab="tree"]');
+    await new Promise((r) => setTimeout(r, 250));
+    await cdp.clickSelector('[data-tree-skill="heavy_slash"]');
+    await new Promise((r) => setTimeout(r, 150));
+    await cdp.clickSelector('#inspectUpgradeBtn');
+    await new Promise((r) => setTimeout(r, 200));
+    const afterUpgrade = await cdp.eval(`window.RaidProgressionStore?.loadState()`);
+    if (!afterUpgrade || afterUpgrade.skillLevels.heavy_slash !== 2 || afterUpgrade.skillPoints !== p5RegistryCheck.spBefore - 1) {
+      fail('P5 Skill Tree evolution Lv1->Lv2 failed: ' + JSON.stringify(afterUpgrade));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_skill_tree.png'), false);
+
+    // Training Dummy preview Arcane Mage (locked hero previewable without unlocking or changing SP/history)
+    await cdp.clickSelector('[data-hall-tab="spellbook"]');
+    await new Promise((r) => setTimeout(r, 400));
+    await cdp.clickSelector('[data-dummy-cast="fireball"]');
+    await new Promise((r) => setTimeout(r, 450));
+    const afterDummy = await cdp.eval(`window.RaidProgressionStore?.loadState()`);
+    if (afterDummy.unlockedHeroes.includes('arcane_mage') || afterDummy.skillPoints !== afterUpgrade.skillPoints || afterDummy.battleHistory.length !== 0) {
+      fail('P5 Training Dummy mutated progression state: ' + JSON.stringify(afterDummy));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_training_dummy.png'), false);
+
+    // Chapter Map check
+    await cdp.clickSelector('[data-hall-tab="chapters"]');
+    await new Promise((r) => setTimeout(r, 200));
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_chapters.png'), false);
+
+    // Mobile responsive Character Hall check (390x844 & 320x568)
+    for (const vp of [{ width: 390, height: 844, mobile: true }, { width: 320, height: 568, mobile: true }]) {
+      await cdp.setViewport(vp.width, vp.height, true);
+      await new Promise((r) => setTimeout(r, 180));
+      const ov = await cdp.eval(`document.documentElement.scrollWidth > window.innerWidth`);
+      if (ov) fail(`P5 Character Hall horizontal overflow at ${vp.width}x${vp.height}`);
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_mobile.png'), false);
+    await cdp.setViewport(1366, 768, false);
+
+    // 2. All 10 Animation Profiles Verification (Knight, Archer, Lancer, Arcane Mage) + Ranged Hold Position + Lazy VFX + Canvas Parity
+    await cdp.eval(`(() => {
+      const s = window.RaidProgressionStore.loadState();
+      if (!s.unlockedHeroes.includes('arcane_mage')) s.unlockedHeroes.push('arcane_mage');
+      ['phantom_dash','earthbreaker','shield_counter','divine_aegis','rune_prison','heavens_pillar','arcane_beam','meteor_fall','triple_shot','celestial_arrow','impaling_charge','iron_fortress','dragon_lance'].forEach(id => { s.skillLevels[id] = 1; });
+      s.selectedHero = 'warrior';
+      window.RaidProgressionStore.saveState(s);
+    })()`);
+
+    const perfStartLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=5&seed=555`, 1800);
+    const p5ColdStartMetrics = await cdp.eval(`(() => {
+      const nav = performance.getEntriesByType('navigation')[0];
+      const res = performance.getEntriesByType('resource');
+      return {
+        requests: res.length + 1,
+        transferKB: Math.round(res.reduce((a, b) => a + (b.transferSize || 0), 0) / 1024),
+        domReadyMs: Math.round(nav ? nav.domContentLoadedEventEnd : 0),
+        heapMB: performance.memory ? Number((performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(2)) : null
+      };
+    })()`);
+
+    const profileTests = [
+      { profile: 'MELEE_SLASH', hero: 'warrior', skillId: 'knight_slash' },
+      { profile: 'DASH_STRIKE', hero: 'warrior', skillId: 'phantom_dash' },
+      { profile: 'SHIELD_CAST', hero: 'warrior', skillId: 'royal_guard' },
+      { profile: 'SELF_HEAL', hero: 'warrior', skillId: 'sacred_recovery' },
+      { profile: 'MELEE_SLASH', hero: 'lancer', skillId: 'spear_thrust' },
+      { profile: 'DASH_STRIKE', hero: 'lancer', skillId: 'impaling_charge' },
+      { profile: 'PROJECTILE', hero: 'archer', skillId: 'quick_shot', mustStayRanged: true },
+      { profile: 'MULTI_HIT', hero: 'archer', skillId: 'triple_shot', mustStayRanged: true },
+      { profile: 'PROJECTILE', hero: 'arcane_mage', skillId: 'fireball', mustStayRanged: true },
+      { profile: 'CHANNEL_BEAM', hero: 'arcane_mage', skillId: 'arcane_beam', mustStayRanged: true },
+      { profile: 'GROUND_CAST', hero: 'warrior', skillId: 'frost_seal' },
+      { profile: 'SKY_STRIKE', hero: 'warrior', skillId: 'thunder_strike' },
+      { profile: 'ULTIMATE', hero: 'arcane_mage', skillId: 'meteor_fall', mustStayRanged: true }
+    ];
+    const profileResults = [];
+    for (let idx = 0; idx < profileTests.length; idx++) {
+      const pt = profileTests[idx];
+      // Reload clean Stage 5 between every 3 skills so MP & Boss HP stay fresh without bypassing BattleScene
+      if (idx > 0 && idx % 3 === 0) {
+        await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=5&seed=555`, 1400);
+      }
+      const pOutcome = await cdp.eval(`(async () => {
+        const s = window.RaidProgressionStore.loadState();
+        s.selectedHero = '${pt.hero}';
+        window.RaidProgressionStore.saveState(s);
+        window.__LEX_RAID_TEST_HOOKS__.setLoadoutAndBoss({ unitCode: '${pt.hero}' });
+        await new Promise(res => setTimeout(res, 220));
+        // Build MP naturally via valid word if needed
+        for (const w of window.__LEX_RAID_TEST_HOOKS__.getValidWords().slice(0, 8)) {
+          if (window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana >= 4) break;
+          const wordStr = String(typeof w === 'string' ? w : (w?.word || '')).toUpperCase();
+          if (wordStr.length < 3) continue;
+          const board = window.__LEX_RAID_TEST_HOOKS__.getBoard();
+          const path = [];
+          const used = Array.from({ length: board.length }, () => Array(board[0].length).fill(false));
+          let ok = true;
+          for (const ch of wordStr) {
+            let f = false;
+            for (let r = 0; r < board.length && !f; r++) {
+              for (let c = 0; c < board[r].length && !f; c++) {
+                if (!used[r][c] && board[r][c] === ch) { used[r][c] = true; path.push([r, c]); f = true; }
+              }
+            }
+            if (!f) { ok = false; break; }
+          }
+          if (ok && path.length >= 3) {
+            for (const [r, c] of path) document.querySelector(\`.board-tile[data-row="\${r}"][data-col="\${c}"]\`)?.click();
+            document.getElementById('submitWordBtn')?.click();
+            for (let t = 0; t < 15; t++) {
+              await new Promise(res => setTimeout(res, 120));
+              if (!window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()) break;
+            }
+          }
+        }
+        for (let t = 0; t < 12; t++) {
+          if (!window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()) break;
+          await new Promise(res => setTimeout(res, 100));
+        }
+        const castOk = window.__LEX_RAID_TEST_HOOKS__.castSkill('${pt.skillId}');
+        await new Promise(res => setTimeout(res, 240));
+        const mid = window.__LEX_RAID_SCENE_STATE__();
+        await new Promise(res => setTimeout(res, 1250));
+        const settled = window.__LEX_RAID_SCENE_STATE__();
+        return { castOk, mid, settled };
+      })()`);
+      if (!pOutcome.castOk || !pOutcome.mid || pOutcome.mid.lastProfile !== pt.profile) {
+        fail(`P5 Animation profile mismatch for ${pt.hero}:${pt.skillId}: ` + JSON.stringify(pOutcome));
+      }
+      if (pt.mustStayRanged && pOutcome.mid.lastHeroMovedX > 16) {
+        fail(`P5 Ranged Hero ${pt.hero} moved ${pOutcome.mid.lastHeroMovedX}px into melee during ${pt.profile}!`);
+      }
+      if (pOutcome.settled.fsmState !== 'IDLE' || pOutcome.settled.activeTempObjects !== 0) {
+        fail(`P5 Scene failed cleanup/IDLE settle after ${pt.skillId}: ` + JSON.stringify(pOutcome.settled));
+      }
+      if ([1, 7, 8, 9, 12].includes(idx)) {
+        await cdp.screenshot(path.join(OUTPUT_DIR, `p5_anim_${pt.hero}_${pt.profile.toLowerCase()}.png`), false);
+      }
+      profileResults.push({ ...pt, lastProfile: pOutcome.mid.lastProfile, lastHeroMovedX: pOutcome.mid.lastHeroMovedX, endFsm: pOutcome.settled.fsmState, tempLeft: pOutcome.settled.activeTempObjects });
+    }
+
+    // Check P5 Canvas 2D fallback parity for Arcane Mage ranged attack
+    await cdp.eval(`(() => { const s = window.RaidProgressionStore.loadState(); s.selectedHero = 'arcane_mage'; window.RaidProgressionStore.saveState(s); })()`);
+    const p5CanvasLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1&renderer=canvas&stage=2`, 1400);
+    const p5CanvasMage = await cdp.eval(`(async () => {
+      const ok = window.__LEX_RAID_TEST_HOOKS__.castSkill('fireball');
+      await new Promise(r => setTimeout(r, 180));
+      const mid = window.__LEX_RAID_SCENE_STATE__();
+      await new Promise(r => setTimeout(r, 600));
+      const end = window.__LEX_RAID_SCENE_STATE__();
+      return { renderer: window.__LEX_RAID_TEST_HOOKS__.getRenderer(), ok, mid, end };
+    })()`);
+    if (p5CanvasLogs.failedRequests.length || !p5CanvasMage.ok || p5CanvasMage.mid?.lastHeroMovedX > 10 || p5CanvasMage.end?.fsmState !== 'IDLE') {
+      fail('P5 Canvas 2D fallback parity failed for Arcane Mage: ' + JSON.stringify(p5CanvasMage));
+    }
+
+    // 3. Full E2E Progression Playthrough (Fresh Reset -> Topic Word + 5-Wave Stage 1 Victory -> Unlock Arcane Mage + Phantom Dash -> Upgrade -> Equip -> Stage 2 Battle -> Cast Newly Unlocked Skill -> Reload Persistence -> Duplicate Victory Rejection)
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=1&seed=777`, 1600);
+
+    // Practice mode check first: switching to Practice shouldn't grant campaign unlock on early check, then switch back to Campaign
+    await cdp.clickSelector('#modePracticeBtn');
+    const pracRes = await cdp.eval(`window.RaidProgressionStore.recordBattleCompletion({ victory: true, stageId: 1, isPractice: true, score: 100, topicWords: 1 })`);
+    if (pracRes.grantedRewards.length !== 0 || pracRes.state.unlockedHeroes.includes('arcane_mage')) {
+      fail('Practice Mode erroneously granted Campaign unlock rewards!');
+    }
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=1&seed=777`, 1600);
+
+    for (let step = 0; step < 36; step++) {
+      const done = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.isFinished()`);
+      if (done) break;
+      const curState = await cdp.eval(`({
+        bossHp: window.__LEX_RAID_TEST_HOOKS__.getBossHp(),
+        wave: window.__LEX_RAID_TEST_HOOKS__.getWaveState(),
+        core: window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord(),
+        board: window.__LEX_RAID_TEST_HOOKS__.getBoard(),
+        validWords: window.__LEX_RAID_TEST_HOOKS__.getValidWords()
+      })`);
+      // Solve at least 1 topic word first cleanly, then use Core Word guesses
+      const preferTopic = curState.validWords.map((x) => String(typeof x === 'string' ? x : (x?.word || '')).toUpperCase()).find((wUpper) => {
+        if (!wUpper || wUpper.length < 3 || wUpper === curState.core) return false;
+        const used = Array.from({ length: curState.board.length }, () => Array(curState.board[0].length).fill(false));
+        for (const ch of wUpper) {
+          let f = false;
+          for (let r = 0; r < curState.board.length && !f; r++) {
+            for (let c = 0; c < curState.board[r].length && !f; c++) {
+              if (!used[r][c] && curState.board[r][c] === ch) { used[r][c] = true; f = true; }
+            }
+          }
+          if (!f) return false;
+        }
+        return true;
+      });
+      const pickWord = (step === 0 && preferTopic) ? preferTopic : curState.core;
+      const useGuessBtn = pickWord === curState.core;
+      await cdp.eval(`(() => {
+        const board = window.__LEX_RAID_TEST_HOOKS__.getBoard();
+        const used = Array.from({ length: board.length }, () => Array(board[0].length).fill(false));
+        for (const ch of '${pickWord}') {
+          let f = false;
+          for (let r = 0; r < board.length && !f; r++) {
+            for (let c = 0; c < board[r].length && !f; c++) {
+              if (!used[r][c] && board[r][c] === ch) {
+                used[r][c] = true;
+                document.querySelector(\`.board-tile[data-row="\${r}"][data-col="\${c}"]\`)?.click();
+                f = true;
+              }
+            }
+          }
+        }
+        if (${useGuessBtn}) document.getElementById('guessCoreBtn')?.click();
+        else document.getElementById('submitWordBtn')?.click();
+      })()`);
+      await new Promise((r) => setTimeout(r, curState.bossHp <= 65 ? 1150 : 280));
+    }
+
+    const e2eUnlockCheck = await cdp.eval(`({
+      finished: window.__LEX_RAID_TEST_HOOKS__.isFinished(),
+      unlockBannerText: document.getElementById('finishUnlockPanel')?.innerText || '',
+      prog: window.RaidProgressionStore.loadState()
+    })`);
+    if (!e2eUnlockCheck.finished ||
+        !e2eUnlockCheck.prog.unlockedHeroes.includes('arcane_mage') ||
+        !e2eUnlockCheck.prog.skillLevels.phantom_dash ||
+        e2eUnlockCheck.prog.chapterProgress[2].status !== 'AVAILABLE') {
+      fail('P5 E2E Stage 1 Victory Reward Unlock failed: ' + JSON.stringify(e2eUnlockCheck));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_e2e_stage1_unlock_victory.png'), false);
+
+    // Duplicate reward rejection check on same Stage 1 clear
+    const dupCheck = await cdp.eval(`(() => {
+      const beforeSp = window.RaidProgressionStore.loadState().skillPoints;
+      const res = window.RaidProgressionStore.recordBattleCompletion({ victory: true, stageId: 1, isPractice: false, score: 999, topicWords: 2 });
+      return { beforeSp, afterSp: res.state.skillPoints, granted: res.grantedRewards.length };
+    })()`);
+    if (dupCheck.granted !== 0 || dupCheck.afterSp !== dupCheck.beforeSp) {
+      fail('Duplicate milestone reward granted on Stage 1 replay: ' + JSON.stringify(dupCheck));
+    }
+
+    // Open Character Hall -> Equip newly unlocked phantom_dash on Warrior -> Switch to unlocked Arcane Mage or Warrior -> Reload Battle Stage 2 -> Cast newly unlocked skill!
+    await cdp.goto(`${baseUrl}/app/account`, 1100);
+    await cdp.eval(`(() => {
+      const res = window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'phantom_dash');
+      window.RaidProgressionStore.selectHero('warrior');
+      window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'royal_guard');
+      if (!window.RaidProgressionStore.loadState().loadouts.warrior.includes('phantom_dash')) {
+        window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'phantom_dash');
+      }
+    })()`);
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=2`, 1600);
+    const stage2EquippedCheck = await cdp.eval(`(() => {
+      const okPhantom = window.__LEX_RAID_TEST_HOOKS__.castSkill('phantom_dash');
+      const hotbarHasPhantom = Boolean(document.querySelector('[data-skill-id="phantom_dash"]'));
+      return { okPhantom, hotbarHasPhantom, unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(), stageTitle: document.getElementById('stageTitle')?.innerText || '' };
+    })()`);
+    if (!stage2EquippedCheck.hotbarHasPhantom || !stage2EquippedCheck.okPhantom || !stage2EquippedCheck.stageTitle.includes('Đầm Lầy')) {
+      fail('P5 E2E Cast newly unlocked Phantom Dash on Stage 2 failed: ' + JSON.stringify(stage2EquippedCheck));
+    }
+
+    // Now select unlocked Arcane Mage -> reload page -> confirm persistence -> cast fireball!
+    await cdp.eval(`window.RaidProgressionStore.selectHero('arcane_mage')`);
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=2`, 1600);
+    const stage2MageCheck = await cdp.eval(`(() => {
+      const okCast = window.__LEX_RAID_TEST_HOOKS__.castSkill('fireball');
+      return {
+        unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(),
+        progHero: window.RaidProgressionStore.loadState().selectedHero,
+        stageTitle: document.getElementById('stageTitle')?.innerText || '',
+        okCast
+      };
+    })()`);
+    if (stage2MageCheck.unit !== 'arcane_mage' || !stage2MageCheck.stageTitle.includes('Đầm Lầy') || !stage2MageCheck.okCast) {
+      fail('P5 E2E Equipped Unlocked Arcane Mage on Stage 2 failed: ' + JSON.stringify(stage2MageCheck));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_e2e_arcane_mage_stage2_battle.png'), false);
+
+    // Reset clean Progression state before concluding static/theme checks
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
+
     report.p4b2Features = {
       normalHookCheck: normalCheck,
       initialLockCheck,
@@ -1309,6 +1619,15 @@ async function main() {
       wave2Check,
       reviewVisible,
       themes: { dayTheme, moonTheme, volTheme, combatThemeCheck, restoredQuizTheme, mobileThemeOverflow }
+    };
+    report.p5Features = {
+      p5RegistryCheck,
+      p5ColdStartMetrics,
+      profileResults,
+      e2eUnlockCheck,
+      stage2MageCheck,
+      p5HallFailed: p5HallLogs.failedRequests.length,
+      perfStartFailed: perfStartLogs.failedRequests.length
     };
 
     const jsonOut = path.join(OUTPUT_DIR, 'browser_qa_report.json');

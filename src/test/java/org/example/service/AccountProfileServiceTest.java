@@ -119,4 +119,27 @@ class AccountProfileServiceTest {
         assertEquals(5, user.getLevelCurrent());
         verify(userRepository, times(1)).save(user);
     }
+
+    @Test
+    void testSaveLoadoutAcceptsArcaneMage() {
+        Long userId = 30L;
+        User user = new User();
+        user.setUserId(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        org.example.dto.AccountLoadoutRequest req = new org.example.dto.AccountLoadoutRequest();
+        req.setUserId(userId);
+        req.setUnitCode("arcane_mage");
+        req.setAvatarCode("avatar1");
+
+        when(userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(userId, 0)).thenReturn(0L);
+        assertThrows(IllegalArgumentException.class, () -> accountService.saveLoadout(req));
+
+        when(userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(userId, 0)).thenReturn(1L);
+        when(userLoadoutRepository.findByUserUserId(userId)).thenReturn(Optional.empty());
+        when(userLoadoutRepository.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        AccountLoadoutDto res = accountService.saveLoadout(req);
+        assertEquals("arcane_mage", res.getUnitCode());
+    }
 }

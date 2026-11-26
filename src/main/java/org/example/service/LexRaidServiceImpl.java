@@ -510,13 +510,16 @@ public class LexRaidServiceImpl implements LexRaidService {
         String expected = normalizeWord(stageCoreWord.getWord().getWordText());
         String guessed = normalizeWord(request.getGuessedWord());
         boolean correct = expected.equals(guessed);
-        int rewardDamage = correct ? Math.max(20, defaultIfNull(stageCoreWord.getBonusDamage(), 0)) : 0;
+        int rewardDamage = correct
+                ? balanceConfig.computeCoreWordDamage(defaultIfNull(stageCoreWord.getBonusDamage(), 0), expected.length())
+                : 0;
         int penalty = correct ? 0 : 5;
         boolean finalizeWonNow = false;
 
         if (correct) {
             raidSession.setBossShieldRemaining(0);
-            raidSession.setBossHpRemaining(0);
+            int nextHp = Math.max(0, defaultIfNull(raidSession.getBossHpRemaining(), 0) - rewardDamage);
+            raidSession.setBossHpRemaining(nextHp);
             raidSession.setTotalScore(defaultIfNull(raidSession.getTotalScore(), 0) + rewardDamage + defaultIfNull(stageCoreWord.getBonusXp(), 0));
             raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), stageCoreWord));
             solvedIds.add(stageCoreWord.getStageCoreWordId());
@@ -525,9 +528,11 @@ public class LexRaidServiceImpl implements LexRaidService {
 
             StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
             if (nextWordCheck == null) {
-                raidSession.setStatus(WON);
-                raidSession.setEndedAt(LocalDateTime.now());
-                finalizeWonNow = true;
+                if (nextHp <= 0) {
+                    raidSession.setStatus(WON);
+                    raidSession.setEndedAt(LocalDateTime.now());
+                    finalizeWonNow = true;
+                }
             } else {
                 raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                 raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());

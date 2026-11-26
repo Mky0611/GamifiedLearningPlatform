@@ -128,8 +128,8 @@ class LexRaidGlobalLexiconTest {
         when(vocabularyWordRepository.findTop40ByVocabularySetVocabularySetIdOrderByWordTextAsc(20L)).thenReturn(List.of());
         when(boardSnapshotRepository.findTopByRaidSessionRaidSessionIdOrderBySnapshotNoDesc(200L))
                 .thenReturn(Optional.of(snapshot));
-        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(200L)).thenReturn(List.of());
-        when(wordSubmitEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        lenient().when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(200L)).thenReturn(List.of());
+        lenient().when(wordSubmitEventRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(raidSessionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -427,6 +427,35 @@ class LexRaidGlobalLexiconTest {
         assertTrue(submitRes.isAccepted(), "submitWord must validate against persisted POST_SUBMIT board");
         assertEquals("CORE", submitRes.getWordCategory());
         assertEquals("WON", submitRes.getRaidStatus());
+    }
+
+    @Test
+    void guessCoreWordAppliesHeavyDamageParityWithoutAutoWipingHighHpBoss() {
+        VocabularyWord wordSingle = new VocabularyWord();
+        wordSingle.setWordId(64L);
+        wordSingle.setWordText("LEARN");
+        wordSingle.setNormalizedText("LEARN");
+        StageCoreWord onlyCw = new StageCoreWord();
+        onlyCw.setStageCoreWordId(309L);
+        onlyCw.setRevealOrder(1);
+        onlyCw.setWord(wordSingle);
+        onlyCw.setBonusDamage(40);
+        onlyCw.setBonusXp(25);
+
+        session.setBossHpRemaining(200);
+        session.setBossShieldRemaining(30);
+        when(stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(1L)).thenReturn(List.of(onlyCw));
+
+        org.example.dto.LexRaidGuessCoreWordRequest guessReq = new org.example.dto.LexRaidGuessCoreWordRequest();
+        guessReq.setStageCoreWordId(309L);
+        guessReq.setGuessedWord("LEARN");
+
+        LexRaidActionResultDto res = service.guessCoreWord(200L, guessReq);
+        assertTrue(res.isAccepted());
+        assertTrue(res.getDamageDealt() >= 55, "Core word damage must align with >= 55 parity");
+        assertEquals(0, session.getBossShieldRemaining());
+        assertEquals(200 - res.getDamageDealt(), session.getBossHpRemaining());
+        assertEquals("ACTIVE", session.getStatus());
     }
 
     private List<WordPathTileDto> findWordPathOnBoard(List<List<String>> board, String word) {

@@ -28,7 +28,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    private static final Set<String> ALLOWED_UNITS = Set.of("warrior", "lancer", "archer");
+    private static final Set<String> ALLOWED_UNITS = Set.of("warrior", "lancer", "archer", "arcane_mage");
     private static final Set<String> ALLOWED_AVATARS = Set.of("avatar1", "avatar2", "avatar3", "avatar-a", "avatar-b", "avatar-c");
 
     private final UserRepository userRepository;
@@ -142,6 +142,10 @@ public class AccountServiceImpl implements AccountService {
         }
 
         User user = resolveUserForLoadoutSave(request.getUserId());
+        if ("arcane_mage".equals(unitCode)
+                && userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(user.getUserId(), 0) < 1) {
+            throw new IllegalArgumentException("Can hoan thanh it nhat 1 Stage de mo khoa Arcane Mage.");
+        }
 
         try {
             UserLoadout loadout = userLoadoutRepository.findByUserUserId(user.getUserId())
