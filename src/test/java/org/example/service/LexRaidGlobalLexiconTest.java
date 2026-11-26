@@ -111,7 +111,7 @@ class LexRaidGlobalLexiconTest {
         session.setTotalScore(0);
         session.setClueProgressJson("[]");
 
-        // 5x5 deterministic snapshot board containing WATER (non-adjacent), CACHE, and LIGHT
+        // 5x5 deterministic snapshot board containing WATER (non-adjacent), CACHE, LIGHT, and GO (2,2 -> 3,3)
         snapshot = new BoardSnapshot();
         snapshot.setRaidSession(session);
         snapshot.setSnapshotNo(1);
@@ -119,7 +119,7 @@ class LexRaidGlobalLexiconTest {
                 + "[\"W\",\"C\",\"L\",\"X\",\"Y\"],"
                 + "[\"Q\",\"A\",\"I\",\"Z\",\"M\"],"
                 + "[\"P\",\"C\",\"G\",\"T\",\"E\"],"
-                + "[\"R\",\"H\",\"H\",\"B\",\"D\"],"
+                + "[\"R\",\"H\",\"H\",\"O\",\"D\"],"
                 + "[\"N\",\"E\",\"T\",\"K\",\"A\"]"
                 + "]");
 
@@ -259,5 +259,82 @@ class LexRaidGlobalLexiconTest {
         LexRaidActionResultDto dupRes = service.submitWord(200L, dupReq);
         assertFalse(dupRes.isAccepted());
         assertEquals("INVALID", dupRes.getWordCategory());
+    }
+
+    @Test
+    void rejectsMissingOrEmptyPathAndIgnoresClientForgedBoardJson() {
+        when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "WATER"))
+                .thenReturn(Optional.empty());
+
+        // 1) Missing path (null) must be rejected
+        LexRaidSubmitWordRequest nullPathReq = new LexRaidSubmitWordRequest();
+        nullPathReq.setSubmittedWord("WATER");
+        nullPathReq.setPath(null);
+        nullPathReq.setBoardJson("[[\"W\",\"A\",\"T\",\"E\",\"R\"]]");
+        LexRaidActionResultDto nullRes = service.submitWord(200L, nullPathReq);
+        assertFalse(nullRes.isAccepted());
+        assertEquals("INVALID", nullRes.getWordCategory());
+
+        // 2) Empty path ([]) must be rejected
+        LexRaidSubmitWordRequest emptyPathReq = new LexRaidSubmitWordRequest();
+        emptyPathReq.setSubmittedWord("WATER");
+        emptyPathReq.setPath(List.of());
+        emptyPathReq.setBoardJson("[[\"W\",\"A\",\"T\",\"E\",\"R\"]]");
+        LexRaidActionResultDto emptyRes = service.submitWord(200L, emptyPathReq);
+        assertFalse(emptyRes.isAccepted());
+        assertEquals("INVALID", emptyRes.getWordCategory());
+
+        // Client forged boardJson must NEVER overwrite authoritative BoardSnapshot
+        verify(boardSnapshotRepository, never()).save(any());
+    }
+
+    @Test
+    void acceptsWhitelistedTwoLetterWordGoAndPersistsKillingBlowBeforeFinalize() {
+        // 1) Whitelisted everyday 2-letter word GO is valid and deals proportional damage (2*5 + 1*2 = 12) + 1 MP
+        when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "GO"))
+                .thenReturn(Optional.empty());
+        LexRaidSubmitWordRequest goReq = new LexRaidSubmitWordRequest();
+        goReq.setSubmittedWord("go");
+        goReq.setPath(List.of(tile(2, 2, "G"), tile(3, 3, "O")));
+        LexRaidActionResultDto goRes = service.submitWord(200L, goReq);
+        assertTrue(goRes.isAccepted());
+        assertEquals("GLOBAL", goRes.getWordCategory());
+        assertEquals(12, goRes.getDamageDealt());
+        assertEquals(1, goRes.getManaGain());
+
+        // 2) Killing blow saves WordSubmitEvent BEFORE finalizeGameSessionAndAward
+        session.setBossHpRemaining(20);
+        session.setStatus("ACTIVE");
+        when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "WATER"))
+                .thenReturn(Optional.empty());
+        when(gameSessionRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(session.getGameSession()));
+        List<WordSubmitEvent> persistedEvents = new java.util.ArrayList<>();
+        when(wordSubmitEventRepository.save(any())).thenAnswer(inv -> {
+            WordSubmitEvent ev = inv.getArgument(0);
+            persistedEvents.add(ev);
+            return ev;
+        });
+        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(200L))
+                .thenAnswer(inv -> persistedEvents.stream().filter(e -> Boolean.TRUE.equals(e.getIsValid())).toList());
+        when(coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(200L))
+                .thenReturn(List.of());
+        when(rpgProgressionService.calculateLexRaidXp(true, 40)).thenReturn(120);
+        when(rpgProgressionService.calculateLexRaidCoins(true, 40)).thenReturn(24);
+
+        LexRaidSubmitWordRequest killReq = new LexRaidSubmitWordRequest();
+        killReq.setSubmittedWord("water");
+        killReq.setPath(List.of(
+                tile(0, 0, "W"), tile(4, 4, "A"), tile(2, 3, "T"), tile(2, 4, "E"), tile(3, 0, "R")
+        ));
+        LexRaidActionResultDto killRes = service.submitWord(200L, killReq);
+        assertTrue(killRes.isAccepted());
+        assertEquals("WON", killRes.getRaidStatus());
+        assertEquals(40, killRes.getScoreGain());
+        verify(rpgProgressionService).applyReward(any(), eq(120), eq(24));
+
+        // 3) Completed session rejects subsequent submitWord attempts cleanly
+        LexRaidActionResultDto blockedRes = service.submitWord(200L, killReq);
+        assertFalse(blockedRes.isAccepted());
+        assertEquals("INVALID", blockedRes.getWordCategory());
     }
 }

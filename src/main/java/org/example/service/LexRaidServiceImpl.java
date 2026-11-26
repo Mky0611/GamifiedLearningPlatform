@@ -258,8 +258,10 @@ public class LexRaidServiceImpl implements LexRaidService {
     @Transactional
     public LexRaidSessionDto syncSession(Long raidSessionId, LexRaidSessionSyncRequest request, String reasonCode) {
         RaidSession raidSession = findSession(raidSessionId);
+        if (isSessionClosed(raidSession)) {
+            return toSessionDto(raidSession);
+        }
         applySync(raidSession, request, false);
-        saveSnapshotIfPresent(raidSession, request, reasonCode == null ? DEFAULT_BOARD_REASON : reasonCode);
         return toSessionDto(raidSessionRepository.save(raidSession));
     }
 
@@ -267,26 +269,46 @@ public class LexRaidServiceImpl implements LexRaidService {
     @Transactional
     public LexRaidSessionDto finishSession(Long raidSessionId, LexRaidSessionSyncRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
-        GameSession gameSession = raidSession.getGameSession();
-        if (gameSession != null && COMPLETED.equalsIgnoreCase(gameSession.getStatus())) {
+        if (isSessionClosed(raidSession)) {
             return toSessionDto(raidSession);
         }
         applySync(raidSession, request, true);
-        saveSnapshotIfPresent(raidSession, request, DEFAULT_BOARD_REASON);
         finalizeGameSessionAndAward(raidSession, request != null ? request.getResultCode() : null, request != null ? request.getDurationSec() : null);
         return toSessionDto(raidSessionRepository.save(raidSession));
+    }
+
+    private boolean isSessionClosed(RaidSession raidSession) {
+        if (raidSession == null) return true;
+        if (WON.equalsIgnoreCase(raidSession.getStatus()) || LOST.equalsIgnoreCase(raidSession.getStatus())) {
+            return true;
+        }
+        GameSession gs = raidSession.getGameSession();
+        return gs != null && COMPLETED.equalsIgnoreCase(gs.getStatus());
     }
 
     @Override
     @Transactional
     public LexRaidActionResultDto submitWord(Long raidSessionId, LexRaidSubmitWordRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
+        if (isSessionClosed(raidSession)) {
+            return LexRaidActionResultDto.builder()
+                    .accepted(false)
+                    .actionType("SUBMIT_WORD")
+                    .submittedWord(request != null ? request.getSubmittedWord() : null)
+                    .rejectionReason("Session da ket thuc, khong the thay doi ket qua")
+                    .wordCategory("INVALID")
+                    .raidStatus(raidSession.getStatus())
+                    .session(toSessionDto(raidSession))
+                    .build();
+        }
         Stage stage = raidSession.getStage();
         String submittedRaw = request != null ? request.getSubmittedWord() : null;
         String normalizedWord = normalizeWord(submittedRaw);
         int length = normalizedWord.length();
-        boolean lengthValid = length >= LexRaidBalanceConfig.MIN_WORD_LENGTH
-                && length <= LexRaidBalanceConfig.MAX_WORD_LENGTH;
+        boolean isTwoLetterWhitelisted = length == LexRaidBalanceConfig.ABSOLUTE_MIN_WHITELIST_LENGTH
+                && EnglishLexiconService.TWO_LETTER_COMMON_WHITELIST.contains(normalizedWord);
+        boolean lengthValid = (length >= LexRaidBalanceConfig.MIN_WORD_LENGTH
+                && length <= LexRaidBalanceConfig.MAX_WORD_LENGTH) || isTwoLetterWhitelisted;
 
         VocabularySet set = stage.getVocabularySet();
         List<StageCoreWord> coreWords = stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(stage.getStageId());
@@ -299,8 +321,8 @@ public class LexRaidServiceImpl implements LexRaidService {
         List<List<String>> authoritativeBoard = resolveAuthoritativeBoard(raidSession, stage, vocabulary, activeCoreWord);
         List<WordPathTileDto> submittedPath = request != null ? request.getPath() : null;
         boolean hasPath = submittedPath != null && !submittedPath.isEmpty();
-        boolean pathValid = !hasPath || pathFormsWord(submittedPath, normalizedWord);
-        boolean boardValid = !hasPath || pathMatchesBoard(submittedPath, authoritativeBoard);
+        boolean pathValid = hasPath && pathFormsWord(submittedPath, normalizedWord);
+        boolean boardValid = pathValid && pathMatchesBoard(submittedPath, authoritativeBoard);
 
         Optional<VocabularyWord> matchedWordOpt = (set != null && lengthValid)
                 ? vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(set.getVocabularySetId(), normalizedWord)
@@ -315,7 +337,9 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         VocabularyWord matchedWord = matchedWordOpt.orElse(null);
         int oldCombo = defaultIfNull(raidSession.getComboCount(), 0);
-        int comboAfter = valid ? oldCombo + 1 : 0;
+        int chapterNo = stage.getChapterNo() != null ? stage.getChapterNo() : 1;
+        int invalidComboAfter = chapterNo <= 1 ? Math.max(0, oldCombo / 2) : 0;
+        int comboAfter = valid ? oldCombo + 1 : invalidComboAfter;
         boolean solvedCoreCandidate = valid && activeCoreWord != null && !solvedIds.contains(activeCoreWord.getStageCoreWordId())
                 && ((matchedWord != null && activeCoreWord.getWord() != null && Objects.equals(activeCoreWord.getWord().getWordId(), matchedWord.getWordId()))
                 || (activeCoreWord.getWord() != null && normalizeWord(activeCoreWord.getWord().getWordText()).equals(normalizedWord)));
@@ -332,6 +356,7 @@ public class LexRaidServiceImpl implements LexRaidService {
         int shieldDamage = Math.min(defaultIfNull(raidSession.getBossShieldRemaining(), 0), totalDamage);
         int hpDamage = Math.max(0, totalDamage - shieldDamage);
         boolean solvedCoreBySubmit = false;
+        boolean bossClearedAllWaves = false;
 
         if (valid) {
             raidSession.setBossShieldRemaining(defaultIfNull(raidSession.getBossShieldRemaining(), 0) - shieldDamage);
@@ -358,7 +383,7 @@ public class LexRaidServiceImpl implements LexRaidService {
                 if (nextWordCheck == null) {
                     raidSession.setStatus(WON);
                     raidSession.setEndedAt(LocalDateTime.now());
-                    finalizeGameSessionAndAward(raidSession, WON, null);
+                    bossClearedAllWaves = true;
                 } else {
                     raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                     raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
@@ -369,7 +394,7 @@ public class LexRaidServiceImpl implements LexRaidService {
                 }
             }
         } else {
-            raidSession.setComboCount(0);
+            raidSession.setComboCount(invalidComboAfter);
             raidSession.setRageValue(defaultIfNull(raidSession.getRageValue(), 0) + 1);
         }
 
@@ -382,7 +407,7 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         WordSubmitEvent event = new WordSubmitEvent();
         event.setRaidSession(raidSession);
-        event.setRoundNo(defaultIfNull(request != null ? request.getRoundNo() : null, raidSession.getCurrentRound()));
+        event.setRoundNo(raidSession.getCurrentRound());
         event.setSubmittedWord(submittedRaw);
         event.setVocabularyWord(matchedWord);
         event.setWordType(wordCategory);
@@ -395,21 +420,25 @@ public class LexRaidServiceImpl implements LexRaidService {
         event.setComboAfter(comboAfter);
         event.setIsValid(valid);
         event.setRejectionReason(rejectionReason);
+        // MUST persist event BEFORE finalizeGameSessionAndAward so final killing blow counts in reward totals!
         wordSubmitEventRepository.save(event);
 
-        if (request != null && blankToNull(request.getBoardJson()) != null) {
-            LexRaidSessionSyncRequest sync = new LexRaidSessionSyncRequest();
-            sync.setBoardJson(request.getBoardJson());
-            sync.setSelectedPathJson(toPathJson(submittedPath));
-            sync.setCurrentRound(raidSession.getCurrentRound());
-            saveSnapshotIfPresent(raidSession, sync, "POST_SUBMIT");
+        if (bossClearedAllWaves) {
+            finalizeGameSessionAndAward(raidSession, WON, null);
         }
-
-        raidSessionRepository.save(raidSession);
 
         StageCoreWord nextActiveCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
         int activeCoreIndex = resolveActiveCoreIndex(coreWords, nextActiveCoreWord);
-        List<List<String>> nextBoard = buildBoard(stage, vocabulary, nextActiveCoreWord);
+        List<List<String>> nextBoard = valid ? buildBoard(stage, vocabulary, nextActiveCoreWord) : authoritativeBoard;
+        if (valid && !bossClearedAllWaves) {
+            LexRaidSessionSyncRequest serverSnapshot = new LexRaidSessionSyncRequest();
+            serverSnapshot.setBoardJson(toBoardJson(nextBoard));
+            serverSnapshot.setSelectedPathJson(toPathJson(submittedPath));
+            serverSnapshot.setCurrentRound(raidSession.getCurrentRound());
+            saveSnapshotIfPresent(raidSession, serverSnapshot, "POST_SUBMIT");
+        }
+
+        raidSessionRepository.save(raidSession);
 
         return LexRaidActionResultDto.builder()
                 .accepted(valid)
@@ -450,6 +479,16 @@ public class LexRaidServiceImpl implements LexRaidService {
     @Transactional
     public LexRaidActionResultDto guessCoreWord(Long raidSessionId, LexRaidGuessCoreWordRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
+        if (isSessionClosed(raidSession)) {
+            return LexRaidActionResultDto.builder()
+                    .accepted(false)
+                    .actionType("GUESS_CORE_WORD")
+                    .submittedWord(request != null ? request.getGuessedWord() : null)
+                    .rejectionReason("Session da ket thuc, khong the doan them")
+                    .raidStatus(raidSession.getStatus())
+                    .session(toSessionDto(raidSession))
+                    .build();
+        }
         Stage stage = raidSession.getStage();
         List<StageCoreWord> coreWords = stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(stage.getStageId());
         Set<Long> solvedIds = parseSolvedCoreWordIds(raidSession.getClueProgressJson());
@@ -473,6 +512,7 @@ public class LexRaidServiceImpl implements LexRaidService {
         boolean correct = expected.equals(guessed);
         int rewardDamage = correct ? Math.max(20, defaultIfNull(stageCoreWord.getBonusDamage(), 0)) : 0;
         int penalty = correct ? 0 : 5;
+        boolean finalizeWonNow = false;
 
         if (correct) {
             raidSession.setBossShieldRemaining(0);
@@ -482,12 +522,12 @@ public class LexRaidServiceImpl implements LexRaidService {
             solvedIds.add(stageCoreWord.getStageCoreWordId());
             updateWordMastery(raidSession.getGameSession().getUser(), stageCoreWord.getWord(), true, true);
             updateStageWordProgress(raidSession, 0, 1);
-            
+
             StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
             if (nextWordCheck == null) {
                 raidSession.setStatus(WON);
                 raidSession.setEndedAt(LocalDateTime.now());
-                finalizeGameSessionAndAward(raidSession, WON, null);
+                finalizeWonNow = true;
             } else {
                 raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                 raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
@@ -505,7 +545,12 @@ public class LexRaidServiceImpl implements LexRaidService {
         event.setIsCorrect(correct);
         event.setPenaltyValue(penalty);
         event.setRewardDamage(rewardDamage);
+        // Save CoreWordGuessEvent BEFORE finalizeGameSessionAndAward so killing Core Word score counts in rewards!
         coreWordGuessEventRepository.save(event);
+
+        if (finalizeWonNow) {
+            finalizeGameSessionAndAward(raidSession, WON, null);
+        }
 
         raidSessionRepository.save(raidSession);
         StageCoreWord nextActiveCoreWord = resolveActiveCoreWord(coreWords, solvedIds);
@@ -618,11 +663,10 @@ public class LexRaidServiceImpl implements LexRaidService {
 
     private void applySync(RaidSession raidSession, LexRaidSessionSyncRequest request, boolean markFinished) {
         if (request == null) return;
-        if (request.getCurrentRound() != null && request.getCurrentRound() > defaultIfNull(raidSession.getCurrentRound(), 1)) {
-            raidSession.setCurrentRound(request.getCurrentRound());
-        }
-        if (isCoreProgressPayload(request.getClueProgressJson())) {
-            raidSession.setClueProgressJson(request.getClueProgressJson());
+        // Authoritative backend owns currentRound & clueProgressJson; only increment round safely by +1 at most when unclosed
+        int curRound = defaultIfNull(raidSession.getCurrentRound(), 1);
+        if (request.getCurrentRound() != null && request.getCurrentRound() == curRound + 1) {
+            raidSession.setCurrentRound(curRound + 1);
         }
         if (markFinished) {
             boolean verifiedWon = WON.equalsIgnoreCase(raidSession.getStatus())
