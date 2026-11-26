@@ -25,7 +25,7 @@
 
   function normalizeUnitCode(value){
     const v=String(value||'').trim().toLowerCase();
-    if(['warrior','lancer','archer'].includes(v)) return v;
+    if(['warrior','lancer','archer','arcane_mage'].includes(v)) return v;
     return 'warrior';
   }
   function normalizeAvatarCode(value){

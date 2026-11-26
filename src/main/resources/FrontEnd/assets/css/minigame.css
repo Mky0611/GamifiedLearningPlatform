@@ -316,6 +316,10 @@ body.raid-body{
 .status-pill--burn{background:#c2410c}.status-pill--frost{background:#0284c7}.status-pill--stun{background:#a16207}.status-pill--guard{background:#2e7d47}
 .skill-deck-tab{min-height:28px;padding:2px 8px;border:2px solid #5b3e2b;background:#3a271b;color:#ffebb3;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.66rem;font-weight:700;cursor:pointer}
 .skill-deck-tab.is-active{background:#d49b29;color:#1c120c;border-color:#1c120c}
+.skill-lv-badge{padding:0 4px;font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.58rem;font-weight:700;background:#1c120c;color:#fde047;border:1px solid #d49b29;line-height:1.25}
+.skill-preview-chip--ultimate{border-color:#f59e0b !important;box-shadow:inset 0 0 0 1px rgba(251,191,36,.45)}
+.finish-unlock-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fffbf0;border:2px solid #d49b29;color:#281b12}
+.finish-unlock-chip img{width:34px;height:34px;image-rendering:pixelated;border:2px solid #5b3e2b;background:#261a12;flex-shrink:0}
 
 /* Accessible focus */
 .btn-soft:focus-visible,.board-tile:focus-visible,.info-btn:focus-visible,.pixel-chip-btn:focus-visible,.skill-preview-chip:focus-visible{outline:3px solid #f3c46a;outline-offset:2px}

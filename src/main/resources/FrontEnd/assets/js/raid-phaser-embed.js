@@ -59,9 +59,12 @@
     let lungeTimer = 0;
     let lungeTotal = 460;
     let isSupportCast = false;
+    let currentProfile = 'MELEE_SLASH';
     let bossTurnTimer = 0;
     let slashFxClock = 0;
     let slashFxActive = false;
+    let activeFloatingLabel = '';
+    let lastHeroMovedX = 0;
 
     function heroMeta() {
       const unit = HERO_SHEETS[state.unitCode] || HERO_SHEETS.warrior;
@@ -99,11 +102,14 @@
       if (lungeTimer > 0) {
         lungeTimer = Math.max(0, lungeTimer - dt);
         const phase = 1 - (lungeTimer / Math.max(1, lungeTotal));
-        lungeOffset = isSupportCast ? 0 : Math.round(Math.sin(phase * Math.PI) * (state.unitCode === 'archer' ? 40 : 120));
+        const staysAtRange = isSupportCast || ['PROJECTILE', 'CHANNEL_BEAM', 'GROUND_CAST', 'SKY_STRIKE', 'SHIELD_CAST', 'SELF_HEAL', 'ULTIMATE'].includes(currentProfile) || state.unitCode === 'archer' || state.unitCode === 'arcane_mage';
+        lungeOffset = staysAtRange ? 0 : Math.round(Math.sin(phase * Math.PI) * 120);
+        lastHeroMovedX = Math.max(lastHeroMovedX, Math.abs(lungeOffset));
         if (lungeTimer === 0) {
           state.heroMode = 'idle';
           state.bossMode = 'idle';
           isSupportCast = false;
+          activeFloatingLabel = '';
         }
       } else {
         lungeOffset = 0;
@@ -142,12 +148,14 @@
             heroClock = 0;
             heroFrame = (heroFrame + 1) % hm.frames;
           }
+          const fw = Number(heroCfg.frameWidth || FRAME_W);
+          const fh = Number(heroCfg.frameHeight || FRAME_H);
           const scale = Number(heroCfg.scale || 1.56);
           const originX = Number(heroCfg.originX || 0.5);
           const originY = Number(heroCfg.originY || 0.7135);
-          const destW = FRAME_W * scale;
-          const destH = FRAME_H * scale;
-          ctx.drawImage(img, heroFrame * FRAME_W, 0, FRAME_W, FRAME_H, heroX - (originX * destW), groundY - (originY * destH), destW, destH);
+          const destW = fw * scale;
+          const destH = fh * scale;
+          ctx.drawImage(img, heroFrame * fw, 0, fw, fh, heroX - (originX * destW), groundY - (originY * destH), destW, destH);
         }
       }
 
@@ -196,15 +204,62 @@
 
       if (slashFxActive) {
         slashFxClock += dt;
-        const fIdx = Math.floor(slashFxClock / 45);
-        if (fIdx >= 7) {
-          slashFxActive = false;
+        const pPhase = Math.min(1, slashFxClock / Math.max(220, lungeTotal * 0.85));
+        if (currentProfile === 'PROJECTILE' || (currentProfile === 'MULTI_HIT' && (state.unitCode === 'archer' || state.unitCode === 'arcane_mage'))) {
+          const px = heroX + 48 + Math.round((bossX - heroX - 64) * pPhase);
+          const py = groundY - 62;
+          ctx.save();
+          ctx.fillStyle = state.unitCode === 'arcane_mage' ? '#a855f7' : '#fbbf24';
+          ctx.beginPath();
+          ctx.arc(px, py, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else if (currentProfile === 'CHANNEL_BEAM') {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+          ctx.lineWidth = 10;
+          ctx.beginPath();
+          ctx.moveTo(heroX + 44, groundY - 62);
+          ctx.lineTo(bossX - 16, groundY - 58);
+          ctx.stroke();
+          ctx.restore();
+        } else if (currentProfile === 'GROUND_CAST') {
+          ctx.save();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(bossX, groundY - 6, 48 * pPhase + 14, 14, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        } else if (currentProfile === 'SKY_STRIKE' || currentProfile === 'ULTIMATE') {
+          ctx.save();
+          ctx.strokeStyle = '#fde047';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(bossX, 30);
+          ctx.lineTo(bossX, 30 + (groundY - 70) * pPhase);
+          ctx.stroke();
+          ctx.restore();
         } else {
-          const slashImg = await getImg('fx-slash-clean', '/ui/assets/effects/vfx/fx-slash-clean.png');
-          if (slashImg) {
-            const fxX = isSupportCast ? heroX - 80 : bossX - 96;
-            ctx.drawImage(slashImg, fIdx * 80, 0, 80, 64, fxX, groundY - 128, 160, 128);
+          const fIdx = Math.floor(slashFxClock / 45);
+          if (fIdx < 7) {
+            const slashImg = await getImg('fx-slash-clean', '/ui/assets/effects/vfx/fx-slash-clean.png');
+            if (slashImg) {
+              const fxX = isSupportCast ? heroX - 80 : bossX - 96;
+              ctx.drawImage(slashImg, fIdx * 80, 0, 80, 64, fxX, groundY - 128, 160, 128);
+            }
           }
+        }
+        if (activeFloatingLabel) {
+          ctx.save();
+          ctx.font = 'bold 18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = isSupportCast ? '#4ade80' : '#fde047';
+          ctx.fillText(activeFloatingLabel, isSupportCast ? heroX : bossX, groundY - 110 - Math.round(pPhase * 22));
+          ctx.restore();
+        }
+        if (lungeTimer === 0 && slashFxClock >= 340) {
+          slashFxActive = false;
         }
       }
 
@@ -231,8 +286,11 @@
           bossX: Math.round(cfg.bossX || 660),
           bossY: groundY,
           activeVfxCount: slashFxActive ? 1 : 0,
+          activeTempObjects: 0,
           poolSize: 1,
-          pendingTimers: 0
+          pendingTimers: 0,
+          lastProfile: currentProfile,
+          lastHeroMovedX
         };
       };
     }
@@ -246,16 +304,22 @@
       setState(next) {
         Object.assign(state, next || {});
         if (next && (next.playAttack || next.playSkill)) {
-          isSupportCast = Boolean(next.skillMeta && next.skillMeta.selfTarget);
-          state.heroMode = (next.skillMeta && next.skillMeta.heroAnim) || 'attack2';
+          const sm = next.skillMeta || {};
+          currentProfile = window.RaidRegistry?.resolveAnimationProfile?.(sm, state.unitCode)
+            || (sm.selfTarget ? (sm.healHp ? 'SELF_HEAL' : 'SHIELD_CAST') : (sm.animationProfile || ((state.unitCode === 'archer' || state.unitCode === 'arcane_mage') ? 'PROJECTILE' : 'MELEE_SLASH')));
+          isSupportCast = Boolean(sm.selfTarget || currentProfile === 'SHIELD_CAST' || currentProfile === 'SELF_HEAL');
+          lastHeroMovedX = 0;
+          state.heroMode = sm.heroAnim || 'attack2';
           const unit = HERO_SHEETS[state.unitCode] || HERO_SHEETS.warrior;
           const hm = unit?.[state.heroMode] || unit?.idle;
           lungeTotal = hm ? Math.max(420, Math.round((hm.frames / Math.max(1, hm.rate || 10)) * 1000) + 140) : 480;
           lungeTimer = lungeTotal;
           heroFrame = 0;
           heroClock = 0;
-          slashFxActive = !isSupportCast;
+          slashFxActive = true;
           slashFxClock = 0;
+          const dmgVal = Number(next.damage || sm.previewDmg || 0);
+          activeFloatingLabel = sm.healHp ? `+${sm.healHp} HP` : (sm.mitigationPct ? `GUARD -${sm.mitigationPct}%` : (dmgVal > 0 ? `-${dmgVal}` : ''));
         }
         if (next && next.playBossTurn) {
           bossTurnTimer = 420;
@@ -269,6 +333,7 @@
           bossTurnTimer = 0;
           isSupportCast = false;
           slashFxActive = false;
+          activeFloatingLabel = '';
           state.heroMode = 'idle';
           state.bossMode = 'idle';
         }

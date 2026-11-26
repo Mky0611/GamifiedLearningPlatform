@@ -309,3 +309,154 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   P5 PATH OF LEGENDS — CHARACTER HALL, SKILL TREE, SPELLBOOK & CHAPTER MAP
+   Semantic Theme Tokens (Daylight & Moonlight WCAG >= 4.5:1)
+   ========================================================================== */
+.hall-hero-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.hall-demo-status{display:grid;justify-items:end;gap:4px}
+.hall-sp-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#1c120c;border:2px solid #f59e0b;color:#fde047;font-family:var(--font-pixel,monospace);font-weight:700;font-size:.92rem}
+.hall-mode-note{font-size:.74rem;color:#f3e4be;background:#1c120c;padding:3px 8px;border:1px solid #5b3e2b}
+.hall-attribution-note{font-size:.72rem;color:#e7d5b5;text-align:center;line-height:1.35;margin-top:4px}
+
+.hall-tabs{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:14px;margin-bottom:18px;border-bottom:3px solid var(--border,#8b6d43)}
+.hall-tab{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:7px 12px;border:2px solid var(--border,#8b6d43);background:var(--surface-elevated,#efe3c8);color:var(--text-primary,#281b12);font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.hall-tab:hover{background:var(--surface-panel,#fff7e6)}
+.hall-tab.is-active{background:var(--primary,#d49b29);color:var(--text-on-primary,#1c120c);border-color:var(--focus-ring,#8f6010);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 2px 0 #000}
+.hall-tab:focus-visible,.pixel-chip-btn:focus-visible,.skill-node-btn:focus-visible{outline:3px solid var(--focus-ring,#f6c344);outline-offset:2px}
+.hall-pane{display:none}.hall-pane.is-active{display:block}
+.hall-heading{margin:8px 0 4px;font-size:1.3rem;font-family:var(--font-display);font-weight:900;color:var(--text-primary,#281b12)}
+.hall-subheading{margin:0 0 12px;font-size:1.05rem;font-family:var(--font-display);font-weight:800;color:var(--text-primary,#281b12)}
+.hall-sub{margin:0 0 12px;color:var(--text-secondary,#4d3927);font-size:.88rem;line-height:1.45}
+.hall-divider{height:2px;border-bottom:2px dashed var(--border,#8b6d43);margin:22px 0}
+.hall-filter-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+/* Semantic Pixel Chip Buttons inside Character Hall (Explicit Disabled Readability) */
+.option-panel .pixel-chip-btn,
+.profile-card .pixel-chip-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-height:34px;padding:5px 10px;
+  border:2px solid var(--border,#8b6d43);
+  background:var(--surface-wood,#281a12);
+  color:var(--text-gold-on-dark,#f6c344);
+  font-family:var(--font-pixel,'Pixelify Sans',monospace);
+  font-size:.74rem;font-weight:700;cursor:pointer;
+  transition:background-color .12s ease,border-color .12s ease;
+}
+.option-panel .pixel-chip-btn:hover:not(:disabled),
+.profile-card .pixel-chip-btn:hover:not(:disabled){
+  background:var(--surface-wood-elevated,#1c120c);
+  color:var(--text-on-dark,#fff4df);
+  border-color:var(--primary,#d49b29);
+}
+.option-panel .pixel-chip-btn.is-active{
+  background:var(--primary,#d49b29);
+  color:var(--text-on-primary,#1c120c);
+  border-color:var(--focus-ring,#8f6010);
+}
+.option-panel .pixel-chip-btn:disabled{
+  background:var(--surface-elevated,#efe3c8);
+  color:var(--text-secondary,#4d3927);
+  border:2px dashed var(--border,#8b6d43);
+  opacity:1;
+  cursor:not-allowed;
+}
+
+.unit-meta-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.unit-pill{font-family:var(--font-pixel,monospace);font-size:.68rem;font-weight:700;padding:2px 7px;background:#1c120c;color:#fde68a;border:1px solid #5b3e2b}
+.unit-pill--locked{background:#7f1d1d;color:#fee2e2;border-color:#fca5a5}
+.option-card.is-locked{background:var(--surface-elevated,#efe3c8);color:var(--text-primary,#281b12);border-style:dashed;opacity:1;cursor:default}
+.option-card.is-locked:hover{transform:none}
+.unit-stage .pixel-unit--arcane_mage{transform:scale(0.84);transform-origin:50% 92%}
+.hero-strength-list{margin:8px 0 0;padding-left:16px;font-size:.78rem;color:var(--text-secondary,#4d3927);display:grid;gap:3px}
+.hero-strength-list li{color:var(--text-secondary,#4d3927)}
+.hero-lock-reason{margin-top:6px;padding:6px 8px;background:var(--danger-surface,#fde8e8);color:var(--danger-ink,#7d1212);border:1px solid var(--danger,#b32629);font-size:.78rem;font-weight:700;line-height:1.35}
+.hero-card-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.hall-backlog-box{margin-top:16px;padding:12px 14px;background:var(--surface-elevated,#efe3c8);border:2px dashed var(--border,#8b6d43);color:var(--text-primary,#281b12);font-size:.82rem;display:grid;gap:4px}
+
+.option-panel .small-muted{color:var(--text-muted,#5c4636)}
+.option-panel .muted{color:var(--text-secondary,#4d3927)}
+
+/* Skill Tree Nodes & Branches (Byte Progression Kit) */
+.skill-tree-branches{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:12px}
+.skill-branch-col{background:#1c120c;border:3px solid #5b3e2b;padding:14px;display:grid;gap:10px;align-content:start;color:#f7ebd4}
+.skill-branch-col .small-muted,.skill-branch-col small{color:#e7d5b5}
+.skill-branch-title{font-family:var(--font-pixel,monospace);font-size:.88rem;color:#fde047;border-bottom:2px solid #5b3e2b;padding-bottom:6px;margin:0;display:flex;justify-content:space-between;align-items:center}
+.skill-branch-title span{color:#fde047}
+.skill-node-list{display:grid;gap:8px;justify-items:stretch}
+.skill-node-connector{height:16px;width:24px;margin:0 auto;background:url('/ui/assets/ui/progression/link-straight@2x.png') center/contain no-repeat;image-rendering:pixelated}
+.skill-node-connector.is-active{background-image:url('/ui/assets/ui/progression/link-straight-active@2x.png')}
+
+.skill-node-btn{position:relative;display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;padding:8px 10px;background:#2b1c12;border:2px solid #5b3e2b;color:#f7ebd4;text-align:left;cursor:pointer;transition:transform .1s ease}
+.skill-node-btn:hover{border-color:#d49b29;transform:translateY(-1px)}
+.skill-node-btn.is-selected{outline:2px solid #fde047;background:#3a2517}
+.skill-node-btn.state-LOCKED{border-style:dashed;background:#221811}
+.skill-node-btn.state-AVAILABLE{border-color:#38bdf8}
+.skill-node-btn.state-LEARNED,.skill-node-btn.state-EQUIPPED{border-color:#22c55e}
+.skill-node-btn.state-UPGRADE_AVAILABLE{border-color:#f59e0b}
+.skill-node-btn.state-MAX_LEVEL{border-color:#fde047;box-shadow:inset 0 0 0 1px #fde047}
+
+.skill-node-frame{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+.skill-node-frame .node-bg{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.skill-node-frame .node-icon{position:relative;width:28px;height:28px;image-rendering:pixelated;z-index:1}
+.skill-node-meta{display:grid;gap:3px}
+.skill-node-title{font-family:var(--font-pixel,monospace);font-size:.82rem;font-weight:700;color:#fff7e6}
+.skill-node-stars{display:inline-flex;align-items:center;gap:2px}
+.skill-node-stars img{width:14px;height:14px;image-rendering:pixelated}
+.skill-state-pill{font-family:var(--font-pixel,monospace);font-size:.64rem;font-weight:700;padding:1px 6px;border:1px solid #000;display:inline-flex;align-items:center;gap:3px;width:fit-content}
+.skill-state-pill.st-LOCKED{background:#374151;color:#f3f4f6}
+.skill-state-pill.st-AVAILABLE{background:#0369a1;color:#fff}
+.skill-state-pill.st-LEARNED,.skill-state-pill.st-EQUIPPED{background:#15803d;color:#fff}
+.skill-state-pill.st-UPGRADE_AVAILABLE{background:#b45309;color:#fff}
+.skill-state-pill.st-MAX_LEVEL{background:#a16207;color:#fef08a}
+
+.skill-inspector-card{margin-top:16px;background:var(--surface-panel,#fff7e6);border:3px solid var(--border,#8b6d43);padding:16px;color:var(--text-primary,#281b12);display:grid;gap:10px}
+.evolution-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.evo-step{padding:8px 10px;background:var(--surface-elevated,#efe3c8);border:2px solid var(--border,#8b6d43);font-size:.78rem;color:var(--text-primary,#281b12)}
+.evo-step.is-active{background:var(--warning-surface,#342214);color:var(--warning-ink,#ffebb3);border-color:var(--warning,#9a5a0a);font-weight:700}
+
+/* Spellbook & Training Dummy */
+.training-dummy-card{background:#1c120c;border:3px solid #3c2a1a;padding:12px;margin-bottom:16px;color:#f7ebd4}
+.training-stage-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.training-stage-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.training-badge{font-family:var(--font-pixel,monospace);font-size:.72rem;background:#3a2517;color:#fde047;border:1px solid #d49b29;padding:3px 8px}
+.training-stage-mount{width:100%;aspect-ratio:16/6;min-height:175px;max-height:270px;background:#120b07;border:2px solid #5b3e2b;overflow:hidden;position:relative}
+.training-stage-mount canvas{width:100% !important;height:100% !important;object-fit:contain;image-rendering:pixelated}
+
+.spellbook-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.spell-card{background:var(--surface-panel,#fff7e6);border:2px solid var(--border,#8b6d43);padding:10px 12px;color:var(--text-primary,#281b12);display:grid;gap:6px;align-content:space-between}
+.spell-card-head{display:flex;align-items:center;gap:8px}
+.spell-card-head img{width:34px;height:34px;image-rendering:pixelated;border:2px solid #3c2a1a;background:#1e130c;padding:2px}
+.spell-card-tags{display:flex;flex-wrap:wrap;gap:4px;font-size:.66rem;font-family:var(--font-pixel,monospace)}
+.spell-tag{padding:1px 6px;background:#1c120c;color:#fde68a;border:1px solid #5b3e2b}
+
+/* Loadout 4+1 Slots */
+.loadout-slots-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:12px;background:#241710;border:3px solid #3c2a1a}
+.loadout-slot{background:#140d09;border:2px dashed #8f6010;padding:10px;color:#f7ebd4;display:grid;gap:6px;text-align:center;justify-items:center}
+.loadout-slot .small-muted{color:#e7d5b5}
+.loadout-slot.is-filled{border-style:solid;border-color:#d49b29;background:#2b1c12}
+.loadout-slot.is-ult{border-color:#f59e0b;box-shadow:inset 0 0 0 1px rgba(245,158,11,.45)}
+.loadout-slot img{width:36px;height:36px;image-rendering:pixelated}
+
+/* Chapter Progress Map */
+.chapter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.chapter-card{background:var(--surface-panel,#fff7e6);border:3px solid var(--border,#8b6d43);padding:14px;color:var(--text-primary,#281b12);display:grid;gap:8px}
+.chapter-card.is-locked{background:var(--surface-elevated,#efe3c8);border-style:dashed;opacity:1}
+.chapter-card.is-mastered{border-color:var(--primary,#d49b29);box-shadow:inset 0 0 0 2px #fde047}
+.chapter-head{display:flex;align-items:center;gap:10px}
+.chapter-head img{width:46px;height:46px;image-rendering:pixelated;border:2px solid #3c2a1a;background:#1e130c}
+.chapter-status-badge{font-family:var(--font-pixel,monospace);font-size:.68rem;font-weight:700;padding:2px 7px;background:#1c120c;color:#fde047;display:inline-block}
+.chapter-status-badge.st-MASTERED,.chapter-status-badge.st-COMPLETED{background:#15803d;color:#fff}
+.chapter-status-badge.st-LOCKED{background:#374151;color:#f9fafb}
+.chapter-locked-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 14px;border:2px dashed var(--border,#8b6d43);background:var(--surface-elevated,#efe3c8);color:var(--text-secondary,#4d3927);font-family:var(--font-pixel,monospace);font-size:.84rem;font-weight:700;text-decoration:none;cursor:not-allowed}
+
+/* Word Mastery */
+.mastery-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.mastery-stat-box{background:#1e130c;border:2px solid #5b3e2b;padding:10px;text-align:center;color:#f7ebd4}
+.mastery-stat-box strong{display:block;font-size:1.25rem;color:#fde047;font-family:var(--font-pixel,monospace)}
+.mastery-list{display:grid;gap:8px}
+.mastery-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface-panel,#fff7e6);border:2px solid var(--border,#8b6d43);padding:8px 12px;color:var(--text-primary,#281b12);font-size:.84rem}
+.training-dummy-card canvas{display:block}
+
+

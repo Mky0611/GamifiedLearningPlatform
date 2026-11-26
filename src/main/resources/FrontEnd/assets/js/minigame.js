@@ -1,6 +1,7 @@
 (function(){
   const query = new URLSearchParams(location.search);
-  const stageId = Number(query.get('stageId') || 1);
+  const storeInit = window.RaidProgressionStore?.loadState?.();
+  const stageId = Number(query.get('stageId') || query.get('stage') || storeInit?.selectedStageId || 1);
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   const state = {
@@ -15,7 +16,8 @@
     bossHp: 100,
     bossShield: 30,
     rage: 0,
-    playerHp: 100,
+    playerHp: 112,
+    playerMaxHp: 112,
     turn: 1,
     recentWords: [],
     revealedIndexes: [],
@@ -42,6 +44,8 @@
     transitioning: false,
     isSubmitting: false,
     finished: false,
+    completionRecorded: false,
+    grantedRewards: [],
     previewMana: 4,
     maxPreviewMana: 6,
     skillCooldowns: {},
@@ -183,9 +187,10 @@
   }
 
   const unitTheme = {
-    warrior: {label:'Warrior · Sát thương chủ lực'},
-    lancer: {label:'Lancer · Phòng tuyến phản đòn'},
-    archer: {label:'Archer · Tầm xa áp lực'},
+    warrior: {label:'Knight (Warrior) · Cận chiến cân bằng'},
+    lancer: {label:'Vanguard (Lancer) · Phá giáp & Phản công'},
+    archer: {label:'Ranger (Archer) · Tầm xa đa tiễn'},
+    arcane_mage: {label:'Arcane Mage · Pháp sư nguyên tố'}
   };
 
   function setFillBar(id, current, max){
@@ -366,19 +371,27 @@
       state.renderer = null;
     }
 
+    const activeVfxAnims = (typeof getVisibleSkillsForDeck === 'function' ? getVisibleSkillsForDeck() : [])
+      .flatMap((sk) => [sk.vfxAnim, sk.vfxExtraAnim, sk.vfxHitAnim])
+      .filter(Boolean);
+
     if(!state.renderer){
       state.renderer = await window.RaidPhaserBridge.mount(mount, {
         unitCode: state.unitCode,
         bossTheme: state.bossTheme,
+        biome: state.stage?.biome || 'dusk',
         heroMode: 'idle',
-        bossMode: 'idle'
+        bossMode: 'idle',
+        activeVfxAnims
       });
     }else if(state.renderer.setState){
       state.renderer.setState({
         unitCode: state.unitCode,
         bossTheme: state.bossTheme,
+        biome: state.stage?.biome || 'dusk',
         heroMode: 'idle',
-        bossMode: 'idle'
+        bossMode: 'idle',
+        activeVfxAnims
       });
     }
 
@@ -427,10 +440,24 @@
       }
     }
 
-    const mergedUnitCode = remote?.selectedUnitCode || remote?.unitCode || prefs?.selectedUnitCode || prefs?.unitCode || 'warrior';
+    const progState = window.RaidProgressionStore?.loadState?.();
+    const demoUnit = (progState && window.RaidProgressionStore.isHeroUnlocked(progState.selectedHero, progState))
+      ? progState.selectedHero
+      : null;
+    const mergedUnitCode = remote?.selectedUnitCode || remote?.unitCode || demoUnit || prefs?.selectedUnitCode || prefs?.unitCode || 'warrior';
     const mergedAvatarCode = remote?.selectedAvatarKey || remote?.avatarCode || remote?.avatarKey || prefs?.selectedAvatarKey || prefs?.avatarCode || prefs?.avatarKey || 'avatar1';
 
     state.unitCode = window.appApi.normalizeUnitCode(mergedUnitCode);
+    if (progState && !remote && !window.RaidProgressionStore.isHeroUnlocked(state.unitCode, progState)) {
+      state.unitCode = 'warrior';
+    }
+    const heroStats = window.RaidRegistry?.getHero?.(state.unitCode);
+    if (heroStats) {
+      state.playerMaxHp = Number(heroStats.baseHp || 112);
+      state.playerHp = state.playerMaxHp;
+      state.maxPreviewMana = Number(heroStats.maxMp || 8);
+      state.previewMana = Math.max(4, Number(heroStats.baseMp || 6));
+    }
     state.avatarCode = window.appApi.normalizeAvatarCode(mergedAvatarCode);
 
     window.appApi.saveAccountPreferences({
@@ -440,9 +467,8 @@
       selectedAvatarKey: window.appApi.toDbAvatarKey ? window.appApi.toDbAvatarKey(state.avatarCode) : state.avatarCode
     });
 
-    const avatarUrl = window.appApi.getAvatarUrl
-      ? window.appApi.getAvatarUrl(state.avatarCode)
-      : '/ui/assets/imgs/avatar1.png';
+    const avatarUrl = (heroStats && heroStats.portrait)
+      || (window.appApi.getAvatarUrl ? window.appApi.getAvatarUrl(state.avatarCode) : '/ui/assets/imgs/avatar1.png');
 
     const heroName = window.appApi.getAuth()?.displayName || window.appApi.getAuth()?.username || 'Knight Learner';
     const role = unitTheme[state.unitCode]?.label || unitTheme.warrior.label;
@@ -1000,9 +1026,10 @@
     const playerHpHud = document.getElementById('playerHpHudValue');
     if (playerHpHud) playerHpHud.textContent = String(state.playerHp);
     
-    document.getElementById('playerHpValue').textContent = `${state.playerHp} / 100`;
-    setFillBar('playerHpBar', state.playerHp, 100);
-    setFillBar('playerHpBarGhost', state.playerHp, 100);
+    const maxPlayerHp = Math.max(1, Number(state.playerMaxHp || 100));
+    document.getElementById('playerHpValue').textContent = `${state.playerHp} / ${maxPlayerHp}`;
+    setFillBar('playerHpBar', state.playerHp, maxPlayerHp);
+    setFillBar('playerHpBarGhost', state.playerHp, maxPlayerHp);
     setFillBar('bossHpBar', hp, maxHp);
     setFillBar('bossHpBarGhost', hp, maxHp);
     setFillBar('bossShieldBar', shield, maxShield || 1);
@@ -1474,10 +1501,36 @@
       if(star1) star1.className = `pixel-star ${stars >= 1 ? 'is-active' : ''}`;
       if(star2) star2.className = `pixel-star ${stars >= 2 ? 'is-active' : ''}`;
       if(star3) star3.className = `pixel-star ${stars >= 3 ? 'is-active' : ''}`;
-      if(xpEl) xpEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chế độ xem trước</span>';
-      if(coinsEl) coinsEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chế độ xem trước</span>';
+      if(xpEl) xpEl.innerHTML = `<span class="small-muted" style="font-size:0.85rem">Demo Progression · ${state.playMode === 'practice' ? 'Practice' : 'Campaign'}</span>`;
+      if(coinsEl) coinsEl.innerHTML = '<span class="small-muted" style="font-size:0.85rem">Chưa đồng bộ SQL Server</span>';
       if(levelUpBanner) levelUpBanner.style.display = 'none';
-      if(finishText) finishText.textContent = `Score ${state.score} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'} (Trận đấu xem trước, không tích lũy phần thưởng)`;
+      if(finishText) finishText.textContent = `Score ${state.score} · Quái vật: ${themeLabel[state.bossTheme] || 'Boss'} · Topic: ${state.topicCount} từ (Demo Progression)`;
+
+      const unlockPanel = document.getElementById('finishUnlockPanel');
+      if (unlockPanel) {
+        const rewards = Array.isArray(state.grantedRewards) ? state.grantedRewards : [];
+        if (rewards.length) {
+          unlockPanel.style.display = 'grid';
+          unlockPanel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <strong><i class="bi bi-stars text-warning"></i> Phần Thưởng Mở Khóa Mới (Demo)</strong>
+              <span class="small-muted">Có hiệu lực ngay trong trình duyệt</span>
+            </div>
+            <div class="review-prompt-list">
+              ${rewards.map((rw) => `<div class="finish-unlock-chip">
+                ${rw.icon ? `<img src="${rw.icon}" alt="">` : '<i class="bi bi-gem text-warning fs-4"></i>'}
+                <div style="display:grid">
+                  <strong>${window.appApi.escapeHtml(rw.label)}</strong>
+                  <span class="small-muted">${rw.rarity ? `Độ hiếm: ${rw.rarity}` : 'Skill Point nâng cấp cây kỹ năng'}</span>
+                </div>
+              </div>`).join('')}
+            </div>`;
+        } else {
+          unlockPanel.style.display = 'none';
+        }
+      }
+      const replayBtn = document.getElementById('finishReplayBtn');
+      if (replayBtn) replayBtn.href = `/app/minigame?stage=${state.stage?.stageId || stageId}`;
     }
 
     const reviewPanel = document.getElementById('finishReviewPanel');
@@ -1534,6 +1587,20 @@
     document.getElementById('finishHeading').textContent = win ? 'Boss Defeated!' : 'Trận đấu kết thúc';
 
     if(!state.raidSessionId){
+      if (!state.completionRecorded && window.RaidProgressionStore?.recordBattleCompletion) {
+        state.completionRecorded = true;
+        const progRes = window.RaidProgressionStore.recordBattleCompletion({
+          victory: Boolean(win),
+          stageId: state.stage?.stageId || stageId,
+          isPractice: state.playMode === 'practice',
+          heroId: state.unitCode,
+          score: state.score,
+          validWords: state.discoveredWords.length,
+          topicWords: state.topicCount,
+          coreWords: state.coreGuess
+        });
+        state.grantedRewards = progRes?.grantedRewards || [];
+      }
       renderBattleResultOverlay('PREVIEW', null, win);
       return;
     }
@@ -1932,10 +1999,11 @@
       if(guess === target){
         const solvedMeta = findVocabMetadata(target);
         const solvedMeaning = solvedMeta ? [solvedMeta.partOfSpeech, solvedMeta.meaningVi || solvedMeta.meaningEn].filter(Boolean).join(' · ') : getActiveClueText();
+        const coreDamage = 60;
         const solvedEntry = {
           word: target,
           wordCategory: 'CORE',
-          damageDealt: 55,
+          damageDealt: coreDamage,
           manaGain: 2,
           meaningText: solvedMeaning || null,
           hasMeaningCard: Boolean(solvedMeaning),
@@ -1947,8 +2015,8 @@
         state.score += 65;
         state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 2);
         state.bossShield = 0;
-        state.bossHp = Math.max(0, state.bossHp - 55);
-        syncRendererState({ playAttack: true, damage: 55, isTopicWord: true });
+        state.bossHp = Math.max(0, state.bossHp - coreDamage);
+        syncRendererState({ playAttack: true, damage: coreDamage, isTopicWord: true });
         setHeroMode('attack', 650);
         playFrameMonster(state.bossTheme, 'hit', 500);
 
@@ -2027,8 +2095,19 @@
   }
 
   function getVisibleSkillsForDeck(){
-    const all = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
     const deck = state.skillDeck === 'spell' ? 'spell' : 'knight';
+    const reg = window.RaidRegistry;
+    const store = window.RaidProgressionStore;
+    if (reg && store) {
+      const progState = store.loadState();
+      if (deck === 'spell') {
+        const spellIds = ['fire_blade', 'frost_seal', 'thunder_strike', 'sacred_recovery'];
+        return spellIds.map((id) => reg.getSkill(id, Math.max(1, Number(progState.skillLevels?.[id] || 1)))).filter(Boolean);
+      }
+      return store.getActiveCombatLoadout(state.unitCode, progState).slice(0, 5);
+    }
+
+    const all = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
     let filtered = [];
     if (deck === 'spell') {
       filtered = all.filter((s) => s.deckGroup === 'spell' || s.id === 'sacred_recovery' || s.id === 'lexical_judgment');
@@ -2057,26 +2136,29 @@
       if (elig.code === 'HERO_MISMATCH') return '<span class="skill-preview-chip__cd">HERO</span>';
       if (elig.code === 'COMBO') return `<span class="skill-preview-chip__cd">x${s.minCombo}+</span>`;
       if (elig.code === 'CORE_CLUE') return '<span class="skill-preview-chip__cd">CORE</span>';
-      return s.manaCost > 0 ? `<span class="skill-preview-chip__cd">${s.manaCost}MP</span>` : '';
+      return s.manaCost > 0 ? `<span class="skill-preview-chip__cd">${s.manaCost}MP</span>` : '<span class="skill-preview-chip__cd">0MP</span>';
     };
-    const guardPill = state.royalGuardActive ? '<span class="skill-mp-pill skill-mp-pill--guard" title="Khiên Hoàng Gia đang kích hoạt (-75% sát thương đòn kế)">GUARD</span>' : '';
+    const guardPill = state.royalGuardActive ? `<span class="skill-mp-pill skill-mp-pill--guard" title="Khiên kích hoạt (-${state.royalGuardMitigationPct}% DMG)">GUARD</span>` : '';
     const metaPill = isBackend
-      ? '<span class="skill-mp-pill skill-mp-pill--locked" title="Máy chủ chưa hỗ trợ Knight Skill Preview">Backend · Skill Off</span>'
-      : `<span class="skill-mp-pill" title="Preview Skill Mana (không ghi DB)">MP ${state.previewMana}/${state.maxPreviewMana}</span>${guardPill}`;
-    const deckLabel = state.skillDeck === 'spell' ? 'Kiếm Kỹ' : 'Phép (3)';
+      ? '<span class="skill-mp-pill skill-mp-pill--locked" title="Máy chủ chưa hỗ trợ Skill Bar">Backend · Skill Off</span>'
+      : `<span class="skill-mp-pill" title="Mana chiến đấu từ ghép từ vựng">MP ${state.previewMana}/${state.maxPreviewMana}</span>${guardPill}`;
+    const deckLabel = state.skillDeck === 'spell' ? 'Loadout' : 'Phép (4)';
 
     bar.innerHTML = `
       <div class="skill-bar-preview__meta">
         ${metaPill}
-        <button class="skill-deck-tab ${state.skillDeck === 'spell' ? 'is-active' : ''}" id="skillDeckToggle" type="button" title="Chuyển giữa Kiếm Kỹ & Phép Thuật">${deckLabel}</button>
+        <button class="skill-deck-tab ${state.skillDeck === 'spell' ? 'is-active' : ''}" id="skillDeckToggle" type="button" title="Chuyển giữa Loadout Hero & Phép Nguyên Tố">${deckLabel}</button>
         <button class="skill-sound-toggle ${state.soundEnabled ? 'is-on' : ''}" id="raidSoundBtn" type="button" title="${state.soundEnabled ? 'Tắt âm thanh VFX' : 'Bật âm thanh VFX (Mặc định tắt)'}" aria-label="Bật tắt âm thanh"><i class="bi ${state.soundEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}"></i></button>
       </div>
       ${skills.map((s) => {
         const elig = getStaticSkillEligibility(s);
         const active = !isBackend && state.activeSkillId === s.id;
-        return `<button class="skill-preview-chip ${active ? 'is-active' : ''}" data-skill-id="${s.id}" data-lock-reason="${window.appApi.escapeHtml(elig.code)}" type="button" title="${window.appApi.escapeHtml(elig.reason)}" ${elig.ok ? '' : 'disabled'}>
+        const lvBadge = s.level && s.level > 1 ? `<span class="skill-lv-badge">Lv${s.level}</span>` : '';
+        const ultCls = s.isUltimate ? 'skill-preview-chip--ultimate' : '';
+        return `<button class="skill-preview-chip ${ultCls} ${active ? 'is-active' : ''}" data-skill-id="${s.id}" data-lock-reason="${window.appApi.escapeHtml(elig.code)}" type="button" title="${window.appApi.escapeHtml((s.levelSummary || s.desc || '') + (elig.ok ? '' : ' · ' + elig.reason))}" ${elig.ok ? '' : 'disabled'}>
           <img src="${s.icon}" alt="">
           <span class="skill-preview-chip__label">${window.appApi.escapeHtml(s.name)}</span>
+          ${lvBadge}
           ${cdHtml(s, elig)}
         </button>`;
       }).join('')}`;
@@ -2107,11 +2189,15 @@
   }
 
   function castKnightSkill(skillId){
-    const skills = (window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || [];
-    const skill = skills.find((s) => s.id === skillId);
+    const deckSkills = getVisibleSkillsForDeck();
+    const progState = window.RaidProgressionStore?.loadState?.();
+    const lv = Math.max(1, Number(progState?.skillLevels?.[skillId] || 1));
+    const skill = deckSkills.find((s) => s.id === skillId)
+      || window.RaidRegistry?.getSkill?.(skillId, lv)
+      || ((window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || []).find((s) => s.id === skillId);
     const elig = getSkillEligibility(skill);
     if (!elig.ok) {
-      renderStatus(elig.reason, 'warning', { badge: 'SKILL PREVIEW', isPreview: true });
+      renderStatus(elig.reason, 'warning', { badge: 'SKILL', isPreview: true });
       renderSkillBar();
       return false;
     }
@@ -2120,17 +2206,19 @@
     if (skill.cooldown > 0) state.skillCooldowns[skill.id] = skill.cooldown;
     state.activeSkillId = skill.id;
     playSwingSfx();
-    syncRendererState({ playSkill: true, skillMeta: skill });
+    syncRendererState({ playSkill: true, skillMeta: skill, damage: Number(skill.previewDmg || 0) });
     setHeroMode(skill.heroAnim === 'guard' ? 'guard' : 'attack', 650);
 
-    // Client-only preview feedback (never alters SQL Server / P3 XP or coins)
-    if (skill.id === 'sacred_recovery') {
-      state.playerHp = Math.min(100, state.playerHp + Number(skill.healHp || 18));
-    } else if (skill.id === 'royal_guard') {
+    const maxPlayerHp = Math.max(1, Number(state.playerMaxHp || 100));
+    if (skill.healHp) {
+      state.playerHp = Math.min(maxPlayerHp, state.playerHp + Number(skill.healHp || 18));
+    }
+    if (skill.mitigationPct) {
       state.royalGuardActive = true;
       state.royalGuardMitigationPct = Number(skill.mitigationPct || 75);
       state.royalGuardReflect = Number(skill.reflectDmg || 6);
-    } else {
+    }
+    if (!skill.selfTarget && Number(skill.previewDmg || 0) > 0) {
       const previewDmg = Number(skill.previewDmg || 14);
       const shieldMult = Number(skill.shieldMultiplier || 1);
       if (skill.applyStatus === 'burn') {
@@ -2140,6 +2228,8 @@
         if (skill.timeBonusSec && state.playMode === 'campaign') {
           state.timeLeft = Math.min(60, state.timeLeft + Number(skill.timeBonusSec));
         }
+      } else if (skill.applyStatus === 'stun') {
+        state.bossStatuses.stun = Math.max(Number(state.bossStatuses.stun || 0), Number(skill.statusTurns || 1));
       }
       const hadShieldBefore = state.bossShield > 0;
       if (state.bossShield > 0) {
@@ -2147,9 +2237,9 @@
         const absorbed = Math.min(state.bossShield, shieldDmg);
         const leftover = Math.max(0, previewDmg - Math.ceil(absorbed / shieldMult));
         state.bossShield = Math.max(0, state.bossShield - shieldDmg);
-        state.bossHp = Math.max(1, state.bossHp - leftover);
+        state.bossHp = Math.max(0, state.bossHp - leftover);
       } else {
-        state.bossHp = Math.max(1, state.bossHp - previewDmg);
+        state.bossHp = Math.max(0, state.bossHp - previewDmg);
       }
       if (skill.applyStatus === 'stunOnBreak' && state.bossShield === 0 && hadShieldBefore) {
         state.bossStatuses.stun = 1;
@@ -2158,7 +2248,13 @@
     }
     fillBars();
     renderSkillBar();
-    renderStatus(`${skill.name}: ${skill.desc} (Preview Mode · không ghi DB)`, 'success', { badge: 'SKILL PREVIEW', isPreview: true });
+    renderStatus(`${skill.name} (Lv${skill.level || 1}): ${skill.levelSummary || skill.desc}`, 'success', { badge: 'DEMO SKILL', isPreview: true });
+
+    if (state.bossHp <= 0) {
+      const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
+      if (hasMorePreviewWaves) triggerBossDeathAndNextWave();
+      else triggerBossDeathAndVictory();
+    }
     return true;
   }
 
@@ -2201,21 +2297,32 @@
     try{
       state.stage = await window.appApi.getStageDetail(stageId);
     }catch(error){
+      const regStage = window.RaidRegistry?.getStage?.(stageId);
+      const bossLabelMap = { crabby: 'Crabby', fierce: 'Fierce Tooth', totem1: 'Totem Head I', cannon: 'Cannon Golem', captain: 'Captain Clown Nose' };
+      const bTheme = regStage?.bossTheme || 'crabby';
       state.stage = {
-        stageId,
-        stageNo: stageId,
-        chapterNo: 1,
-        name: 'Whispering Rain Gate',
-        description: 'Cửa ải Mưa Thầm — ghép từ vựng mở phong ấn và hạ gục quái vật cổ đại.',
+        stageId: regStage?.stageId || stageId,
+        stageNo: regStage?.chapter || stageId,
+        chapterNo: regStage?.chapter || 1,
+        biome: regStage?.biome || 'dusk',
+        name: regStage?.title || 'Whispering Rain Gate',
+        description: regStage?.lore || 'Cửa ải Mưa Thầm — ghép từ vựng mở phong ấn và hạ gục quái vật cổ đại.',
         boardRows: 5,
         boardCols: 5,
         turnLimit: 5,
         timePerRoundSec: 20,
-        difficulty: 'NORMAL',
-        boss: { name: 'Raincap Warden', baseHp: 100, baseShield: 30, rageThreshold: 20, elementType: 'SHADOW', code: 'MUSHROOM_WARDEN' }
+        difficulty: regStage && regStage.chapter >= 4 ? 'HARD' : 'NORMAL',
+        boss: {
+          name: bossLabelMap[bTheme] || 'Raincap Warden',
+          baseHp: Number(regStage?.bossHpBase || 100),
+          baseShield: 30,
+          rageThreshold: 20,
+          elementType: 'SHADOW',
+          code: String(bTheme).toUpperCase()
+        }
       };
-      renderStatus('Đang dùng màn chơi xem trước độc lập (không kết nối SQL Server).', 'warning', {
-        badge: 'Preview Mode',
+      renderStatus('Đang dùng màn chơi Demo Progression (chưa đồng bộ SQL Server).', 'warning', {
+        badge: 'Demo Progression',
         icon: 'bi bi-eye',
         isPreview: true
       });
@@ -2449,6 +2556,7 @@
           fillBars();
           tickTimer(true);
         },
+        getProgressionState: () => window.RaidProgressionStore?.loadState?.() || null,
         advanceWaveForTest: () => triggerBossDeathAndNextWave(),
         triggerBossEntranceForTest: () => {
           if (state.raidSessionId) return null;

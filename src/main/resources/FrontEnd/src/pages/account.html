@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hồ Sơ Hiệp Sĩ · Character Sheet · Lex Raid</title>
-  <meta name="description" content="Quản lý đơn vị Warrior, Lancer, Archer và huy hiệu đại diện trên chiến trường Lex Raid.">
+  <title>Character Hall &amp; Skill Tree · Lex Raid</title>
+  <meta name="description" content="Path of Legends Character Hall: Chọn Warrior, Lancer, Archer, Arcane Mage, nâng cấp Cây Kỹ Năng, thử nghiệm Spellbook Training Dummy và bản đồ Chapter.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/ui/assets/imgs/logo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,13 +40,20 @@
     <main class="page-container">
       <section class="page-section page-section--first account-shell">
         <article class="soft-card account-hero pixel-panel-wood">
-          <span class="section-kicker"><i class="bi bi-person-badge"></i> Quân Đoàn Hiệp Sĩ · Character Loadout</span>
-          <h1 class="section-title" style="margin: 10px 0 6px; color: var(--gold-bright, #f6c344); font-family: var(--font-display); font-weight: 900; font-size: 1.55rem;">Hồ Sơ Nhân Vật & Lựa Chọn Đơn Vị</h1>
-          <p class="section-text" style="color: #eeddc5; margin: 0; font-size: 0.95rem;">Lựa chọn anh hùng và huy hiệu đại diện cho bạn trên chiến trường Đấu Boss & Kho từ vựng.</p>
+          <div class="hall-hero-top">
+            <div>
+              <span class="section-kicker"><i class="bi bi-person-badge"></i> Path of Legends · Character Hall</span>
+              <h1 class="section-title" style="margin: 10px 0 6px; color: var(--gold-bright, #f6c344); font-family: var(--font-display); font-weight: 900; font-size: 1.55rem;">Character Hall, Skill Tree &amp; Spellbook</h1>
+              <p class="section-text" style="color: #eeddc5; margin: 0; font-size: 0.94rem;">Quản lý anh hùng, nâng cấp nhánh kỹ năng Lv 1–3, tập luyện Training Dummy và theo dõi tiến trình Chapter.</p>
+            </div>
+            <div class="hall-demo-status" id="demoProgBanner">
+              <span class="hall-sp-pill" id="demoSpBadge"><i class="bi bi-gem"></i> 3 SP</span>
+              <span class="hall-mode-note">Demo Progression (chưa đồng bộ SQL Server)</span>
+            </div>
+          </div>
         </article>
 
         <section class="account-layout">
-          <!-- Cột trái: Hồ sơ nhân vật RPG -->
           <aside class="soft-card account-panel pixel-panel-wood">
             <div class="profile-card">
               <div class="profile-avatar">
@@ -57,7 +64,6 @@
                 <i class="bi bi-shield-fill-check"></i> <span id="accountLevelText">Level 1</span>
               </div>
 
-              <!-- Thanh EXP chuẩn RPG -->
               <div class="account-xp-wrap" style="width: 100%; text-align: left;">
                 <div class="pixel-bar__label" style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; font-family: var(--font-pixel, monospace); color: #fff;">
                   <span><i class="bi bi-star-fill text-warning"></i> EXP</span>
@@ -69,13 +75,11 @@
                 <div style="font-size: 0.78rem; color: #eeddc5; margin-top: 6px; text-align: right;" id="accountXpNeededText">100 XP tới cấp tiếp theo</div>
               </div>
 
-              <!-- Tiền tệ & Chuỗi ngày -->
               <div class="account-stats-row">
                 <div class="stat-pill"><i class="bi bi-coin text-warning"></i> <strong id="accountCoins">0</strong> <span>Vàng</span></div>
-                <div class="stat-pill"><i class="bi bi-fire text-danger"></i> <strong id="accountStreak">0</strong> <span>Ngày streak</span></div>
+                <div class="stat-pill"><i class="bi bi-fire text-danger"></i> <strong id="accountStreak">0</strong> <span>Streak</span></div>
               </div>
 
-              <!-- Chiến tích RPG -->
               <div class="account-rpg-metrics">
                 <div class="metric-item">
                   <span class="metric-val" id="accountStagesCleared">0</span>
@@ -94,39 +98,124 @@
               <div class="field-note" id="accountSummary" style="width: 100%;">Đang xuất chiến cùng Warrior.</div>
 
               <div class="account-actions" style="width: 100%; justify-content: center; gap: 8px;">
-                <a href="/app/minigame" class="pixel-btn pixel-btn--primary" style="flex: 1; text-align: center;"><i class="bi bi-lightning-charge-fill"></i> Đấu Boss</a>
-                <a href="/app/auth" class="pixel-btn pixel-btn--wood" id="authActionBtn"><i class="bi bi-shield-lock"></i> Đổi tài khoản</a>
+                <a href="/app/minigame" id="goBattleBtn" class="pixel-btn pixel-btn--primary" style="flex: 1; text-align: center;"><i class="bi bi-lightning-charge-fill"></i> Đấu Boss</a>
+                <a href="/app/auth" class="pixel-btn pixel-btn--wood" id="authActionBtn"><i class="bi bi-shield-lock"></i> Tài khoản</a>
               </div>
+              <button class="pixel-chip-btn" id="resetDemoProgBtn" type="button" style="width: 100%; justify-content: center;"><i class="bi bi-arrow-counterclockwise"></i> Reset Demo Progression</button>
+              <div class="hall-attribution-note">UI Icons: Byte Progression Kit (Oğuzhan Girgin, CC-BY-4.0)</div>
             </div>
           </aside>
 
-          <!-- Cột phải: Chọn Unit & Avatar -->
           <div class="soft-card option-panel pixel-panel-parchment">
-            <div class="account-toolbar">
+            <div class="hall-tabs" id="hallTabs" role="tablist" aria-label="Character Hall Sections">
+              <button class="hall-tab is-active" data-hall-tab="heroes" role="tab" aria-selected="true" type="button"><i class="bi bi-people-fill"></i> <span>Heroes &amp; Avatar</span></button>
+              <button class="hall-tab" data-hall-tab="tree" role="tab" aria-selected="false" type="button"><i class="bi bi-diagram-3-fill"></i> <span>Skill Tree</span></button>
+              <button class="hall-tab" data-hall-tab="spellbook" role="tab" aria-selected="false" type="button"><i class="bi bi-magic"></i> <span>Spellbook &amp; Dummy</span></button>
+              <button class="hall-tab" data-hall-tab="loadout" role="tab" aria-selected="false" type="button"><i class="bi bi-grid-fill"></i> <span>Loadout (4+1)</span></button>
+              <button class="hall-tab" data-hall-tab="chapters" role="tab" aria-selected="false" type="button"><i class="bi bi-map-fill"></i> <span>Chapter Map</span></button>
+              <button class="hall-tab" data-hall-tab="mastery" role="tab" aria-selected="false" type="button"><i class="bi bi-journal-check"></i> <span>Word Mastery</span></button>
+            </div>
+
+            <!-- TAB 1: HEROES & AVATARS -->
+            <section class="hall-pane is-active" id="hallPane-heroes">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-shield-fill"></i> Đội Hình Xuất Kích (4 Playable)</span>
+                  <h2 class="hall-heading">Chọn Anh Hùng &amp; Chân Dung</h2>
+                  <p class="hall-sub">Mỗi Hero có vai trò và cây kỹ năng riêng. Hero bị khóa vẫn có thể xem thử trong Training Dummy.</p>
+                </div>
+                <div class="account-actions">
+                  <button class="pixel-btn pixel-btn--wood" id="resetLoadoutBtn" type="button"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục</button>
+                  <button class="pixel-btn pixel-btn--primary" id="saveLoadoutBtn" type="button"><i class="bi bi-floppy"></i> Lưu thiết lập</button>
+                </div>
+              </div>
+              <div class="option-grid" id="unitGrid"></div>
+              <div class="hall-backlog-box" id="backlogHeroNotice"></div>
+              <div class="hall-divider"></div>
               <div>
-                <span class="section-kicker"><i class="bi bi-shield-fill"></i> Lực Lượng Tác Chiến</span>
-                <h2 style="margin:8px 0 4px;font-size:1.35rem; font-family: var(--font-display); font-weight: 900; color: var(--text-primary);">Chọn Đơn Vị Xuất Kích</h2>
-                <p class="muted" style="margin:0 0 16px; color: var(--text-muted); font-size: 0.9rem;">Chọn 1 trong 3 đơn vị anh hùng để tham gia chiến trường diệt Boss.</p>
+                <span class="section-kicker"><i class="bi bi-person-circle"></i> Huy Hiệu Đại Diện</span>
+                <h2 class="hall-heading">Chọn Chân Dung Tài Khoản</h2>
               </div>
-              <div class="account-actions">
-                <button class="pixel-btn pixel-btn--wood" id="resetLoadoutBtn" type="button"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục</button>
-                <button class="pixel-btn pixel-btn--primary" id="saveLoadoutBtn" type="button"><i class="bi bi-floppy"></i> Lưu thiết lập</button>
+              <div class="option-grid" id="avatarGrid"></div>
+            </section>
+
+            <!-- TAB 2: SKILL TREE -->
+            <section class="hall-pane" id="hallPane-tree">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-diagram-3"></i> Cây Tiến Hóa Kỹ Năng (Lv 1–3)</span>
+                  <h2 class="hall-heading">Skill Tree Theo Hệ Anh Hùng</h2>
+                  <p class="hall-sub">Học và nâng cấp kỹ năng bằng Skill Point (SP). Biểu tượng trạng thái dùng cả khung, sao và nhãn.</p>
+                </div>
+                <div class="hall-filter-row" id="treeHeroSelector"></div>
               </div>
-            </div>
+              <div class="skill-tree-branches" id="skillTreeContainer"></div>
+              <div class="skill-inspector-card" id="skillInspector"></div>
+            </section>
 
-            <!-- Grid chọn đơn vị -->
-            <div class="option-grid" id="unitGrid"></div>
+            <!-- TAB 3: SPELLBOOK & TRAINING DUMMY -->
+            <section class="hall-pane" id="hallPane-spellbook">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-stars"></i> Sách Phép &amp; Sa Bàn Thử Chiêu</span>
+                  <h2 class="hall-heading">Spellbook &amp; Training Dummy Preview</h2>
+                  <p class="hall-sub">Thử nghiệm toàn bộ 10 hồ sơ hoạt ảnh (bao gồm Arcane Mage). Không cộng XP, Gold, SP hay thay đổi DB.</p>
+                </div>
+                <div class="hall-filter-row" id="spellbookFilterBar"></div>
+              </div>
+              <div class="training-dummy-card">
+                <div class="training-stage-head">
+                  <strong id="trainingHeroLabel">Training Dummy: Knight vs Crabby</strong>
+                  <div class="training-stage-actions">
+                    <span class="training-badge">Preview Only · Không tính thưởng</span>
+                    <button class="pixel-chip-btn" id="replayDummyBtn" type="button"><i class="bi bi-play-fill"></i> Phát lại chiêu</button>
+                  </div>
+                </div>
+                <div class="training-stage-mount" id="trainingStageMount"></div>
+              </div>
+              <div class="spellbook-grid" id="spellbookGrid"></div>
+            </section>
 
-            <div style="height:24px; border-bottom: 2px dashed rgba(60,42,26,0.25); margin-bottom: 24px;"></div>
+            <!-- TAB 4: ACTIVE LOADOUT (4+1) -->
+            <section class="hall-pane" id="hallPane-loadout">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-grid-3x2-gap-fill"></i> Bộ Chiêu Xuất Trận</span>
+                  <h2 class="hall-heading">Loadout (4 Active + 1 Ultimate)</h2>
+                  <p class="hall-sub">Hệ thống tự động kiểm tra tương thích Class, điều kiện tiên quyết và giới hạn tối đa 4 Active + 1 Ultimate.</p>
+                </div>
+                <div class="hall-filter-row" id="loadoutHeroSelector"></div>
+              </div>
+              <div class="loadout-slots-panel" id="loadoutSlotsPanel"></div>
+              <div class="hall-divider"></div>
+              <h3 class="hall-subheading">Kỹ Năng Khả Dụng Cho Lớp Này</h3>
+              <div class="spellbook-grid" id="loadoutPoolGrid"></div>
+            </section>
 
-            <div>
-              <span class="section-kicker"><i class="bi bi-person-circle"></i> Huy Hiệu & Chân Dung</span>
-              <h2 style="margin:8px 0 4px;font-size:1.35rem; font-family: var(--font-display); font-weight: 900; color: var(--text-primary);">Chọn Chân Dung Đại Diện</h2>
-              <p class="muted" style="margin:0 0 16px; color: var(--text-muted); font-size: 0.9rem;">Huy hiệu hiển thị trên thanh điều hướng, bảng xếp hạng và giao diện chiến đấu.</p>
-            </div>
+            <!-- TAB 5: CHAPTER MAP -->
+            <section class="hall-pane" id="hallPane-chapters">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-compass-fill"></i> Đường Huyền Thoại · Stage 1–5</span>
+                  <h2 class="hall-heading">Bản Đồ Chapter &amp; Phần Thưởng Boss</h2>
+                  <p class="hall-sub">Chinh phục Stage Boss và giải từ Topic để mở khóa Arcane Mage, kỹ năng Lv cao và Stage tiếp theo.</p>
+                </div>
+              </div>
+              <div class="chapter-grid" id="chapterMapGrid"></div>
+            </section>
 
-            <!-- Grid chọn avatar -->
-            <div class="option-grid" id="avatarGrid"></div>
+            <!-- TAB 6: WORD MASTERY -->
+            <section class="hall-pane" id="hallPane-mastery">
+              <div class="account-toolbar">
+                <div>
+                  <span class="section-kicker"><i class="bi bi-journal-bookmark-fill"></i> Nhật Ký Học Từ Vựng</span>
+                  <h2 class="hall-heading">Word Mastery &amp; Ôn Tập</h2>
+                  <p class="hall-sub">Theo dõi từ vựng đã khám phá trong Đấu Boss, phát âm audio và ghi nhận mốc ôn tập mở khóa kỹ năng.</p>
+                </div>
+                <a class="pixel-btn pixel-btn--primary" href="/app/volcard"><i class="bi bi-card-text"></i> Mở Kho Volcard</a>
+              </div>
+              <div id="wordMasteryContent"></div>
+            </section>
 
             <div id="accountStatus" style="margin-top:20px"></div>
           </div>
@@ -137,6 +226,15 @@
 
   <script src="/ui/assets/js/world-environment.js"></script>
   <script src="/ui/assets/js/api.js"></script>
+  <script src="/ui/assets/js/phaser/raid-config.js"></script>
+  <script src="/ui/assets/js/raid-registry.js"></script>
+  <script src="/ui/assets/js/progression-store.js"></script>
+  <script src="/ui/assets/vendor/phaser.min.js"></script>
+  <script src="/ui/assets/js/phaser/boot-scene.js"></script>
+  <script src="/ui/assets/js/phaser/battle-scene.js"></script>
+  <script src="/ui/assets/js/phaser/ui-scene.js"></script>
+  <script src="/ui/assets/js/phaser/raid-phaser-main.js"></script>
+  <script src="/ui/assets/js/raid-phaser-embed.js"></script>
   <script src="/ui/assets/js/account.js"></script>
 </body>
 </html>
