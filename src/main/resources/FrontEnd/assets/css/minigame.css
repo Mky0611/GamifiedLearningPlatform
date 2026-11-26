@@ -124,6 +124,29 @@ body.raid-body{
 
 /* Boss Rarity, Phase & Telegraph */
 .boss-title-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
+.boss-panel.is-elite{box-shadow:inset 0 0 0 2px #3b82f6, 0 4px 0 rgba(0,0,0,.55)}
+.boss-panel.is-guardian{box-shadow:inset 0 0 0 2px #a855f7, 0 4px 0 rgba(0,0,0,.6)}
+.boss-panel.is-chapter-boss{
+  background:linear-gradient(180deg,#3d1816,#23110e) !important;
+  border-color:#fbbf24 !important;
+  box-shadow:inset 0 0 0 2px #dc2626, inset 0 0 0 4px #fbbf24, 0 5px 0 rgba(0,0,0,.65) !important;
+}
+.boss-crown-badge{
+  font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.62rem;font-weight:700;
+  padding:1px 6px;background:#fbbf24;color:#1c120c;border:2px solid #140d09;display:inline-flex;align-items:center;gap:3px;
+}
+.phase-pill.is-phase2{background:#991b1b;color:#fef08a;border-color:#fbbf24}
+.boss-entrance-banner{
+  position:absolute;left:50%;top:18%;transform:translate(-50%,-10px);z-index:16;pointer-events:none;
+  display:none;flex-direction:column;align-items:center;gap:3px;padding:8px 18px;
+  background:rgba(20,12,10,.92);border:3px solid #fbbf24;box-shadow:0 6px 18px rgba(0,0,0,.7);
+  color:#fff7e6;text-align:center;min-width:210px;
+}
+.boss-entrance-banner.is-visible{display:flex}
+.boss-entrance-banner__kicker{font-family:var(--font-pixel,'Pixelify Sans',monospace);font-size:.66rem;color:#fbbf24;text-transform:uppercase;letter-spacing:.08em}
+.boss-entrance-banner__name{font-family:var(--font-display,'Be Vietnam Pro',sans-serif);font-size:1.1rem;font-weight:900;color:#fff}
+.boss-entrance-banner__sub{font-size:.72rem;color:#fecaca}
+.word-feedback-toast.is-topic-pop{border-color:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.35)}
 .rarity-pill,.phase-pill{
   font-family:var(--font-pixel,'Pixelify Sans',monospace);
   font-size:.6rem;font-weight:700;padding:1px 5px;border:2px solid #140d09;text-transform:uppercase;white-space:nowrap;

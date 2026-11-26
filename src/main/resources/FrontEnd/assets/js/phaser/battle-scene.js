@@ -39,6 +39,7 @@
         heroMode: 'idle',
         bossMode: 'idle',
         biome: 'dusk',
+        bossStatusAura: null,
         errorText: '',
         ...initial
       };
@@ -450,6 +451,11 @@
           this.boss = this.createBossSprite(this.battleState.bossTheme, this.battleState.bossMode);
           if (this.isInLockedCombatState() && this.boss) this.boss.x = prevX;
         }
+        const aura = this.battleState.bossStatusAura;
+        if (aura === 'frost') this.boss.setTint(0x9be7ff);
+        else if (aura === 'burn') this.boss.setTint(0xffb088);
+        else if (aura === 'stun') this.boss.setTint(0xffe57f);
+        else this.boss.clearTint();
       }
     }
 
@@ -479,6 +485,31 @@
       this.settleActiveActionImmediately();
     }
 
+    spawnFloatingText(text, x, y, color = '#ffebb3', big = false) {
+      if (!text || !this.scene || !this.scene.isActive()) return;
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      const label = this.add.text(Math.round(x), Math.round(y), String(text), {
+        fontFamily: 'Pixelify Sans, sans-serif',
+        fontSize: big ? '24px' : '18px',
+        fontStyle: 'bold',
+        color,
+        stroke: '#140d09',
+        strokeThickness: 5
+      }).setOrigin(0.5, 1).setDepth(22);
+      if (reduced) {
+        this.addSafeTimer(420, () => { if (label && label.destroy) label.destroy(); });
+        return;
+      }
+      this.tweens.add({
+        targets: label,
+        y: Math.round(y) - 34,
+        alpha: { from: 1, to: 0 },
+        duration: 720,
+        ease: 'Cubic.Out',
+        onComplete: () => { if (label && label.destroy) label.destroy(); }
+      });
+    }
+
     playAttackSequence(payload = {}) {
       if (this.isBossDying) return;
       if (this.isInLockedCombatState() || this.fsmState === STATES.GUARD) {
@@ -487,7 +518,7 @@
 
       const skillMeta = payload.skillMeta || null;
       if (skillMeta && skillMeta.selfTarget) {
-        this.playSupportSkillSequence(skillMeta);
+        this.playSupportSkillSequence(skillMeta, payload);
         return;
       }
 
@@ -495,14 +526,15 @@
       const token = this._actionToken;
       const base = this.getBaseCoords();
       const gap = Math.max(56, base.bossX - base.heroX);
-      const isRanged = this.battleState.unitCode === 'archer';
+      const isRanged = this.battleState.unitCode === 'archer' || Boolean(skillMeta?.isRemoteSpell);
       const targetX = isRanged
-        ? Math.min(base.bossX - 116, base.heroX + 46)
+        ? Math.min(base.bossX - 130, base.heroX + 36)
         : Math.min(base.bossX - 84, base.heroX + Math.max(84, gap * 0.6));
 
       this.lastAnimCombo = (this.lastAnimCombo + 1) % 3;
       const heroAttackMode = skillMeta?.heroAnim || ((this.battleState.unitCode === 'warrior' && (payload.isCrit || this.lastAnimCombo === 2)) ? 'attack2' : 'attack');
       const vfxMain = skillMeta?.vfxAnim || (heroAttackMode === 'attack2' ? 'vfx-slash-down' : 'vfx-slash-side');
+      const vfxExtra = skillMeta?.vfxExtraAnim || null;
       const vfxHit = skillMeta?.vfxHitAnim || 'vfx-slash-hit';
       const vfxScale = skillMeta?.vfxScale || 2.1;
 
@@ -517,15 +549,17 @@
         : `anim-hero-${this.battleState.unitCode}-attack`;
 
       this.fsmState = STATES.APPROACH;
-      this.setBattleState({ heroMode: 'run', bossMode: 'idle' });
-      this.spawnPooledVfx('vfx-dash-mono-anim', base.heroX - 12, base.heroY - 12, 1.8, false);
+      this.setBattleState({ heroMode: isRanged ? 'idle' : 'run', bossMode: 'idle' });
+      if (!isRanged) {
+        this.spawnPooledVfx('vfx-dash-mono-anim', base.heroX - 12, base.heroY - 12, 1.8, false);
+      }
 
       this.tweens.killTweensOf(this.hero);
       this.tweens.add({
         targets: this.hero,
         x: targetX,
         y: base.heroY,
-        duration: isRanged ? 90 : 165,
+        duration: isRanged ? 85 : 165,
         ease: 'Quad.Out',
         onUpdate: () => { if (this.heroShadow) this.heroShadow.setPosition(this.hero.x, base.heroY + 2); },
         onComplete: () => {
@@ -539,9 +573,15 @@
           const spawnSlashAtStrike = () => {
             if (slashSpawned || token !== this._actionToken || this.isBossDying) return;
             slashSpawned = true;
-            const slashX = isRanged ? base.bossX - 24 : this.hero.x + 58;
+            const slashX = isRanged ? base.bossX - 16 : this.hero.x + 58;
             const slashY = base.bossY - 56;
             this.spawnPooledVfx(vfxMain, slashX, slashY, vfxScale, false);
+            if (vfxExtra) {
+              this.addSafeTimer(90, () => {
+                if (token !== this._actionToken || this.isBossDying) return;
+                this.spawnPooledVfx(vfxExtra, base.bossX - 14, base.bossY - 60, Math.max(1.8, vfxScale * 0.9), false);
+              });
+            }
           };
 
           const triggerImpactOnce = () => {
@@ -551,7 +591,16 @@
             this.fsmState = STATES.IMPACT;
             this.showHitFlash();
             this.setBattleState({ bossMode: 'hit' });
-            this.spawnPooledVfx(vfxHit, base.bossX - 10, base.bossY - 54, 1.9, false);
+            this.spawnPooledVfx(vfxHit, base.bossX - 10, base.bossY - 54, 1.95, false);
+
+            const dmgVal = Number(payload.damage || skillMeta?.previewDmg || 0);
+            if (dmgVal > 0) {
+              const floatText = payload.isTopicWord ? `-${dmgVal} CRIT!` : `-${dmgVal}`;
+              const floatColor = payload.isTopicWord ? '#fde047' : '#ffffff';
+              this.spawnFloatingText(floatText, base.bossX, base.bossY - 96, floatColor, Boolean(payload.isTopicWord || skillMeta));
+            } else if (payload.combatLabel) {
+              this.spawnFloatingText(payload.combatLabel, base.bossX, base.bossY - 96, '#fde047', true);
+            }
 
             if (this.boss) {
               this.tweens.killTweensOf(this.boss);
@@ -626,7 +675,7 @@
       this.playAttackSequence(payload);
     }
 
-    playSupportSkillSequence(skillMeta) {
+    playSupportSkillSequence(skillMeta, payload = {}) {
       this._actionToken += 1;
       const token = this._actionToken;
       const base = this.getBaseCoords();
@@ -649,6 +698,10 @@
         secondaryFired = true;
         if (skillMeta.vfxHitAnim) {
           this.spawnPooledVfx(skillMeta.vfxHitAnim, base.heroX, base.heroY - 40, 2.2, false);
+        }
+        const floatMsg = skillMeta.healHp ? `+${skillMeta.healHp} HP` : (skillMeta.mitigationPct ? 'GUARD -75%' : '');
+        if (floatMsg) {
+          this.spawnFloatingText(floatMsg, base.heroX, base.heroY - 96, skillMeta.healHp ? '#4ade80' : '#93c5fd', true);
         }
       };
 
@@ -703,6 +756,21 @@
           if (this.bossShadow) this.bossShadow.setPosition(base.bossX, base.bossY + 2);
           this.cameras.main.shake(110, 0.003);
           this.spawnPooledVfx('vfx-ring-ember-anim', base.heroX + 18, base.heroY - 48, 2.2, true);
+          if (this.hero) {
+            this.hero.setTint(0xff9999);
+            this.tweens.add({
+              targets: this.hero,
+              x: base.heroX - 8,
+              duration: 75,
+              yoyo: true,
+              onComplete: () => {
+                if (this.hero) {
+                  this.hero.clearTint();
+                  this.hero.x = base.heroX;
+                }
+              }
+            });
+          }
           this.addSafeTimer(90, () => {
             if (token !== this._actionToken || this.isBossDying) return;
             this.setBattleState({ bossMode: 'idle', heroMode: 'guard' });
@@ -768,20 +836,39 @@
       });
     }
 
-    playBossSpawnSequence() {
+    playBossSpawnSequence(payload = {}) {
       this.isBossDying = false;
       this.spawnActors();
+      const base = this.getBaseCoords();
+      const rarity = String(this.battleState.bossRarity || 'NORMAL').toUpperCase();
+      const isMajorBoss = rarity === 'CHAPTER_BOSS' || rarity === 'GUARDIAN' || Boolean(payload?.dramatic);
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      if (isMajorBoss && !reduced) {
+        const cfg = window.RaidPhaserConfig;
+        const dim = this.add.rectangle(cfg.canvasWidth / 2, cfg.canvasHeight / 2, cfg.canvasWidth, cfg.canvasHeight, 0x0c0705, 0.48).setDepth(3);
+        this.tweens.add({ targets: dim, alpha: 0, duration: 920, ease: 'Quad.Out', onComplete: () => dim.destroy() });
+        this.spawnPooledVfx('vfx-ring-arcane-anim', base.bossX, base.bossY - 46, 2.8, false);
+        if (rarity === 'CHAPTER_BOSS') {
+          this.spawnPooledVfx('vfx-fire-burst-anim', base.bossX, base.bossY - 52, 2.4, false);
+        }
+      } else {
+        this.spawnPooledVfx('vfx-dash-mono-anim', base.bossX, base.bossY - 20, 2.0, true);
+      }
       if (this.boss) {
         const finalScale = this.getEffectiveBossScale(this.battleState.bossTheme);
         this.boss.alpha = 0;
         this.boss.scaleY = 0;
         this.boss.visible = true;
-        if (this.bossShadow) this.bossShadow.visible = true;
+        if (this.bossShadow) {
+          this.bossShadow.visible = true;
+          this.bossShadow.alpha = 0;
+          this.tweens.add({ targets: this.bossShadow, alpha: 0.28, duration: reduced ? 120 : 460 });
+        }
         this.tweens.add({
-          targets: [this.boss, this.bossShadow],
+          targets: this.boss,
           alpha: 1,
           scaleY: finalScale,
-          duration: 460,
+          duration: reduced ? 120 : (isMajorBoss ? 680 : 460),
           ease: 'Back.Out'
         });
       }

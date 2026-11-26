@@ -12,9 +12,9 @@
     bossY: 302,
     rarityScales: {
       NORMAL: 1.0,
-      ELITE: 1.14,
-      GUARDIAN: 1.24,
-      CHAPTER_BOSS: 1.36
+      ELITE: 1.22,
+      GUARDIAN: 1.38,
+      CHAPTER_BOSS: 1.56
     },
     backgroundKey: 'raid-bg',
     backgroundUrl: '/ui/assets/backgrounds/worlds/mountain-dusk/mountain-dusk-a.png',
@@ -101,14 +101,14 @@
     },
     knightSkills: [
       { id: 'knight_slash', name: 'Knight Slash', deckGroup: 'knight', icon: '/ui/assets/ui/kibyra/icon17.png', manaCost: 0, cooldown: 0, heroAnim: 'attack', vfxAnim: 'vfx-slash-side', vfxScale: 2.2, vfxHitAnim: 'vfx-spark-ember-anim', allowedHeroes: ['warrior'], previewDmg: 14, desc: 'Nhát chém hiệp sĩ chuẩn mực kèm tia lửa công kích (Warrior).' },
-      { id: 'heavy_slash', name: 'Heavy Slash', deckGroup: 'knight', icon: '/ui/assets/ui/kibyra/icon18.png', manaCost: 2, cooldown: 2, heroAnim: 'attack2', vfxAnim: 'vfx-slash-down', vfxScale: 2.5, vfxHitAnim: 'vfx-fire-burst-anim', allowedHeroes: ['warrior'], previewDmg: 20, desc: 'Bổ kiếm hạng nặng kích nổ hỏa diễm (+45% preview, Warrior).' },
+      { id: 'heavy_slash', name: 'Heavy Slash', deckGroup: 'knight', icon: '/ui/assets/ui/kibyra/icon18.png', manaCost: 2, cooldown: 2, heroAnim: 'attack2', vfxAnim: 'vfx-slash-down', vfxScale: 2.5, vfxHitAnim: 'vfx-fire-burst-anim', hitStopMs: 45, allowedHeroes: ['warrior'], previewDmg: 20, desc: 'Bổ kiếm hạng nặng kích nổ hỏa diễm (+45% preview, Warrior).' },
       { id: 'royal_guard', name: 'Royal Guard', deckGroup: 'both', icon: '/ui/assets/ui/kibyra/icon19.png', manaCost: 1, cooldown: 2, heroAnim: 'guard', vfxAnim: 'vfx-parry-frost-anim', vfxScale: 2.8, vfxHitAnim: 'vfx-ring-frost-anim', selfTarget: true, allowedHeroes: ['warrior', 'lancer'], mitigationPct: 75, reflectDmg: 6, desc: 'Dựng khiên hoàng gia giảm 75% sát thương đòn boss kế & phản 6 băng.' },
-      { id: 'blade_storm', name: 'Blade Storm', deckGroup: 'knight', icon: '/ui/assets/ui/kibyra/icon26.png', manaCost: 3, cooldown: 3, heroAnim: 'attack2', vfxAnim: 'vfx-slash-spin', vfxScale: 2.6, vfxHitAnim: 'vfx-ring-ember-anim', allowedHeroes: ['warrior'], minCombo: 2, previewDmg: 18, desc: 'Xoáy kiếm đa vòng càn quét boss (Yêu cầu Combo >= x2, Warrior).' },
+      { id: 'blade_storm', name: 'Blade Storm', deckGroup: 'knight', icon: '/ui/assets/ui/kibyra/icon26.png', manaCost: 3, cooldown: 3, heroAnim: 'attack2', vfxAnim: 'vfx-slash-spin', vfxExtraAnim: 'vfx-slash-side', vfxScale: 2.6, vfxHitAnim: 'vfx-ring-ember-anim', allowedHeroes: ['warrior'], minCombo: 2, previewDmg: 18, desc: 'Xoáy kiếm đa vòng càn quét boss (Yêu cầu Combo >= x2, Warrior).' },
       { id: 'sacred_recovery', name: 'Sacred Recovery', deckGroup: 'both', icon: '/ui/assets/ui/kibyra/icon14.png', manaCost: 2, cooldown: 3, heroAnim: 'guard', vfxAnim: 'vfx-heal-frost-anim', vfxScale: 2.8, vfxHitAnim: 'vfx-ring-arcane-anim', selfTarget: true, allowedHeroes: ['warrior', 'lancer', 'archer'], healHp: 18, desc: 'Hồi phục 18 sinh lực hiệp sĩ trong chế độ xem trước kỹ năng.' },
-      { id: 'lexical_judgment', name: 'Lexical Judgment', deckGroup: 'both', icon: '/ui/assets/ui/kibyra/icon59.png', manaCost: 4, cooldown: 4, heroAnim: 'attack2', vfxAnim: 'vfx-thunder-burst-anim', vfxScale: 2.5, vfxHitAnim: 'vfx-ring-arcane-anim', allowedHeroes: ['warrior', 'lancer', 'archer'], requiresCoreClue: true, previewDmg: 24, desc: 'Triệu hồi Thiên Lôi Ngôn Từ (Yêu cầu mở manh mối Core Word).' },
-      { id: 'fire_blade', name: 'Fire Blade', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon11.png', manaCost: 2, cooldown: 2, heroAnim: 'attack2', vfxAnim: 'vfx-slash-side', vfxScale: 2.5, vfxHitAnim: 'vfx-fire-burst-anim', allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 16, applyStatus: 'burn', statusTurns: 2, desc: 'Hỏa Kiếm 16 DMG + Thiêu đốt 2 lượt (-7 HP/lượt, khóa hồi Slime).' },
-      { id: 'frost_seal', name: 'Frost Seal', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon27.png', manaCost: 2, cooldown: 3, heroAnim: 'guard', vfxAnim: 'vfx-parry-frost-anim', vfxScale: 2.6, vfxHitAnim: 'vfx-ice-spikes-anim', allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 14, applyStatus: 'frost', statusTurns: 2, timeBonusSec: 4, desc: 'Ấn Băng 14 DMG, giảm 30% công địch 2 lượt & +4s thời gian lượt.' },
-      { id: 'thunder_strike', name: 'Thunder Strike', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon57.png', manaCost: 3, cooldown: 3, heroAnim: 'attack2', vfxAnim: 'vfx-thunder-burst-anim', vfxScale: 2.7, vfxHitAnim: 'vfx-ring-arcane-anim', allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 16, shieldMultiplier: 2, applyStatus: 'stunOnBreak', desc: 'Lôi Kích gây x2 sát thương Shield & Choáng 1 lượt khi phá giáp.' }
+      { id: 'lexical_judgment', name: 'Lexical Judgment', deckGroup: 'both', icon: '/ui/assets/ui/kibyra/icon59.png', manaCost: 4, cooldown: 4, heroAnim: 'attack2', vfxAnim: 'vfx-thunder-burst-anim', vfxExtraAnim: 'vfx-ring-arcane-anim', vfxScale: 2.6, vfxHitAnim: 'vfx-fire-burst-anim', hitStopMs: 55, allowedHeroes: ['warrior', 'lancer', 'archer'], requiresCoreClue: true, previewDmg: 24, desc: 'Triệu hồi Thiên Lôi Ngôn Từ (Yêu cầu mở manh mối Core Word).' },
+      { id: 'fire_blade', name: 'Fire Blade', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon11.png', manaCost: 2, cooldown: 2, heroAnim: 'attack2', vfxAnim: 'vfx-slash-side', vfxExtraAnim: 'vfx-spark-ember-anim', vfxScale: 2.5, vfxHitAnim: 'vfx-fire-burst-anim', allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 16, applyStatus: 'burn', statusTurns: 2, desc: 'Hỏa Kiếm 16 DMG + Thiêu đốt 2 lượt (-7 HP/lượt, khóa hồi Slime).' },
+      { id: 'frost_seal', name: 'Frost Seal', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon27.png', manaCost: 2, cooldown: 3, heroAnim: 'guard', vfxAnim: 'vfx-ring-frost-anim', vfxExtraAnim: 'vfx-parry-frost-anim', vfxScale: 2.6, vfxHitAnim: 'vfx-ice-spikes-anim', isRemoteSpell: true, allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 14, applyStatus: 'frost', statusTurns: 2, timeBonusSec: 4, desc: 'Ấn Băng 14 DMG, giảm 30% công địch 2 lượt & +4s thời gian lượt.' },
+      { id: 'thunder_strike', name: 'Thunder Strike', deckGroup: 'spell', icon: '/ui/assets/ui/kibyra/icon57.png', manaCost: 3, cooldown: 3, heroAnim: 'attack2', vfxAnim: 'vfx-thunder-burst-anim', vfxExtraAnim: 'vfx-spark-frost-anim', vfxScale: 2.7, vfxHitAnim: 'vfx-ring-arcane-anim', isRemoteSpell: true, hitStopMs: 50, allowedHeroes: ['warrior', 'lancer', 'archer'], previewDmg: 16, shieldMultiplier: 2, applyStatus: 'stunOnBreak', desc: 'Lôi Kích gây x2 sát thương Shield & Choáng 1 lượt khi phá giáp.' }
     ],
     bosses: {
       captain: {

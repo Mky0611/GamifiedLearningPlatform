@@ -396,12 +396,20 @@
     if(state.renderer && state.renderer.setState) state.renderer.setState(next || {});
   }
 
+  function getBossStatusAura(){
+    if (state.bossStatuses?.stun > 0) return 'stun';
+    if (state.bossStatuses?.frost > 0) return 'frost';
+    if (state.bossStatuses?.burn > 0) return 'burn';
+    return null;
+  }
+
   function syncRendererState(extra = {}){
     updateRaidRenderer({
       unitCode: state.unitCode,
       bossTheme: state.bossTheme,
       bossRarity: state.bossRarity || 'NORMAL',
       waveIndex: state.waveIndex || 1,
+      bossStatusAura: getBossStatusAura(),
       ...extra
     });
   }
@@ -586,13 +594,44 @@
       return;
     }
     const ch = Number(state.stage?.chapterNo || 1);
-    const seed = Number(state.stage?.stageId || 1) * 97 + ch * 31;
+    const paramSeed = Number(query.get('seed'));
+    const seed = (Number.isFinite(paramSeed) && paramSeed > 0)
+      ? paramSeed
+      : (isQaEnvironment()
+        ? Number(state.stage?.stageId || 1) * 97 + ch * 31
+        : ((Date.now() ^ Math.floor(Math.random() * 1000000)) >>> 0));
     state.wavePlan = window.LexRaidEncounters.generateFiveWavePlan({
       chapterNo: ch,
       seed,
       chapterBossTheme: detectBossTheme()
     });
     state.totalWaves = state.wavePlan.length || 5;
+  }
+
+  async function playBossEntrance(waveEntry, forceDramatic = false){
+    const rarity = String(waveEntry?.rarity || state.bossRarity || 'NORMAL').toUpperCase();
+    const isMajor = forceDramatic || rarity === 'CHAPTER_BOSS' || rarity === 'GUARDIAN';
+    if (!isMajor) return;
+
+    state.transitioning = true;
+    pauseTimer(true);
+    const banner = document.getElementById('bossEntranceBanner');
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (banner) {
+      const bossTitle = themeLabel[state.bossTheme] || state.currentBossDetails?.name || 'Boss';
+      const elementVal = state.currentBossDetails?.element || 'SHADOW';
+      const kicker = rarity === 'CHAPTER_BOSS' ? 'CHAPTER BOSS APPEARS' : 'GUARDIAN ENCOUNTER';
+      banner.innerHTML = `
+        <span class="boss-entrance-banner__kicker">${kicker} · P${state.bossPhase || 1}</span>
+        <strong class="boss-entrance-banner__name">${window.appApi.escapeHtml(bossTitle)}</strong>
+        <span class="boss-entrance-banner__sub">${rarity.replace('_', ' ')} · ${window.appApi.escapeHtml(elementVal)} · ${window.appApi.escapeHtml(waveEntry?.traitName || 'Chiến đấu!')}</span>`;
+      banner.classList.add('is-visible');
+    }
+    updateRaidRenderer({ playBossSpawn: { dramatic: true }, bossTheme: state.bossTheme, bossRarity: rarity, waveIndex: state.waveIndex });
+    await new Promise((r) => setTimeout(r, reduced ? 220 : 1200));
+    if (banner) banner.classList.remove('is-visible');
+    state.transitioning = false;
+    pauseTimer(false);
   }
 
   function applyWaveEncounter(waveNumber, isInitial = false){
@@ -785,6 +824,7 @@
         <i class="bi bi-volume-up-fill"></i> Nghe
       </button>`;
     toast.classList.add('is-visible');
+    toast.classList.toggle('is-topic-pop', entry.wordCategory === 'TOPIC' || entry.wordCategory === 'CORE');
     const ttsBtn = document.getElementById('wordTtsBtn');
     if (ttsBtn) ttsBtn.onclick = () => speakEnglishWord(entry.word);
   }
@@ -823,6 +863,11 @@
     if (chargeEl) chargeEl.textContent = String(Math.max(0, state.hintCharges));
     const revealBtn = document.getElementById('hintRevealBtn');
     if (revealBtn) revealBtn.disabled = state.hintCharges <= 0 || state.finished;
+    const refreshBtn = document.getElementById('boardRefreshBtn');
+    if (refreshBtn) {
+      refreshBtn.disabled = Boolean(state.raidSessionId) || state.finished;
+      refreshBtn.title = state.raidSessionId ? 'Làm mới bảng chỉ dùng trong chế độ Preview' : 'Làm mới bàn cờ';
+    }
   }
 
   function useMeaningHint(){
@@ -988,8 +1033,23 @@
       rarityEl.textContent = rarity.replace('_', ' ');
       rarityEl.className = `rarity-pill rarity-pill--${rarity.toLowerCase()}`;
     }
+    const bossPanel = document.querySelector('.boss-panel');
+    if (bossPanel) {
+      bossPanel.classList.toggle('is-elite', rarity === 'ELITE');
+      bossPanel.classList.toggle('is-guardian', rarity === 'GUARDIAN');
+      bossPanel.classList.toggle('is-chapter-boss', rarity === 'CHAPTER_BOSS');
+    }
+    const crownEl = document.getElementById('bossCrownBadge');
+    if (crownEl) {
+      crownEl.style.display = (rarity === 'CHAPTER_BOSS' || rarity === 'GUARDIAN') ? 'inline-flex' : 'none';
+    }
     const phaseEl = document.getElementById('bossPhaseBadge');
-    if (phaseEl) phaseEl.textContent = `P${state.bossPhase || 1}`;
+    if (phaseEl) {
+      phaseEl.textContent = `P${state.bossPhase || 1}`;
+      phaseEl.classList.toggle('is-phase2', (state.bossPhase || 1) >= 2);
+    }
+    const telEl = document.getElementById('bossTelegraphText');
+    if (telEl) telEl.classList.toggle('is-danger', (state.bossPhase || 1) >= 2);
     const waveText = `Wave ${state.waveIndex || 1}/${state.totalWaves || 5}`;
     const waveEl = document.getElementById('waveBadge');
     if (waveEl) waveEl.textContent = waveText;
@@ -1531,7 +1591,6 @@
     }
 
     rebuildBoardForActiveCoreWord(true);
-    updateRaidRenderer({ playBossSpawn: true, bossTheme: state.bossTheme, bossRarity: state.bossRarity, waveIndex: state.waveIndex });
     playFrameMonster(state.bossTheme, 'idle');
 
     state.selected = [];
@@ -1539,6 +1598,14 @@
     renderCore();
     renderObjectives();
     renderBoard(true);
+
+    const waveEntry = getCurrentWaveEntry();
+    const isMajorSpawn = String(state.bossRarity || 'NORMAL').toUpperCase() === 'CHAPTER_BOSS' || String(state.bossRarity || 'NORMAL').toUpperCase() === 'GUARDIAN';
+    if (isMajorSpawn) {
+      await playBossEntrance(waveEntry, true);
+    } else {
+      updateRaidRenderer({ playBossSpawn: true, bossTheme: state.bossTheme, bossRarity: state.bossRarity, waveIndex: state.waveIndex });
+    }
 
     await syncSession();
 
@@ -1740,7 +1807,7 @@
         nextReveal();
       }
 
-      syncRendererState({ playAttack: true });
+      syncRendererState({ playAttack: true, damage: damageDealt, isTopicWord: isTopicMatch || wordCategory === 'CORE' });
       setHeroMode('attack', 650);
       playFrameMonster(state.bossTheme, 'hit', 420);
 
@@ -1822,7 +1889,7 @@
           state.bossHp = 0; // set HP to 0 for transition
           state.bossShield = 0;
           state.rage = Number(backendResult.rageValue ?? state.rage);
-          syncRendererState({ playAttack: true });
+          syncRendererState({ playAttack: true, damage: damageDealt, isTopicWord: isTopicMatch || wordCategory === 'CORE' });
           setHeroMode('attack', 650);
           playFrameMonster(state.bossTheme, 'hit', 500);
 
@@ -1868,7 +1935,7 @@
         state.previewMana = Math.min(state.maxPreviewMana, state.previewMana + 2);
         state.bossShield = 0;
         state.bossHp = Math.max(0, state.bossHp - 55);
-        syncRendererState({ playAttack: true });
+        syncRendererState({ playAttack: true, damage: damageDealt, isTopicWord: isTopicMatch || wordCategory === 'CORE' });
         setHeroMode('attack', 650);
         playFrameMonster(state.bossTheme, 'hit', 500);
 
@@ -2369,7 +2436,14 @@
           fillBars();
           tickTimer(true);
         },
-        advanceWaveForTest: () => triggerBossDeathAndNextWave()
+        advanceWaveForTest: () => triggerBossDeathAndNextWave(),
+        triggerBossEntranceForTest: () => {
+          if (state.raidSessionId) return null;
+          applyWaveEncounter(5, true);
+          fillBars();
+          syncRendererState();
+          return playBossEntrance(getCurrentWaveEntry(), true);
+        }
       };
     }
   }
