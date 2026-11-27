@@ -7,6 +7,12 @@
 
 ---
 
+## [P6-A..G Backend Persistence, Server-Authoritative Combat & DB Audit] — 2026-11-27
+- **P6-A/B SQL Server Baseline & Live Schema Audit (`docs/P6_DATABASE_AUDIT.md`):** Xác nhận `MSSQL$SQL2022` đang **Running** và TCP `1433` mở; xác định `MainTests.contextLoads` lỗi `ErrorCode 18456` do thiếu env `SPRING_DATASOURCE_PASSWORD` (không tự reset pass). Audit read-only `55` base tables qua `sqlcmd -E`, phát hiện `20` rows `dbo.stages` (`stage_id 1..6,8..21`), `CK_user_loadouts_unit` chỉ cho `WARRIOR|LANCER|ARCHER`, `CK_word_submit_events_word_type` thiếu `'GLOBAL'`; thiết kế DDL + Backfill + Rollback T-SQL an toàn.
+- **P6-C/G Persistent Progression (`RpgCatalogRegistry`, `ProgressionServiceImpl`, `ProgressionController`, `AccountServiceImpl`):** Triển khai catalog 4 Hero & 27 Skills Lv1–3, thực thi ví SP khóa `PESSIMISTIC_WRITE` (`user_progression_wallets`), tách milestone `stage_first_clear_*` / `skill_unlock_*` / `hero_unlock_arcane_mage`, và gỡ unsafe fallback user #1 ở `AccountServiceImpl`.
+- **P6-D/E Server-Authoritative Combat (`LexRaidServiceImpl`, `LexRaidController`, `SkillCastEvent`):** Thêm `/api/v1/lex-raid/sessions/{id}/cast-skill` (`actionId` idempotency, ownership check `403`, anti-spam `MAX_ZERO_MANA_CASTS_PER_TURN = 1`, server multi-hit split & wave advancement, Campaign Stage Lock, Core Word không auto-win sớm).
+- **P6-F Server-Verified Word Mastery (`MasteryServiceImpl`, `MasteryController`):** Tạo Recall challenge ẩn đáp án, chấm đáp án theo `VocabularyWord`, tách TTS, dedupe unique review & bảo toàn `MASTERED` (`38/38` Mockito PASS).
+
 ## [P5.1 Progression Integrity & Full 27-Skill QA] — 2026-11-27
 - **Mage Permanent Lock & Milestone Separation (`progression-store.js`):** Tách `stage_first_clear_*`, `skill_unlock_*`, `hero_unlock_*`; sửa triệt để lỗi clear Stage 1 với 0 từ Topic khiến khóa vĩnh viễn Arcane Mage khi replay, chống cấp trùng SP, và không hạ cấp Chapter `MASTERED` khi replay điểm thấp.
 - **Strict Skill Unlock Rules (`raid-registry.js`, `progression-store.js`):** Bỏ SP bypass trên `STAGE_CLEAR` / `LEARNING`, bỏ `celestial_arrow` & `dragon_lance` khỏi starter `archer`/`lancer`, bổ sung `upgradeRequirements` Lv2–3 cho Ultimate và giữ nguyên dữ liệu sở hữu cũ trong `localStorage`.
