@@ -414,7 +414,8 @@ class LexRaidGlobalLexiconTest {
         assertEquals("TOPIC", cacheRes.getWordCategory());
         assertEquals("POST_SUBMIT", latestSnap.get().getReasonCode());
 
-        // Step B: Solve final Core Word "STACK" using the persisted POST_SUBMIT snapshot -> WON
+        // Step B: Solve final Core Word "STACK" against remaining Boss HP using persisted POST_SUBMIT snapshot -> WON
+        session.setBossHpRemaining(45);
         List<WordPathTileDto> stackPath = findWordPathOnBoard(cacheRes.getBoard(), "STACK");
         when(vocabularyWordRepository.findByVocabularySetVocabularySetIdAndNormalizedText(20L, "STACK"))
                 .thenReturn(Optional.of(wordStack));
