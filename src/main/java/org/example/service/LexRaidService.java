@@ -15,4 +15,5 @@ public interface LexRaidService {
     LexRaidSessionDto finishSession(Long raidSessionId, LexRaidSessionSyncRequest request);
     LexRaidActionResultDto submitWord(Long raidSessionId, LexRaidSubmitWordRequest request);
     LexRaidActionResultDto guessCoreWord(Long raidSessionId, LexRaidGuessCoreWordRequest request);
+    LexRaidActionResultDto castSkill(Long raidSessionId, LexRaidCastSkillRequest request);
 }

@@ -43,4 +43,14 @@ public class LexRaidActionResultDto {
     private List<LexRaidCoreWordDto> coreWords;
     private List<List<String>> board;
     private LexRaidSessionDto session;
+    private Integer playerHp;
+    private Integer playerMaxHp;
+    private Integer waveIndex;
+    private Integer totalWaves;
+    private List<Integer> hitDamages;
+    private String statusApplied;
+    private java.util.Map<String, Integer> skillCooldowns;
+    private String animationProfile;
+    private Integer skillLevel;
+    private Integer healHp;
 }

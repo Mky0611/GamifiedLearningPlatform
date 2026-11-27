@@ -32,4 +32,11 @@ public class LexRaidSessionDto {
     private Boolean levelUpOccurred;
     private Integer levelsGained;
     private Integer starsEarned;
+    private Integer playerHp;
+    private Integer playerMaxHp;
+    private Integer waveIndex;
+    private Integer totalWaves;
+    private String playMode;
+    private String heroCode;
+    private java.util.List<String> grantedMilestones;
 }

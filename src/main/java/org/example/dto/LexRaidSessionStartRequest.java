@@ -10,4 +10,6 @@ public class LexRaidSessionStartRequest {
     @NotNull
     private Long stageId;
     private String seed;
+    private String playMode; // CAMPAIGN (default) or PRACTICE
+    private String heroCode; // warrior (default), archer, lancer, arcane_mage
 }

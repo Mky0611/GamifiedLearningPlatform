@@ -68,6 +68,18 @@ public class LexRaidController {
         return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly core word guess thanh cong").data(lexRaidService.guessCoreWord(raidSessionId, request)).build();
     }
 
+    @PostMapping("/sessions/{raidSessionId}/cast-skill")
+    public ApiResponse<LexRaidActionResultDto> castSkill(@PathVariable Long raidSessionId,
+                                                         @Valid @RequestBody LexRaidCastSkillRequest request) {
+        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly ky nang thanh cong").data(lexRaidService.castSkill(raidSessionId, request)).build();
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleForbidden(SecurityException ex) {
+        return ApiResponse.<Void>builder().success(false).message(ex.getMessage()).data(null).build();
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiResponse<Void> handleStageNotFound(IllegalArgumentException ex) {

@@ -3,7 +3,7 @@ package org.example.config;
 import org.springframework.stereotype.Component;
 
 /**
- * Centralized gameplay balance configuration for Lex Raid (Phase P4-B.3).
+ * Centralized gameplay balance configuration for Lex Raid (Phase P4-B.3 / P6).
  * Keeps combat formulas, mana caps, and chapter pacing consistent in one place.
  */
 @Component
@@ -22,6 +22,7 @@ public class LexRaidBalanceConfig {
     public static final int MAX_MANA_CAP = 6;
     public static final int TOPIC_EXTRA_MANA = 1;
     public static final int CORE_SOLVE_MANA = 2;
+    public static final int MAX_ZERO_MANA_CASTS_PER_TURN = 1;
 
     public int computeBaseDamage(int wordLength, int comboAfter) {
         if (wordLength < ABSOLUTE_MIN_WHITELIST_LENGTH) {

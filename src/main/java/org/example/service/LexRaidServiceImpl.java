@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.config.LexRaidBalanceConfig;
+import org.example.config.RpgCatalogRegistry;
 import org.example.dto.*;
 import org.example.entity.*;
 import org.example.repository.*;
@@ -49,6 +50,12 @@ public class LexRaidServiceImpl implements LexRaidService {
     private final RpgProgressionService rpgProgressionService;
     private final EnglishLexiconService englishLexiconService;
     private final LexRaidBalanceConfig balanceConfig;
+    private final RpgCatalogRegistry catalogRegistry;
+    private final HeroOwnershipRepository heroOwnershipRepository;
+    private final UserSkillUnlockRepository userSkillUnlockRepository;
+    private final UserHeroLoadoutRepository userHeroLoadoutRepository;
+    private final SkillCastEventRepository skillCastEventRepository;
+    private final ProgressionService progressionService;
 
     public LexRaidServiceImpl(
             StageRepository stageRepository,
@@ -68,23 +75,40 @@ public class LexRaidServiceImpl implements LexRaidService {
             RpgProgressionService rpgProgressionService
     ) {
         this(
-                stageRepository,
-                stageObjectiveRepository,
-                stageCoreWordRepository,
-                vocabularyWordRepository,
-                userRepository,
-                gameModeRepository,
-                gameSessionRepository,
-                raidSessionRepository,
-                boardSnapshotRepository,
-                wordSubmitEventRepository,
-                coreWordGuessEventRepository,
-                userWordMasteryRepository,
-                userStageProgressRepository,
-                bossRepository,
-                rpgProgressionService,
-                new EnglishLexiconService(),
-                new LexRaidBalanceConfig()
+                stageRepository, stageObjectiveRepository, stageCoreWordRepository, vocabularyWordRepository,
+                userRepository, gameModeRepository, gameSessionRepository, raidSessionRepository,
+                boardSnapshotRepository, wordSubmitEventRepository, coreWordGuessEventRepository,
+                userWordMasteryRepository, userStageProgressRepository, bossRepository, rpgProgressionService,
+                new EnglishLexiconService(), new LexRaidBalanceConfig()
+        );
+    }
+
+    public LexRaidServiceImpl(
+            StageRepository stageRepository,
+            StageObjectiveRepository stageObjectiveRepository,
+            StageCoreWordRepository stageCoreWordRepository,
+            VocabularyWordRepository vocabularyWordRepository,
+            UserRepository userRepository,
+            GameModeRepository gameModeRepository,
+            GameSessionRepository gameSessionRepository,
+            RaidSessionRepository raidSessionRepository,
+            BoardSnapshotRepository boardSnapshotRepository,
+            WordSubmitEventRepository wordSubmitEventRepository,
+            CoreWordGuessEventRepository coreWordGuessEventRepository,
+            UserWordMasteryRepository userWordMasteryRepository,
+            UserStageProgressRepository userStageProgressRepository,
+            BossRepository bossRepository,
+            RpgProgressionService rpgProgressionService,
+            EnglishLexiconService englishLexiconService,
+            LexRaidBalanceConfig balanceConfig
+    ) {
+        this(
+                stageRepository, stageObjectiveRepository, stageCoreWordRepository, vocabularyWordRepository,
+                userRepository, gameModeRepository, gameSessionRepository, raidSessionRepository,
+                boardSnapshotRepository, wordSubmitEventRepository, coreWordGuessEventRepository,
+                userWordMasteryRepository, userStageProgressRepository, bossRepository, rpgProgressionService,
+                englishLexiconService, balanceConfig, new RpgCatalogRegistry(),
+                null, null, null, null, null
         );
     }
 
@@ -106,7 +130,13 @@ public class LexRaidServiceImpl implements LexRaidService {
             BossRepository bossRepository,
             RpgProgressionService rpgProgressionService,
             EnglishLexiconService englishLexiconService,
-            LexRaidBalanceConfig balanceConfig
+            LexRaidBalanceConfig balanceConfig,
+            RpgCatalogRegistry catalogRegistry,
+            HeroOwnershipRepository heroOwnershipRepository,
+            UserSkillUnlockRepository userSkillUnlockRepository,
+            UserHeroLoadoutRepository userHeroLoadoutRepository,
+            SkillCastEventRepository skillCastEventRepository,
+            ProgressionService progressionService
     ) {
         this.stageRepository = stageRepository;
         this.stageObjectiveRepository = stageObjectiveRepository;
@@ -125,6 +155,12 @@ public class LexRaidServiceImpl implements LexRaidService {
         this.rpgProgressionService = rpgProgressionService;
         this.englishLexiconService = englishLexiconService != null ? englishLexiconService : new EnglishLexiconService();
         this.balanceConfig = balanceConfig != null ? balanceConfig : new LexRaidBalanceConfig();
+        this.catalogRegistry = catalogRegistry != null ? catalogRegistry : new RpgCatalogRegistry();
+        this.heroOwnershipRepository = heroOwnershipRepository;
+        this.userSkillUnlockRepository = userSkillUnlockRepository;
+        this.userHeroLoadoutRepository = userHeroLoadoutRepository;
+        this.skillCastEventRepository = skillCastEventRepository;
+        this.progressionService = progressionService;
     }
 
     @Override
@@ -199,11 +235,50 @@ public class LexRaidServiceImpl implements LexRaidService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay user voi id = " + request.getUserId()));
         Stage stage = getStageOrThrow(request.getStageId());
+        String playMode = "PRACTICE".equalsIgnoreCase(request.getPlayMode()) ? "PRACTICE" : "CAMPAIGN";
+
+        // Server-side Stage Lock check in CAMPAIGN mode against real ordered DB stages
+        if ("CAMPAIGN".equals(playMode)) {
+            List<Stage> orderedStages = stageRepository.findByStatusOrderByChapterNoAscStageNoAsc(ACTIVE_STATUS);
+            int idx = -1;
+            for (int i = 0; i < orderedStages.size(); i++) {
+                if (Objects.equals(orderedStages.get(i).getStageId(), stage.getStageId())) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx > 0) {
+                Stage prevStage = orderedStages.get(idx - 1);
+                boolean prevCleared = userStageProgressRepository
+                        .findByUserUserIdAndStageStageId(user.getUserId(), prevStage.getStageId())
+                        .map(p -> defaultIfNull(p.getClearCount(), 0) > 0)
+                        .orElse(false);
+                if (!prevCleared) {
+                    throw new IllegalArgumentException("Stage " + stage.getName() + " chua duoc mo khoa; can vuot " + prevStage.getName() + " truoc.");
+                }
+            }
+        }
+
+        String requestedHero = blankToNull(request.getHeroCode()) != null
+                ? request.getHeroCode().trim().toLowerCase(Locale.ROOT)
+                : "warrior";
+        RpgCatalogRegistry.HeroSpec heroSpec = catalogRegistry.getHero(requestedHero);
+        if (heroSpec == null) {
+            throw new IllegalArgumentException("Hero khong hop le: " + requestedHero);
+        }
+        if (heroOwnershipRepository != null
+                && !heroOwnershipRepository.existsByUserUserIdAndHeroCode(user.getUserId(), requestedHero)
+                && "arcane_mage".equals(requestedHero)) {
+            throw new IllegalArgumentException("Arcane Mage chua duoc mo khoa cho tai khoan nay.");
+        }
+
         GameMode mode = gameModeRepository.findByGame_CodeAndCodeIgnoreCase(stage.getGame().getCode(), CAMPAIGN)
                 .orElseGet(() -> gameModeRepository.findAll().stream()
                         .filter(gm -> gm.getGame().getGameId().equals(stage.getGame().getGameId()))
                         .findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("Khong tim thay game mode cho stage nay")));
+
+        CombatMeta meta = CombatMeta.createDefault(playMode, heroSpec);
 
         GameSession gameSession = new GameSession();
         gameSession.setUser(user);
@@ -215,7 +290,7 @@ public class LexRaidServiceImpl implements LexRaidService {
         gameSession.setScoreTotal(0);
         gameSession.setXpEarned(0);
         gameSession.setCoinsEarned(0);
-        gameSession.setMetadataJson("{\"source\":\"lex_raid\"}");
+        gameSession.setMetadataJson(meta.toJson());
         gameSession = gameSessionRepository.save(gameSession);
 
         RaidSession raidSession = new RaidSession();
@@ -225,19 +300,20 @@ public class LexRaidServiceImpl implements LexRaidService {
         raidSession.setSeed(blankToNull(request.getSeed()));
         raidSession.setCurrentRound(1);
         raidSession.setBossPhaseNo(1);
-        
-        List<Boss> allBosses = bossRepository.findAll();
+
         Boss selectedBoss = stage.getBoss();
-        if (allBosses != null && !allBosses.isEmpty()) {
-            Random random = new Random();
-            selectedBoss = allBosses.get(random.nextInt(allBosses.size()));
+        if ("PRACTICE".equals(playMode)) {
+            List<Boss> allBosses = bossRepository.findAll();
+            if (allBosses != null && !allBosses.isEmpty()) {
+                selectedBoss = allBosses.get(new Random().nextInt(allBosses.size()));
+            }
         }
-        
+
         raidSession.setBossHpRemaining(selectedBoss.getBaseHp());
         raidSession.setBossShieldRemaining(selectedBoss.getBaseShield());
         raidSession.setRageValue(0);
         raidSession.setComboCount(0);
-        raidSession.setManaValue(0);
+        raidSession.setManaValue(heroSpec.getBaseMp());
         raidSession.setTotalScore(0);
         raidSession.setClueProgressJson("[]");
         raidSession = raidSessionRepository.save(raidSession);
@@ -290,6 +366,8 @@ public class LexRaidServiceImpl implements LexRaidService {
     @Transactional
     public LexRaidActionResultDto submitWord(Long raidSessionId, LexRaidSubmitWordRequest request) {
         RaidSession raidSession = findSession(raidSessionId);
+        verifySessionOwner(raidSession, request != null ? request.getUserId() : null);
+        CombatMeta meta = CombatMeta.parse(raidSession.getGameSession() != null ? raidSession.getGameSession().getMetadataJson() : null);
         if (isSessionClosed(raidSession)) {
             return LexRaidActionResultDto.builder()
                     .accepted(false)
@@ -351,7 +429,11 @@ public class LexRaidServiceImpl implements LexRaidService {
         int manaGain = Math.max(0, manaAfter - currentMana);
         int cluePoints = valid ? Math.max(1, length / 3) : 0;
         int baseDamage = valid ? balanceConfig.computeBaseDamage(length, comboAfter) : 0;
-        int totalDamage = valid ? balanceConfig.computeTotalDamage(length, comboAfter, isTopicWord) : 0;
+        int totalDamage = valid
+                ? (solvedCoreCandidate
+                    ? balanceConfig.computeCoreWordDamage(defaultIfNull(activeCoreWord.getBonusDamage(), 0), length)
+                    : balanceConfig.computeTotalDamage(length, comboAfter, isTopicWord))
+                : 0;
         int bonusDamage = Math.max(0, totalDamage - baseDamage);
         int shieldDamage = Math.min(defaultIfNull(raidSession.getBossShieldRemaining(), 0), totalDamage);
         int hpDamage = Math.max(0, totalDamage - shieldDamage);
@@ -365,12 +447,15 @@ public class LexRaidServiceImpl implements LexRaidService {
             raidSession.setManaValue(manaAfter);
             raidSession.setRageValue(defaultIfNull(raidSession.getRageValue(), 0) + Math.max(1, length));
             raidSession.setTotalScore(defaultIfNull(raidSession.getTotalScore(), 0) + baseScore);
+            meta.zeroManaCastsThisTurn = 0;
+            meta.tickCooldowns();
+            if (isTopicWord) meta.topicWordsSolvedInSession++;
 
             if (solvedCoreCandidate) {
+                raidSession.setBossShieldRemaining(0);
                 raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), activeCoreWord));
                 solvedIds.add(activeCoreWord.getStageCoreWordId());
                 solvedCoreBySubmit = true;
-                raidSession.setBossHpRemaining(0);
             }
 
             if (matchedWord != null) {
@@ -379,19 +464,28 @@ public class LexRaidServiceImpl implements LexRaidService {
             updateStageWordProgress(raidSession, 1, solvedCoreBySubmit ? 1 : 0);
 
             if (raidSession.getBossHpRemaining() <= 0) {
-                StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
-                if (nextWordCheck == null) {
-                    raidSession.setStatus(WON);
-                    raidSession.setEndedAt(LocalDateTime.now());
-                    bossClearedAllWaves = true;
-                } else {
+                if (meta.hasCustomWaves && meta.waveIndex < meta.totalWaves) {
+                    meta.waveIndex += 1;
                     raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                     raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
-                    if (!solvedCoreBySubmit && activeCoreWord != null) {
-                        raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), activeCoreWord));
-                        solvedIds.add(activeCoreWord.getStageCoreWordId());
+                } else {
+                    StageCoreWord nextWordCheck = resolveActiveCoreWord(coreWords, solvedIds);
+                    if (nextWordCheck == null || meta.hasCustomWaves) {
+                        raidSession.setStatus(WON);
+                        raidSession.setEndedAt(LocalDateTime.now());
+                        bossClearedAllWaves = true;
+                    } else {
+                        raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
+                        raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
+                        if (!solvedCoreBySubmit && activeCoreWord != null) {
+                            raidSession.setClueProgressJson(appendCoreWordProgress(raidSession.getClueProgressJson(), activeCoreWord));
+                            solvedIds.add(activeCoreWord.getStageCoreWordId());
+                        }
                     }
                 }
+            }
+            if (raidSession.getGameSession() != null) {
+                raidSession.getGameSession().setMetadataJson(meta.toJson());
             }
         } else {
             raidSession.setComboCount(invalidComboAfter);
@@ -473,6 +567,281 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .board(nextBoard)
                 .session(toSessionDto(raidSession))
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public LexRaidActionResultDto castSkill(Long raidSessionId, LexRaidCastSkillRequest request) {
+        if (request == null || request.getUserId() == null || blankToNull(request.getSkillCode()) == null || blankToNull(request.getActionId()) == null) {
+            throw new IllegalArgumentException("Thieu userId, skillCode hoac actionId khi thi trien ky nang.");
+        }
+        RaidSession raidSession = findSession(raidSessionId);
+        verifySessionOwner(raidSession, request.getUserId());
+
+        if (isSessionClosed(raidSession)) {
+            return LexRaidActionResultDto.builder()
+                    .accepted(false)
+                    .actionType("CAST_SKILL")
+                    .rejectionReason("Session da ket thuc, khong the thi trien ky nang.")
+                    .raidStatus(raidSession.getStatus())
+                    .session(toSessionDto(raidSession))
+                    .build();
+        }
+
+        String actionId = request.getActionId().trim();
+        if (skillCastEventRepository != null) {
+            Optional<SkillCastEvent> dupEvent = skillCastEventRepository
+                    .findByRaidSessionRaidSessionIdAndActionId(raidSessionId, actionId);
+            if (dupEvent.isPresent()) {
+                SkillCastEvent ev = dupEvent.get();
+                return LexRaidActionResultDto.builder()
+                        .accepted(false)
+                        .actionType("CAST_SKILL")
+                        .rejectionReason("Duplicate actionId (" + actionId + "); da xu ly truoc do.")
+                        .damageDealt(ev.getDamageDealt())
+                        .shieldDamage(ev.getShieldDamage())
+                        .healHp(ev.getHealValue())
+                        .bossHpRemaining(raidSession.getBossHpRemaining())
+                        .bossShieldRemaining(raidSession.getBossShieldRemaining())
+                        .manaAfter(raidSession.getManaValue())
+                        .raidStatus(raidSession.getStatus())
+                        .session(toSessionDto(raidSession))
+                        .build();
+            }
+        }
+
+        GameSession gameSession = raidSession.getGameSession();
+        User user = gameSession != null ? gameSession.getUser() : null;
+        CombatMeta meta = CombatMeta.parse(gameSession != null ? gameSession.getMetadataJson() : null);
+        String heroCode = meta.heroCode;
+        String skillCode = request.getSkillCode().trim().toLowerCase(Locale.ROOT);
+        RpgCatalogRegistry.SkillSpec skill = catalogRegistry.getSkill(skillCode);
+        if (skill == null) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, 1, 0, "Ky nang khong ton tai: " + skillCode);
+        }
+        if (heroOwnershipRepository != null && !heroOwnershipRepository.existsByUserUserIdAndHeroCode(request.getUserId(), heroCode)) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, 1, 0, "Hero '" + heroCode + "' chua duoc mo khoa.");
+        }
+        if (!skill.getAllowedHeroes().contains(heroCode)) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, 1, 0, skill.getName() + " khong phu hop lop Hero " + heroCode);
+        }
+
+        int learnedLevel = 1;
+        if (userSkillUnlockRepository != null) {
+            Optional<UserSkillUnlock> unlockOpt = userSkillUnlockRepository.findByUserUserIdAndSkillCode(request.getUserId(), skillCode);
+            if (unlockOpt.isEmpty() || defaultIfNull(unlockOpt.get().getSkillLevel(), 0) < 1) {
+                return rejectCast(raidSession, user, actionId, meta, skillCode, 1, 0, skill.getName() + " chua duoc hoc trong Skill Tree.");
+            }
+            learnedLevel = unlockOpt.get().getSkillLevel();
+            for (String pre : skill.getPrerequisites()) {
+                Optional<UserSkillUnlock> preOpt = userSkillUnlockRepository.findByUserUserIdAndSkillCode(request.getUserId(), pre);
+                if (preOpt.isEmpty() || defaultIfNull(preOpt.get().getSkillLevel(), 0) < 1) {
+                    return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, 0, skill.getName() + " thieu ky nang tien quyet: " + pre);
+                }
+            }
+        }
+
+        if (userHeroLoadoutRepository != null && !RpgCatalogRegistry.SHARED_ELEMENTAL_SPELL_IDS.contains(skillCode)) {
+            Optional<UserHeroLoadout> loadoutOpt = userHeroLoadoutRepository.findByUserIdAndHeroCode(request.getUserId(), heroCode);
+            boolean equipped = loadoutOpt.map(hl ->
+                    parseJsonStringListSimple(hl.getActiveSlotsJson()).contains(skillCode)
+                    || skillCode.equals(hl.getUltimateSlotCode())
+            ).orElse(false);
+            if (!equipped) {
+                return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, 0, skill.getName() + " chua duoc trang bi trong Loadout.");
+            }
+        }
+
+        RpgCatalogRegistry.SkillLevelSpec lvSpec = skill.levelSpec(learnedLevel);
+        int cdLeft = meta.cooldowns.getOrDefault(skillCode, 0);
+        if (cdLeft > 0) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, lvSpec.getManaCost(),
+                    skill.getName() + " dang hoi chieu (" + cdLeft + " luot).");
+        }
+        int curMana = defaultIfNull(raidSession.getManaValue(), 0);
+        if (curMana < lvSpec.getManaCost()) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, lvSpec.getManaCost(),
+                    "Khong du Mana (" + curMana + "/" + lvSpec.getManaCost() + ").");
+        }
+        if (lvSpec.getManaCost() == 0 && meta.zeroManaCastsThisTurn >= LexRaidBalanceConfig.MAX_ZERO_MANA_CASTS_PER_TURN) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, 0,
+                    "Gioi han toi da " + LexRaidBalanceConfig.MAX_ZERO_MANA_CASTS_PER_TURN + " don 0 MP moi luot; hay ghep tu de tiep tuc.");
+        }
+        if (skill.getMinCombo() > 0 && defaultIfNull(raidSession.getComboCount(), 0) < skill.getMinCombo()) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, lvSpec.getManaCost(),
+                    skill.getName() + " yeu cau Combo >= " + skill.getMinCombo());
+        }
+        if (skill.isRequiresCoreClue() && parseSolvedCoreWordIds(raidSession.getClueProgressJson()).isEmpty()) {
+            return rejectCast(raidSession, user, actionId, meta, skillCode, learnedLevel, lvSpec.getManaCost(),
+                    skill.getName() + " yeu cau giai it nhat 1 Core Word / manh moi.");
+        }
+
+        // Valid execution: deduct Mana & update cooldowns/turn limit
+        int manaAfter = Math.max(0, curMana - lvSpec.getManaCost());
+        raidSession.setManaValue(manaAfter);
+        if (lvSpec.getCooldown() > 0) {
+            meta.cooldowns.put(skillCode, lvSpec.getCooldown());
+        }
+        if (lvSpec.getManaCost() == 0) {
+            meta.zeroManaCastsThisTurn += 1;
+        }
+
+        int healApplied = 0;
+        if (lvSpec.getHealHp() > 0) {
+            int beforeHp = meta.playerHp;
+            meta.playerHp = Math.min(meta.playerMaxHp, meta.playerHp + lvSpec.getHealHp());
+            healApplied = meta.playerHp - beforeHp;
+        }
+        if (lvSpec.getMitigationPct() > 0) {
+            meta.bossStatuses.put("guard_pct", lvSpec.getMitigationPct());
+        }
+
+        int totalHpDmg = 0;
+        int totalShieldDmg = 0;
+        List<Integer> hitDamages = List.of();
+        if (!skill.isSelfTarget() && lvSpec.getDmg() > 0) {
+            hitDamages = catalogRegistry.splitMultiHitDamages(lvSpec.getDmg(), lvSpec.getHitCount());
+            double shieldMult = Math.max(1.0, lvSpec.getShieldMultiplier());
+            for (int chunk : hitDamages) {
+                int curShield = defaultIfNull(raidSession.getBossShieldRemaining(), 0);
+                if (curShield > 0) {
+                    int vsShield = (int) Math.round(chunk * shieldMult);
+                    int absorbed = Math.min(curShield, vsShield);
+                    int overflow = Math.max(0, chunk - (int) Math.ceil(absorbed / shieldMult));
+                    raidSession.setBossShieldRemaining(Math.max(0, curShield - vsShield));
+                    raidSession.setBossHpRemaining(Math.max(0, defaultIfNull(raidSession.getBossHpRemaining(), 0) - overflow));
+                    totalShieldDmg += absorbed;
+                    totalHpDmg += overflow;
+                } else {
+                    int hpBefore = defaultIfNull(raidSession.getBossHpRemaining(), 0);
+                    int hpNext = Math.max(0, hpBefore - chunk);
+                    raidSession.setBossHpRemaining(hpNext);
+                    totalHpDmg += (hpBefore - hpNext);
+                }
+            }
+            if (lvSpec.getApplyStatus() != null) {
+                meta.bossStatuses.put(lvSpec.getApplyStatus(), Math.max(1, lvSpec.getStatusTurns()));
+            }
+            Stage stage = raidSession.getStage();
+            int baseBossHp = stage != null && stage.getBoss() != null ? defaultIfNull(stage.getBoss().getBaseHp(), 100) : 100;
+            if (defaultIfNull(raidSession.getBossHpRemaining(), 0) > 0
+                    && defaultIfNull(raidSession.getBossHpRemaining(), 0) * 2 <= baseBossHp
+                    && defaultIfNull(raidSession.getBossPhaseNo(), 1) < 2) {
+                raidSession.setBossPhaseNo(2);
+                raidSession.setBossShieldRemaining(defaultIfNull(raidSession.getBossShieldRemaining(), 0) + 12);
+            }
+        }
+
+        boolean bossClearedAllWaves = false;
+        if (defaultIfNull(raidSession.getBossHpRemaining(), 0) <= 0) {
+            if (meta.waveIndex < meta.totalWaves && raidSession.getStage() != null && raidSession.getStage().getBoss() != null) {
+                meta.waveIndex += 1;
+                raidSession.setBossPhaseNo(1);
+                raidSession.setBossHpRemaining(raidSession.getStage().getBoss().getBaseHp());
+                raidSession.setBossShieldRemaining(raidSession.getStage().getBoss().getBaseShield());
+            } else {
+                raidSession.setStatus(WON);
+                raidSession.setEndedAt(LocalDateTime.now());
+                bossClearedAllWaves = true;
+            }
+        }
+
+        if (gameSession != null) {
+            gameSession.setMetadataJson(meta.toJson());
+        }
+
+        if (skillCastEventRepository != null && user != null) {
+            SkillCastEvent ev = new SkillCastEvent();
+            ev.setRaidSession(raidSession);
+            ev.setUser(user);
+            ev.setActionId(actionId);
+            ev.setRoundNo(Math.max(1, defaultIfNull(raidSession.getCurrentRound(), 1)));
+            ev.setWaveIndex(meta.waveIndex);
+            ev.setHeroCode(heroCode);
+            ev.setSkillCode(skillCode);
+            ev.setSkillLevel(learnedLevel);
+            ev.setManaCost(lvSpec.getManaCost());
+            ev.setDamageDealt(totalHpDmg);
+            ev.setShieldDamage(totalShieldDmg);
+            ev.setHealValue(healApplied);
+            ev.setStatusApplied(lvSpec.getApplyStatus());
+            ev.setIsValid(true);
+            skillCastEventRepository.save(ev);
+        }
+
+        if (bossClearedAllWaves) {
+            finalizeGameSessionAndAward(raidSession, WON, null);
+        }
+        raidSessionRepository.save(raidSession);
+
+        return LexRaidActionResultDto.builder()
+                .accepted(true)
+                .actionType("CAST_SKILL")
+                .submittedWord(skill.getName())
+                .normalizedWord(skillCode)
+                .damageDealt(totalHpDmg)
+                .shieldDamage(totalShieldDmg)
+                .manaGain(-lvSpec.getManaCost())
+                .manaAfter(manaAfter)
+                .comboAfter(raidSession.getComboCount())
+                .bossHpRemaining(raidSession.getBossHpRemaining())
+                .bossShieldRemaining(raidSession.getBossShieldRemaining())
+                .rageValue(raidSession.getRageValue())
+                .raidStatus(raidSession.getStatus())
+                .resultCode(gameSession != null ? gameSession.getResultCode() : null)
+                .playerHp(meta.playerHp)
+                .playerMaxHp(meta.playerMaxHp)
+                .waveIndex(meta.waveIndex)
+                .totalWaves(meta.totalWaves)
+                .hitDamages(hitDamages)
+                .statusApplied(lvSpec.getApplyStatus())
+                .skillCooldowns(new LinkedHashMap<>(meta.cooldowns))
+                .animationProfile(skill.getAnimationProfile())
+                .skillLevel(learnedLevel)
+                .healHp(healApplied)
+                .session(toSessionDto(raidSession))
+                .build();
+    }
+
+    private LexRaidActionResultDto rejectCast(
+            RaidSession raidSession, User user, String actionId, CombatMeta meta,
+            String skillCode, int lv, int manaCost, String reason
+    ) {
+        if (skillCastEventRepository != null && user != null) {
+            SkillCastEvent ev = new SkillCastEvent();
+            ev.setRaidSession(raidSession);
+            ev.setUser(user);
+            ev.setActionId(actionId);
+            ev.setRoundNo(Math.max(1, defaultIfNull(raidSession.getCurrentRound(), 1)));
+            ev.setWaveIndex(meta.waveIndex);
+            ev.setHeroCode(meta.heroCode);
+            ev.setSkillCode(skillCode);
+            ev.setSkillLevel(lv);
+            ev.setManaCost(manaCost);
+            ev.setIsValid(false);
+            ev.setRejectionReason(reason);
+            skillCastEventRepository.save(ev);
+        }
+        return LexRaidActionResultDto.builder()
+                .accepted(false)
+                .actionType("CAST_SKILL")
+                .rejectionReason(reason)
+                .manaAfter(raidSession.getManaValue())
+                .bossHpRemaining(raidSession.getBossHpRemaining())
+                .bossShieldRemaining(raidSession.getBossShieldRemaining())
+                .raidStatus(raidSession.getStatus())
+                .session(toSessionDto(raidSession))
+                .build();
+    }
+
+    private void verifySessionOwner(RaidSession raidSession, Long callerUserId) {
+        if (callerUserId == null || raidSession == null || raidSession.getGameSession() == null || raidSession.getGameSession().getUser() == null) {
+            return;
+        }
+        Long ownerId = raidSession.getGameSession().getUser().getUserId();
+        if (ownerId != null && !Objects.equals(ownerId, callerUserId)) {
+            throw new SecurityException("Khong co quyen thao tac tren raidSession thuoc user khac.");
+        }
     }
 
     @Override
@@ -679,6 +1048,17 @@ public class LexRaidServiceImpl implements LexRaidService {
 
         // Increment clearCount or failCount exactly once on completion
         updateStageProgressOnCompletion(raidSession, verifiedWon);
+
+        // Award Stage/Skill/Hero progression milestones idempotently in Campaign mode
+        if (progressionService != null && verifiedWon && raidSession.getStage() != null && user != null) {
+            CombatMeta meta = CombatMeta.parse(lockedGameSession.getMetadataJson());
+            boolean isPractice = "PRACTICE".equalsIgnoreCase(meta.playMode);
+            List<String> granted = progressionService.recordCampaignVictoryMilestones(
+                    user, raidSession.getStage(), true, isPractice, meta.topicWordsSolvedInSession);
+            meta.grantedMilestones = granted;
+            lockedGameSession.setMetadataJson(meta.toJson());
+            gameSessionRepository.save(lockedGameSession);
+        }
     }
 
     private void applySync(RaidSession raidSession, LexRaidSessionSyncRequest request, boolean markFinished) {
@@ -1274,6 +1654,8 @@ public class LexRaidServiceImpl implements LexRaidService {
             levelsGained = Math.max(0, curLevel - prevLevel);
         }
 
+        CombatMeta meta = CombatMeta.parse(gameSession != null ? gameSession.getMetadataJson() : null);
+
         return LexRaidSessionDto.builder()
                 .raidSessionId(raidSession.getRaidSessionId())
                 .gameSessionId(gameSession != null ? gameSession.getGameSessionId() : null)
@@ -1297,7 +1679,132 @@ public class LexRaidServiceImpl implements LexRaidService {
                 .levelUpOccurred(levelUpOccurred)
                 .levelsGained(levelsGained)
                 .starsEarned(stars)
+                .playerHp(meta.playerHp)
+                .playerMaxHp(meta.playerMaxHp)
+                .waveIndex(meta.waveIndex)
+                .totalWaves(meta.totalWaves)
+                .playMode(meta.playMode)
+                .heroCode(meta.heroCode)
+                .grantedMilestones(meta.grantedMilestones)
                 .build();
+    }
+
+    private static List<String> parseJsonStringListSimple(String json) {
+        List<String> out = new ArrayList<>();
+        if (json == null || json.isBlank()) return out;
+        Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(json);
+        while (m.find()) out.add(m.group(1));
+        return out;
+    }
+
+    private static final class CombatMeta {
+        String playMode = "CAMPAIGN";
+        String heroCode = "warrior";
+        int playerHp = 112;
+        int playerMaxHp = 112;
+        int waveIndex = 1;
+        int totalWaves = 1;
+        boolean hasCustomWaves = false;
+        int zeroManaCastsThisTurn = 0;
+        int topicWordsSolvedInSession = 0;
+        final Map<String, Integer> cooldowns = new LinkedHashMap<>();
+        final Map<String, Integer> bossStatuses = new LinkedHashMap<>();
+        List<String> grantedMilestones = List.of();
+
+        static CombatMeta createDefault(String mode, RpgCatalogRegistry.HeroSpec hero) {
+            CombatMeta m = new CombatMeta();
+            m.playMode = mode;
+            m.heroCode = hero != null ? hero.getHeroId() : "warrior";
+            m.playerMaxHp = hero != null ? hero.getBaseHp() : 112;
+            m.playerHp = m.playerMaxHp;
+            m.waveIndex = 1;
+            m.totalWaves = 5;
+            m.hasCustomWaves = true;
+            return m;
+        }
+
+        void tickCooldowns() {
+            cooldowns.entrySet().removeIf(e -> {
+                int next = e.getValue() - 1;
+                if (next <= 0) return true;
+                e.setValue(next);
+                return false;
+            });
+        }
+
+        static CombatMeta parse(String raw) {
+            CombatMeta m = new CombatMeta();
+            if (raw == null || raw.isBlank()) return m;
+            String modeVal = extractStr(raw, "playMode");
+            if (modeVal != null) m.playMode = modeVal;
+            String heroVal = extractStr(raw, "heroCode");
+            if (heroVal != null) m.heroCode = heroVal;
+            Integer hp = extractInt(raw, "playerHp");
+            if (hp != null) m.playerHp = hp;
+            Integer maxHp = extractInt(raw, "playerMaxHp");
+            if (maxHp != null) m.playerMaxHp = maxHp;
+            Integer wi = extractInt(raw, "waveIndex");
+            if (wi != null) m.waveIndex = wi;
+            Integer tw = extractInt(raw, "totalWaves");
+            if (tw != null) { m.totalWaves = tw; m.hasCustomWaves = tw > 1; }
+            Integer zm = extractInt(raw, "zeroManaCasts");
+            if (zm != null) m.zeroManaCastsThisTurn = zm;
+            Integer tws = extractInt(raw, "topicWords");
+            if (tws != null) m.topicWordsSolvedInSession = tws;
+            parseIntMap(extractStr(raw, "cooldowns"), m.cooldowns);
+            parseIntMap(extractStr(raw, "statuses"), m.bossStatuses);
+            String ms = extractStr(raw, "milestones");
+            if (ms != null && !ms.isBlank()) {
+                m.grantedMilestones = Arrays.stream(ms.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+            }
+            return m;
+        }
+
+        String toJson() {
+            return "{\"source\":\"lex_raid\""
+                    + ",\"playMode\":\"" + playMode + "\""
+                    + ",\"heroCode\":\"" + heroCode + "\""
+                    + ",\"playerHp\":" + playerHp
+                    + ",\"playerMaxHp\":" + playerMaxHp
+                    + ",\"waveIndex\":" + waveIndex
+                    + ",\"totalWaves\":" + totalWaves
+                    + ",\"zeroManaCasts\":" + zeroManaCastsThisTurn
+                    + ",\"topicWords\":" + topicWordsSolvedInSession
+                    + ",\"cooldowns\":\"" + encodeIntMap(cooldowns) + "\""
+                    + ",\"statuses\":\"" + encodeIntMap(bossStatuses) + "\""
+                    + ",\"milestones\":\"" + String.join(",", grantedMilestones) + "\""
+                    + "}";
+        }
+
+        private static String extractStr(String raw, String key) {
+            Matcher matcher = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"").matcher(raw);
+            return matcher.find() ? matcher.group(1) : null;
+        }
+
+        private static Integer extractInt(String raw, String key) {
+            Matcher matcher = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?\\d+)").matcher(raw);
+            return matcher.find() ? Integer.parseInt(matcher.group(1)) : null;
+        }
+
+        private static void parseIntMap(String encoded, Map<String, Integer> dest) {
+            if (encoded == null || encoded.isBlank()) return;
+            for (String pair : encoded.split(",")) {
+                String[] kv = pair.split(":");
+                if (kv.length == 2 && !kv[0].isBlank()) {
+                    try { dest.put(kv[0].trim(), Integer.parseInt(kv[1].trim())); } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+
+        private static String encodeIntMap(Map<String, Integer> src) {
+            if (src.isEmpty()) return "";
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, Integer> e : src.entrySet()) {
+                if (sb.length() > 0) sb.append(',');
+                sb.append(e.getKey()).append(':').append(e.getValue());
+            }
+            return sb.toString();
+        }
     }
 
     private Integer defaultIfNull(Integer incoming, Integer fallback) {

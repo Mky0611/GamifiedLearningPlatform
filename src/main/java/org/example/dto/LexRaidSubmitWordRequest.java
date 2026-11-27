@@ -15,4 +15,5 @@ public class LexRaidSubmitWordRequest {
     private List<WordPathTileDto> path;
     private String boardJson;
     private Integer roundNo;
+    private Long userId;
 }
