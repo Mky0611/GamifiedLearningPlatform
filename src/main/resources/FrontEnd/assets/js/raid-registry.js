@@ -68,8 +68,8 @@
         'Lượng máu cơ bản thấp hơn Knight và Lancer'
       ],
       unlockRule: { type: 'STARTER', label: 'Starter / Chapter 1 Ranger' },
-      starterSkillIds: ['quick_shot', 'piercing_arrow', 'triple_shot', 'sacred_recovery', 'celestial_arrow'],
-      defaultLoadout: ['quick_shot', 'piercing_arrow', 'triple_shot', 'sacred_recovery', 'celestial_arrow'],
+      starterSkillIds: ['quick_shot', 'piercing_arrow', 'triple_shot', 'sacred_recovery'],
+      defaultLoadout: ['quick_shot', 'piercing_arrow', 'triple_shot', 'sacred_recovery'],
       trees: [
         { branchId: 'marksman', label: 'Marksman Path', skillIds: ['quick_shot', 'piercing_arrow', 'triple_shot', 'celestial_arrow'] }
       ]
@@ -95,8 +95,8 @@
         'Ít kỹ năng phép thuật diện rộng'
       ],
       unlockRule: { type: 'STARTER', label: 'Starter / Chapter 2 Vanguard' },
-      starterSkillIds: ['spear_thrust', 'impaling_charge', 'iron_fortress', 'sacred_recovery', 'dragon_lance'],
-      defaultLoadout: ['spear_thrust', 'impaling_charge', 'iron_fortress', 'sacred_recovery', 'dragon_lance'],
+      starterSkillIds: ['spear_thrust', 'impaling_charge', 'iron_fortress', 'sacred_recovery'],
+      defaultLoadout: ['spear_thrust', 'impaling_charge', 'iron_fortress', 'sacred_recovery'],
       trees: [
         { branchId: 'vanguard', label: 'Vanguard Path', skillIds: ['spear_thrust', 'impaling_charge', 'iron_fortress', 'dragon_lance'] }
       ]
@@ -292,7 +292,7 @@
       branch: 'Sword Master', deckGroup: 'knight', tier: 2, rarity: 'RARE', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/shadow_step.png', manaCost: 2, cooldown: 2,
       animationProfile: 'DASH_STRIKE', heroAnim: 'attack2', vfxAnim: 'vfx-pvfx-blink-dash', vfxHitAnim: 'vfx-slash-hit', vfxScale: 2.2,
-      prerequisites: ['knight_slash'], unlockRule: { type: 'STAGE_CLEAR', stageId: 1, label: 'Đánh bại Boss Stage 1 hoặc mở khóa bằng SP' },
+      prerequisites: ['knight_slash'], unlockRule: { type: 'STAGE_CLEAR', stageId: 1, label: 'Đánh bại Boss Stage 1' },
       levels: {
         1: { dmg: 20, manaCost: 2, cooldown: 2, hitCount: 2, summary: 'Lướt bóng chém 2 nhịp (20 DMG tổng).' },
         2: { dmg: 27, manaCost: 2, cooldown: 2, hitCount: 2, summary: 'Tiến hóa Lv2: Lướt kép nhanh hơn (27 DMG).' },
@@ -318,7 +318,7 @@
       branch: 'Sword Master', deckGroup: 'knight', tier: 3, rarity: 'EPIC', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/earth_spike.png', manaCost: 3, cooldown: 3,
       animationProfile: 'GROUND_CAST', heroAnim: 'attack2', vfxAnim: 'vfx-pvfx-ground-slam', vfxHitAnim: 'vfx-ice-spikes-anim', vfxScale: 2.2,
-      prerequisites: ['phantom_dash'], unlockRule: { type: 'STAGE_CLEAR', stageId: 4, label: 'Đánh bại Boss Stage 4 hoặc dùng Skill Point' },
+      prerequisites: ['phantom_dash'], unlockRule: { type: 'STAGE_CLEAR', stageId: 4, label: 'Đánh bại Boss Stage 4' },
       levels: {
         1: { dmg: 24, manaCost: 3, cooldown: 3, shieldMultiplier: 2.2, summary: '24 DMG nứt đất + x2.2 phá giáp Boss.' },
         2: { dmg: 31, manaCost: 3, cooldown: 3, shieldMultiplier: 2.6, summary: 'Tiến hóa Lv2: 31 DMG + x2.6 phá giáp Boss.' },
@@ -346,7 +346,7 @@
       branch: 'Guardian', deckGroup: 'knight', tier: 2, rarity: 'RARE', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/magic_barrier.png', manaCost: 2, cooldown: 2, selfTarget: true,
       animationProfile: 'SHIELD_CAST', heroAnim: 'guard', vfxAnim: 'vfx-pvfx-shield-bubble', vfxHitAnim: 'vfx-ring-frost-anim', vfxScale: 2.3,
-      prerequisites: ['royal_guard'], unlockRule: { type: 'STAGE_CLEAR', stageId: 2, label: 'Đánh bại Boss Stage 2 hoặc học bằng SP' },
+      prerequisites: ['royal_guard'], unlockRule: { type: 'STAGE_CLEAR', stageId: 2, label: 'Đánh bại Boss Stage 2' },
       levels: {
         1: { mitigationPct: 85, reflectDmg: 12, manaCost: 2, cooldown: 2, summary: 'Giảm 85% sát thương + phản 12 DMG xuyên giáp.' },
         2: { mitigationPct: 88, reflectDmg: 18, applyStatus: 'stun', statusTurns: 1, manaCost: 2, cooldown: 2, summary: 'Tiến hóa Lv2: Phản 18 DMG + làm Boss khựng 1 nhịp.' },
@@ -359,7 +359,7 @@
       branch: 'Guardian', deckGroup: 'knight', tier: 3, rarity: 'EPIC', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/magic_barrier.png', manaCost: 3, cooldown: 3, selfTarget: true,
       animationProfile: 'SHIELD_CAST', heroAnim: 'guard', vfxAnim: 'vfx-pvfx-holy-cast', vfxHitAnim: 'vfx-pvfx-shield-bubble', vfxScale: 2.3,
-      prerequisites: ['shield_counter'], unlockRule: { type: 'LEARNING', minReviewedWords: 3, label: 'Ôn tập >= 3 từ trong Journal + có Shield Counter' },
+      prerequisites: ['shield_counter'], unlockRule: { type: 'LEARNING', minUniqueReviewedWords: 2, minStageCleared: 2, label: 'Vượt Stage 2 & ôn tập >= 2 từ duy nhất + có Shield Counter' },
       levels: {
         1: { mitigationPct: 90, reflectDmg: 14, healHp: 12, manaCost: 3, cooldown: 3, summary: 'Giảm 90% DMG, hồi 12 HP & phản 14 DMG.' },
         2: { mitigationPct: 92, reflectDmg: 18, healHp: 18, manaCost: 3, cooldown: 3, summary: 'Tiến hóa Lv2: Giảm 92% DMG, hồi 18 HP & phản 18 DMG.' },
@@ -387,7 +387,7 @@
       branch: 'Holy Knight', deckGroup: 'knight', tier: 2, rarity: 'RARE', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/ice_spike.png', manaCost: 2, cooldown: 3, isRemoteSpell: true,
       animationProfile: 'GROUND_CAST', heroAnim: 'guard', vfxAnim: 'vfx-pvfx-rune-trap', vfxHitAnim: 'vfx-spell-ice-shatter', vfxScale: 2.3,
-      prerequisites: ['sacred_recovery'], unlockRule: { type: 'STAGE_CLEAR', stageId: 3, label: 'Đánh bại Boss Stage 3 hoặc mở bằng SP' },
+      prerequisites: ['sacred_recovery'], unlockRule: { type: 'STAGE_CLEAR', stageId: 3, label: 'Đánh bại Boss Stage 3' },
       levels: {
         1: { dmg: 18, applyStatus: 'frost', statusTurns: 2, manaCost: 2, cooldown: 3, summary: '18 DMG bẫy cổ ngữ + Frost giảm 30% công Boss 2 lượt.' },
         2: { dmg: 24, applyStatus: 'frost', statusTurns: 2, timeBonusSec: 3, manaCost: 2, cooldown: 3, summary: 'Tiến hóa Lv2: 24 DMG + Frost & +3s thời gian lượt.' },
@@ -400,7 +400,7 @@
       branch: 'Holy Knight', deckGroup: 'knight', tier: 3, rarity: 'EPIC', isUltimate: false,
       icon: '/ui/assets/ui/questwood/Skills/holy_beam.png', manaCost: 3, cooldown: 3, isRemoteSpell: true,
       animationProfile: 'CHANNEL_BEAM', heroAnim: 'attack2', vfxAnim: 'vfx-pvfx-divine-beam', vfxHitAnim: 'vfx-pvfx-holy-cast', vfxScale: 2.5,
-      prerequisites: ['rune_prison'], unlockRule: { type: 'STAGE_CLEAR', stageId: 5, label: 'Đánh bại Boss Stage 5 hoặc đạt nhánh Holy Knight' },
+      prerequisites: ['rune_prison'], unlockRule: { type: 'STAGE_CLEAR', stageId: 5, label: 'Đánh bại Boss Stage 5' },
       levels: {
         1: { dmg: 30, hitCount: 3, manaCost: 3, cooldown: 3, summary: 'Cột sáng thánh giáng 3 nhịp (30 DMG tổng).' },
         2: { dmg: 39, hitCount: 3, healHp: 8, manaCost: 3, cooldown: 3, summary: 'Tiến hóa Lv2: 39 DMG 3 nhịp + hồi nhẹ 8 HP.' },
@@ -414,6 +414,10 @@
       icon: '/ui/assets/ui/kibyra/icon59.png', manaCost: 4, cooldown: 4, isRemoteSpell: true,
       animationProfile: 'ULTIMATE', heroAnim: 'attack2', vfxAnim: 'vfx-pvfx-holy-sword-fall', vfxExtraAnim: 'vfx-pvfx-magic-circle', vfxHitAnim: 'vfx-fire-burst-anim', vfxScale: 2.5, hitStopMs: 55,
       prerequisites: ['heavy_slash'], unlockRule: { type: 'STARTER', label: 'Chiêu cuối phán quyết (Cần mở manh mối Core Word trong trận)' },
+      upgradeRequirements: {
+        2: { minStageCleared: 1, minTopicWords: 1, label: 'Vượt Stage 1 & giải >= 1 từ Topic để nâng Lv 2' },
+        3: { minStageCleared: 2, minUniqueReviewedWords: 2, label: 'Vượt Stage 2 & ôn tập >= 2 từ duy nhất để nâng Lv 3' }
+      },
       levels: {
         1: { dmg: 38, manaCost: 4, cooldown: 4, shieldMultiplier: 2.0, summary: '38 DMG Thánh Kiếm từ trời giáng xuống (cần Core Clue).' },
         2: { dmg: 48, manaCost: 4, cooldown: 4, shieldMultiplier: 2.5, summary: 'Tiến hóa Lv2: 48 DMG + x2.5 sát thương khiên.' },
@@ -467,7 +471,11 @@
       branch: 'Marksman Path', deckGroup: 'both', tier: 4, rarity: 'LEGENDARY', isUltimate: true, isRemoteSpell: true,
       icon: '/ui/assets/ui/kibyra/icon59.png', manaCost: 4, cooldown: 4,
       animationProfile: 'ULTIMATE', subProfile: 'PROJECTILE', heroAnim: 'attack2', vfxAnim: 'vfx-proj-plasma', vfxExtraAnim: 'vfx-pvfx-magic-circle', vfxHitAnim: 'vfx-thunder-burst-anim', vfxScale: 2.4,
-      prerequisites: ['triple_shot'], unlockRule: { type: 'STARTER', label: 'Chiêu cuối Xạ Thủ' },
+      prerequisites: ['triple_shot'], unlockRule: { type: 'LEARNING', minStageCleared: 2, minTopicWords: 2, label: 'Đánh bại Boss Stage 2, giải >= 2 từ Topic & có Triple Shot' },
+      upgradeRequirements: {
+        2: { minStageCleared: 2, minTopicWords: 3, label: 'Đạt >= 3 từ Topic để nâng Lv 2' },
+        3: { minStageCleared: 3, minUniqueReviewedWords: 2, label: 'Vượt Stage 3 & ôn tập >= 2 từ duy nhất để nâng Lv 3' }
+      },
       levels: {
         1: { dmg: 40, applyStatus: 'stunOnBreak', manaCost: 4, cooldown: 4, summary: '40 DMG Mũi Tên Thiên Tinh tối thượng + phá khiên choáng.' },
         2: { dmg: 50, applyStatus: 'stunOnBreak', manaCost: 4, cooldown: 4, summary: 'Tiến hóa Lv2: 50 DMG Plasma Thiên Tinh.' },
@@ -521,7 +529,11 @@
       branch: 'Vanguard Path', deckGroup: 'both', tier: 4, rarity: 'LEGENDARY', isUltimate: true, isRemoteSpell: true,
       icon: '/ui/assets/ui/questwood/Skills/holy_beam.png', manaCost: 4, cooldown: 4,
       animationProfile: 'ULTIMATE', subProfile: 'CHANNEL_BEAM', heroAnim: 'attack2', vfxAnim: 'vfx-pvfx-divine-beam', vfxExtraAnim: 'vfx-pvfx-magic-circle', vfxHitAnim: 'vfx-thunder-burst-anim', vfxScale: 2.5,
-      prerequisites: ['iron_fortress'], unlockRule: { type: 'STARTER', label: 'Chiêu cuối Long Thương' },
+      prerequisites: ['iron_fortress'], unlockRule: { type: 'LEARNING', minStageCleared: 3, minTopicWords: 2, label: 'Đánh bại Boss Stage 3, giải >= 2 từ Topic & có Iron Fortress' },
+      upgradeRequirements: {
+        2: { minStageCleared: 3, minTopicWords: 3, label: 'Đạt >= 3 từ Topic để nâng Lv 2' },
+        3: { minStageCleared: 4, minUniqueReviewedWords: 2, label: 'Vượt Stage 4 & ôn tập >= 2 từ duy nhất để nâng Lv 3' }
+      },
       levels: {
         1: { dmg: 40, hitCount: 3, shieldMultiplier: 2.2, manaCost: 4, cooldown: 4, summary: '40 DMG cột quang thương 3 nhịp xuyên phá toàn bộ giáp.' },
         2: { dmg: 50, hitCount: 3, shieldMultiplier: 2.6, manaCost: 4, cooldown: 4, summary: 'Tiến hóa Lv2: 50 DMG Long Thương.' },
@@ -575,7 +587,11 @@
       branch: 'Elementalist Path', deckGroup: 'both', tier: 4, rarity: 'LEGENDARY', isUltimate: true, isRemoteSpell: true,
       icon: '/ui/assets/ui/questwood/Skills/fireball.png', manaCost: 4, cooldown: 4,
       animationProfile: 'ULTIMATE', subProfile: 'SKY_STRIKE', heroAnim: 'attack3', vfxAnim: 'vfx-pvfx-meteor-strike', vfxExtraAnim: 'vfx-pvfx-magic-circle', vfxHitAnim: 'vfx-spell-fire-burst', vfxScale: 2.6,
-      prerequisites: ['arcane_beam'], unlockRule: { type: 'LEARNING', minTopicWords: 2, label: 'Giải >= 2 từ Topic & có Arcane Beam' },
+      prerequisites: ['arcane_beam'], unlockRule: { type: 'LEARNING', minStageCleared: 2, minTopicWords: 2, label: 'Đánh bại Boss Stage 2, giải >= 2 từ Topic & có Arcane Beam' },
+      upgradeRequirements: {
+        2: { minStageCleared: 2, minTopicWords: 3, label: 'Đạt >= 3 từ Topic để nâng Lv 2' },
+        3: { minStageCleared: 3, minUniqueReviewedWords: 2, label: 'Vượt Stage 3 & ôn tập >= 2 từ duy nhất để nâng Lv 3' }
+      },
       levels: {
         1: { dmg: 44, applyStatus: 'burn', statusTurns: 2, manaCost: 4, cooldown: 4, summary: '44 DMG Thiên Thạch giáng từ trời + Burn 2 lượt.' },
         2: { dmg: 54, applyStatus: 'burn', statusTurns: 3, manaCost: 4, cooldown: 4, summary: 'Tiến hóa Lv2: 54 DMG Đại Thiên Thạch.' },

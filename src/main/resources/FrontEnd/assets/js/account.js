@@ -512,11 +512,24 @@
     }).join('');
   }
 
+  function buildRecallQuizOptions(entry, journal) {
+    const targetWord = String(entry?.word || '').trim().toUpperCase();
+    const distractorPool = [
+      ...(journal || []).map((j) => String(j.word || '').trim().toUpperCase()),
+      'LEARN', 'QUEST', 'CACHE', 'QUERY', 'STACK', 'SHIELD', 'LIGHT', 'SWORD', 'BLADE', 'MAGE'
+    ].filter((w) => w && w !== targetWord);
+    const uniqueDist = Array.from(new Set(distractorPool)).slice(0, 6);
+    const picks = [targetWord, ...uniqueDist.slice(0, 2)];
+    // Deterministic order so UI doesn't jump randomly while keeping recall honest
+    return picks.sort();
+  }
+
   function renderMasteryTab() {
     const prog = store()?.loadState();
     let journal = [];
     try { journal = JSON.parse(localStorage.getItem('glp.wordJournal') || '[]'); } catch (_) {}
     const stats = prog?.learningStats || {};
+    const uniqueReviewed = Array.isArray(stats.uniqueReviewedWords) ? stats.uniqueReviewedWords : [];
     const container = document.getElementById('wordMasteryContent');
     if (!container) return;
 
@@ -525,27 +538,77 @@
         <div class="mastery-stat-box"><strong>${stats.validWordsSolved || 0}</strong><span>Từ hợp lệ</span></div>
         <div class="mastery-stat-box"><strong>${stats.topicWordsSolved || 0}</strong><span>Từ đúng Topic</span></div>
         <div class="mastery-stat-box"><strong>${stats.coreWordsSolved || 0}</strong><span>Core Words</span></div>
-        <div class="mastery-stat-box"><strong>${stats.reviewedWordsCount || 0}</strong><span>Từ đã ôn tập</span></div>
+        <div class="mastery-stat-box"><strong>${uniqueReviewed.length}</strong><span>Từ đã ôn (Recall)</span></div>
+        <div class="mastery-stat-box"><strong>${stats.pronunciationPlays || 0}</strong><span>Nghe phát âm</span></div>
       </div>
+      <div id="masteryRecallBox" class="mastery-quiz-card" aria-live="polite" hidden></div>
       <div class="mastery-list">
-        ${journal.length ? journal.slice(0, 12).map((w) => `
+        ${journal.length ? journal.slice(0, 12).map((w, idx) => {
+          const upper = String(w.word || '').trim().toUpperCase();
+          const mastered = uniqueReviewed.includes(upper);
+          return `
           <div class="mastery-row">
-            <div><strong>${window.appApi.escapeHtml(w.word || '')}</strong> <span class="small-muted">(${window.appApi.escapeHtml(w.wordCategory || 'VALID')})</span> · ${window.appApi.escapeHtml(w.meaningText || 'Từ vựng tiếng Anh')}</div>
-            <button class="pixel-chip-btn" data-review-word="${window.appApi.escapeHtml(w.word || '')}" type="button"><i class="bi bi-volume-up-fill"></i> Đọc &amp; Ôn</button>
-          </div>`).join('') : '<div class="mastery-row">Chưa có từ vựng nào trong Nhật ký trận đấu. Hãy chơi một trận Đấu Boss để tích lũy từ mới!</div>'}
+            <div>
+              <strong>${window.appApi.escapeHtml(w.word || '')}</strong>
+              <span class="small-muted">(${window.appApi.escapeHtml(w.wordCategory || 'VALID')})</span>
+              ${mastered ? '<span class="skill-state-pill st-LEARNED">ĐÃ ÔN ✔</span>' : ''}
+              · ${window.appApi.escapeHtml(w.meaningText || 'Từ vựng tiếng Anh')}
+            </div>
+            <div class="mastery-word-actions">
+              <button class="pixel-chip-btn" data-tts-word="${window.appApi.escapeHtml(w.word || '')}" type="button"><i class="bi bi-volume-up-fill"></i> Nghe phát âm</button>
+              <button class="pixel-chip-btn" data-recall-idx="${idx}" type="button"><i class="bi bi-patch-check-fill"></i> Kiểm tra nhớ từ</button>
+            </div>
+          </div>`;
+        }).join('') : '<div class="mastery-row">Chưa có từ vựng nào trong Nhật ký trận đấu. Hãy chơi một trận Đấu Boss để tích lũy từ mới!</div>'}
       </div>`;
 
-    container.querySelectorAll('[data-review-word]').forEach((btn) => {
+    container.querySelectorAll('[data-tts-word]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const w = btn.dataset.reviewWord;
+        const w = btn.dataset.ttsWord;
         if (window.speechSynthesis && w) {
           const u = new SpeechSynthesisUtterance(w);
           u.lang = 'en-US';
           window.speechSynthesis.speak(u);
         }
-        store()?.recordJournalReview(1);
-        showStatus(`Đã ôn lại từ "${w}" (+1 mốc Word Mastery).`, 'success');
+        store()?.recordPronunciationPlay(w);
+        showStatus(`Đã phát âm từ "${w}" (chỉ tính lượt nghe, cần Recall đúng để tăng mốc Word Mastery).`, 'success');
         renderMasteryTab();
+      });
+    });
+
+    container.querySelectorAll('[data-recall-idx]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.recallIdx || 0);
+        const entry = journal[idx];
+        if (!entry) return;
+        const quizBox = document.getElementById('masteryRecallBox');
+        if (!quizBox) return;
+        const options = buildRecallQuizOptions(entry, journal);
+        quizBox.hidden = false;
+        quizBox.innerHTML = `
+          <div><strong>Thử thách Recall:</strong> Chọn đúng từ tiếng Anh có nghĩa: <em>"${window.appApi.escapeHtml(entry.meaningText || entry.word)}"</em></div>
+          <div class="mastery-quiz-choices">
+            ${options.map((opt) => `<button class="pixel-chip-btn mastery-choice-btn" data-recall-choice="${window.appApi.escapeHtml(opt)}" type="button">${window.appApi.escapeHtml(opt)}</button>`).join('')}
+          </div>`;
+        quizBox.querySelectorAll('[data-recall-choice]').forEach((choiceBtn) => {
+          choiceBtn.addEventListener('click', () => {
+            const chosen = String(choiceBtn.dataset.recallChoice || '').toUpperCase();
+            const target = String(entry.word || '').trim().toUpperCase();
+            const isCorrect = chosen === target;
+            const res = store()?.recordWordRecallAttempt(target, isCorrect);
+            if (isCorrect) {
+              showStatus(
+                res?.isNewUnique
+                  ? `Chính xác "${target}"! Đã ghi nhận thêm 1 từ duy nhất vào Word Mastery (${res.uniqueCount} từ).`
+                  : `Chính xác "${target}" (từ này đã nằm trong danh sách ôn tập duy nhất).`,
+                'success'
+              );
+            } else {
+              showStatus(`Chưa đúng ("${chosen}" ≠ nghĩa trên). Hãy nghe lại phát âm và thử lại!`, 'warning');
+            }
+            renderMasteryTab();
+          });
+        });
       });
     });
   }
@@ -585,12 +648,15 @@
     const userId = window.appApi.getCurrentUserId();
     try {
       if (userId) {
-        const dbUnit = state.unitCode === 'arcane_mage' && (!liveProfile || (liveProfile.stagesCleared || 0) < 1)
-          ? 'warrior'
-          : state.unitCode;
+        const dbUnit = state.unitCode === 'arcane_mage' ? 'warrior' : state.unitCode;
         await window.appApi.saveAccountLoadout({ userId, ...payload, unitCode: dbUnit, selectedUnitCode: dbUnit });
       }
-      showStatus('Đã lưu thiết lập nhân vật & loadout thành công!', 'success');
+      showStatus(
+        state.unitCode === 'arcane_mage'
+          ? 'Đã lưu Arcane Mage ở Demo Progression cục bộ & đồng bộ Avatar.'
+          : 'Đã lưu thiết lập nhân vật & loadout thành công!',
+        'success'
+      );
       window.appApi.renderNavUser();
     } catch (err) {
       showStatus(`Đã lưu cục bộ trên trình duyệt: ${err.message}`, 'warning');

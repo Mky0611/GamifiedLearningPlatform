@@ -1,7 +1,7 @@
 (function(){
   const query = new URLSearchParams(location.search);
   const storeInit = window.RaidProgressionStore?.loadState?.();
-  const stageId = Number(query.get('stageId') || query.get('stage') || storeInit?.selectedStageId || 1);
+  let stageId = Number(query.get('stageId') || query.get('stage') || storeInit?.selectedStageId || 1);
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   const state = {
@@ -68,7 +68,9 @@
     skillDeck: 'knight',
     meaningHintShown: false,
     lexicalUnlocked: false,
-    wrongWords: []
+    wrongWords: [],
+    lockedStageBlocked: null,
+    skillTickTimers: []
   };
 
   function isQaEnvironment(){
@@ -1577,10 +1579,18 @@
     }
   }
 
+  function clearSkillTickTimers(){
+    if (Array.isArray(state.skillTickTimers) && state.skillTickTimers.length) {
+      state.skillTickTimers.forEach((id) => clearTimeout(id));
+      state.skillTickTimers = [];
+    }
+  }
+
   function finishBattle(win){
     if (state.finished || (state.transitioning && !win)) return;
     state.finished = true;
     clearInterval(state.timer);
+    clearSkillTickTimers();
     if (typeof renderSkillBar === 'function') renderSkillBar();
     document.getElementById('finishOverlay').classList.add('is-open');
     document.getElementById('finishTitle').textContent = win ? 'Victory' : 'Battle ended';
@@ -2055,6 +2065,8 @@
     }
   }
 
+  const SHARED_SPELL_DECK_IDS = ['fire_blade', 'frost_seal', 'thunder_strike', 'sacred_recovery'];
+
   function getStaticSkillEligibility(skill){
     if (!skill) return { ok: false, code: 'MISSING', reason: 'Kỹ năng không tồn tại.' };
     if (state.raidSessionId) {
@@ -2062,6 +2074,28 @@
     }
     if (state.finished) {
       return { ok: false, code: 'FINISHED', reason: 'Trận đấu đã kết thúc.' };
+    }
+    const reg = window.RaidRegistry;
+    const store = window.RaidProgressionStore;
+    if (reg && store) {
+      const progState = store.loadState();
+      if (!store.isHeroUnlocked(state.unitCode, progState)) {
+        return { ok: false, code: 'HERO_LOCKED', reason: `Hero ${state.unitCode} chưa được mở khóa.` };
+      }
+      const learnedLv = Number(progState.skillLevels?.[skill.id] || 0);
+      if (learnedLv < 1) {
+        return { ok: false, code: 'SKILL_LOCKED', reason: `${skill.name} chưa được học trong Cây Kỹ Năng.` };
+      }
+      const missingPre = (skill.prerequisites || []).filter((pre) => Number(progState.skillLevels?.[pre] || 0) < 1);
+      if (missingPre.length > 0) {
+        return { ok: false, code: 'PREREQ_LOCKED', reason: `${skill.name} chưa mở khóa kỹ năng tiên quyết.` };
+      }
+      const activeLoadout = store.getActiveCombatLoadout(state.unitCode, progState);
+      const inLoadout = activeLoadout.some((s) => s.id === skill.id);
+      const inSharedSpells = SHARED_SPELL_DECK_IDS.includes(skill.id);
+      if (!inLoadout && !inSharedSpells) {
+        return { ok: false, code: 'NOT_EQUIPPED', reason: `${skill.name} chưa được trang bị trong Loadout của ${state.unitCode}.` };
+      }
     }
     if (Array.isArray(skill.allowedHeroes) && !skill.allowedHeroes.includes(state.unitCode)) {
       return { ok: false, code: 'HERO_MISMATCH', reason: `${skill.name} chỉ dành cho ${skill.allowedHeroes.join('/')} (đang chọn ${state.unitCode}).` };
@@ -2100,9 +2134,20 @@
     const store = window.RaidProgressionStore;
     if (reg && store) {
       const progState = store.loadState();
+      if (!store.isHeroUnlocked(state.unitCode, progState)) {
+        return [];
+      }
       if (deck === 'spell') {
-        const spellIds = ['fire_blade', 'frost_seal', 'thunder_strike', 'sacred_recovery'];
-        return spellIds.map((id) => reg.getSkill(id, Math.max(1, Number(progState.skillLevels?.[id] || 1)))).filter(Boolean);
+        return SHARED_SPELL_DECK_IDS
+          .map((id) => {
+            const lv = Number(progState.skillLevels?.[id] || 0);
+            if (lv < 1) return null;
+            const sk = reg.getSkill(id, lv);
+            if (!sk || (Array.isArray(sk.allowedHeroes) && !sk.allowedHeroes.includes(state.unitCode))) return null;
+            const missingPre = (sk.prerequisites || []).some((pre) => Number(progState.skillLevels?.[pre] || 0) < 1);
+            return missingPre ? null : sk;
+          })
+          .filter(Boolean);
       }
       return store.getActiveCombatLoadout(state.unitCode, progState).slice(0, 5);
     }
@@ -2188,13 +2233,51 @@
     } catch (e) {}
   }
 
+  function applySkillDamageTick(dmgChunk, shieldMult, applyStatus) {
+    if (state.finished || state.bossHp <= 0) return false;
+    const hadShieldBefore = state.bossShield > 0;
+    if (state.bossShield > 0) {
+      const shieldDmg = dmgChunk * shieldMult;
+      const absorbed = Math.min(state.bossShield, shieldDmg);
+      const leftover = Math.max(0, dmgChunk - Math.ceil(absorbed / shieldMult));
+      state.bossShield = Math.max(0, state.bossShield - shieldDmg);
+      state.bossHp = Math.max(0, state.bossHp - leftover);
+    } else {
+      state.bossHp = Math.max(0, state.bossHp - dmgChunk);
+    }
+    if (applyStatus === 'stunOnBreak' && state.bossShield === 0 && hadShieldBefore) {
+      state.bossStatuses.stun = 1;
+    }
+    checkAndTriggerBossPhase2();
+    return true;
+  }
+
+  function finalizeBossZeroIfNeeded() {
+    if (state.bossHp <= 0 && !state.finished && !state.transitioning) {
+      clearSkillTickTimers();
+      const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
+      if (hasMorePreviewWaves) triggerBossDeathAndNextWave();
+      else triggerBossDeathAndVictory();
+    }
+  }
+
   function castKnightSkill(skillId){
-    const deckSkills = getVisibleSkillsForDeck();
-    const progState = window.RaidProgressionStore?.loadState?.();
-    const lv = Math.max(1, Number(progState?.skillLevels?.[skillId] || 1));
-    const skill = deckSkills.find((s) => s.id === skillId)
-      || window.RaidRegistry?.getSkill?.(skillId, lv)
-      || ((window.RaidPhaserConfig && window.RaidPhaserConfig.knightSkills) || []).find((s) => s.id === skillId);
+    const reg = window.RaidRegistry;
+    const store = window.RaidProgressionStore;
+    let skill = null;
+    if (reg && store) {
+      const progState = store.loadState();
+      const lv = Number(progState?.skillLevels?.[skillId] || 0);
+      if (lv < 1) {
+        const meta = reg.SKILL_MAP?.[skillId];
+        renderStatus(`${meta?.name || skillId} chưa được học (Lv0); không thể thi triển.`, 'warning', { badge: 'LOCKED', isPreview: true });
+        renderSkillBar();
+        return false;
+      }
+      skill = reg.getSkill(skillId, lv);
+    } else {
+      skill = getVisibleSkillsForDeck().find((s) => s.id === skillId) || null;
+    }
     const elig = getSkillEligibility(skill);
     if (!elig.ok) {
       renderStatus(elig.reason, 'warning', { badge: 'SKILL', isPreview: true });
@@ -2219,7 +2302,7 @@
       state.royalGuardReflect = Number(skill.reflectDmg || 6);
     }
     if (!skill.selfTarget && Number(skill.previewDmg || 0) > 0) {
-      const previewDmg = Number(skill.previewDmg || 14);
+      const totalDmg = Number(skill.previewDmg || 14);
       const shieldMult = Number(skill.shieldMultiplier || 1);
       if (skill.applyStatus === 'burn') {
         state.bossStatuses.burn = Math.max(Number(state.bossStatuses.burn || 0), Number(skill.statusTurns || 2));
@@ -2231,30 +2314,30 @@
       } else if (skill.applyStatus === 'stun') {
         state.bossStatuses.stun = Math.max(Number(state.bossStatuses.stun || 0), Number(skill.statusTurns || 1));
       }
-      const hadShieldBefore = state.bossShield > 0;
-      if (state.bossShield > 0) {
-        const shieldDmg = previewDmg * shieldMult;
-        const absorbed = Math.min(state.bossShield, shieldDmg);
-        const leftover = Math.max(0, previewDmg - Math.ceil(absorbed / shieldMult));
-        state.bossShield = Math.max(0, state.bossShield - shieldDmg);
-        state.bossHp = Math.max(0, state.bossHp - leftover);
+      const hitCount = Math.max(1, Number(skill.hitCount || 1));
+      if (hitCount > 1) {
+        const baseChunk = Math.floor(totalDmg / hitCount);
+        const remainder = totalDmg - baseChunk * hitCount;
+        const chunks = Array.from({ length: hitCount }, (_, i) => baseChunk + (i < remainder ? 1 : 0));
+        applySkillDamageTick(chunks[0], shieldMult, skill.applyStatus);
+        finalizeBossZeroIfNeeded();
+        for (let tIdx = 1; tIdx < chunks.length; tIdx++) {
+          const timerId = setTimeout(() => {
+            if (state.finished || state.bossHp <= 0) return;
+            applySkillDamageTick(chunks[tIdx], shieldMult, skill.applyStatus);
+            fillBars();
+            finalizeBossZeroIfNeeded();
+          }, tIdx * 145);
+          state.skillTickTimers.push(timerId);
+        }
       } else {
-        state.bossHp = Math.max(0, state.bossHp - previewDmg);
+        applySkillDamageTick(totalDmg, shieldMult, skill.applyStatus);
       }
-      if (skill.applyStatus === 'stunOnBreak' && state.bossShield === 0 && hadShieldBefore) {
-        state.bossStatuses.stun = 1;
-      }
-      checkAndTriggerBossPhase2();
     }
     fillBars();
     renderSkillBar();
     renderStatus(`${skill.name} (Lv${skill.level || 1}): ${skill.levelSummary || skill.desc}`, 'success', { badge: 'DEMO SKILL', isPreview: true });
-
-    if (state.bossHp <= 0) {
-      const hasMorePreviewWaves = !state.raidSessionId && state.waveIndex < state.totalWaves;
-      if (hasMorePreviewWaves) triggerBossDeathAndNextWave();
-      else triggerBossDeathAndVictory();
-    }
+    finalizeBossZeroIfNeeded();
     return true;
   }
 
@@ -2293,6 +2376,22 @@
     await applyLoadout();
     window.appApi.renderNavUser();
     window.appApi.bindMobileNav();
+
+    const requestedStageParam = Number(query.get('stageId') || query.get('stage') || 0);
+    const isPracticeBoot = String(query.get('mode') || '').toLowerCase() === 'practice';
+    const bootUserId = window.appApi.getCurrentUserId ? window.appApi.getCurrentUserId() : null;
+    if (!bootUserId && requestedStageParam > 1 && !isPracticeBoot && window.RaidProgressionStore) {
+      const progBoot = window.RaidProgressionStore.loadState();
+      const reqProg = progBoot?.chapterProgress?.[requestedStageParam];
+      if (!reqProg || reqProg.status === 'LOCKED') {
+        const highestUnlocked = [5, 4, 3, 2, 1].find((id) => {
+          const st = progBoot?.chapterProgress?.[id];
+          return st && st.status !== 'LOCKED';
+        }) || 1;
+        state.lockedStageBlocked = { requestedStageId: requestedStageParam, fallbackStageId: highestUnlocked };
+        stageId = highestUnlocked;
+      }
+    }
 
     try{
       state.stage = await window.appApi.getStageDetail(stageId);
@@ -2427,6 +2526,13 @@
         isPreview: true
       });
     }
+    if (state.lockedStageBlocked) {
+      renderStatus(
+        `Stage ${state.lockedStageBlocked.requestedStageId} chưa mở khóa trong Campaign! Đã chuyển an toàn về Stage ${state.lockedStageBlocked.fallbackStageId}.`,
+        'warning',
+        { badge: 'STAGE LOCKED', isPreview: true }
+      );
+    }
     // Start turn timer only after interactive board is mounted and rendered
     tickTimer(true);
 
@@ -2557,6 +2663,7 @@
           tickTimer(true);
         },
         getProgressionState: () => window.RaidProgressionStore?.loadState?.() || null,
+        getLockedStageAttempt: () => state.lockedStageBlocked,
         advanceWaveForTest: () => triggerBossDeathAndNextWave(),
         triggerBossEntranceForTest: () => {
           if (state.raidSessionId) return null;

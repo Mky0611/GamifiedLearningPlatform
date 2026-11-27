@@ -457,6 +457,9 @@
 .mastery-stat-box strong{display:block;font-size:1.25rem;color:#fde047;font-family:var(--font-pixel,monospace)}
 .mastery-list{display:grid;gap:8px}
 .mastery-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface-panel,#fff7e6);border:2px solid var(--border,#8b6d43);padding:8px 12px;color:var(--text-primary,#281b12);font-size:.84rem}
+.mastery-word-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mastery-quiz-card{background:var(--surface-elevated,#efe3c8);border:2px solid var(--accent,#b45309);padding:12px 14px;margin-bottom:12px;color:var(--text-primary,#281b12);display:grid;gap:10px}
+.mastery-quiz-choices{display:flex;gap:8px;flex-wrap:wrap}
 .training-dummy-card canvas{display:block}
 
 

@@ -1278,32 +1278,153 @@ async function main() {
       }));
     }
 
-    // ===================== P5 PATH OF LEGENDS CHECKS =====================
-    // 1. Character Hall: 6 Tabs, Registry validation, Locked Hero block, Training Dummy Zero-Mutation Preview, Loadout Limits
+    // ===================== P5.1 PATH OF LEGENDS & PROGRESSION INTEGRITY CHECKS =====================
+    // 1. Character Hall: 6 Tabs, Registry validation, Strict Unlock Rules, Training Dummy Zero-Mutation, Loadout Limits
     await cdp.setViewport(1366, 768, false);
     const p5HallLogs = await cdp.goto(`${baseUrl}/app/account`, 1200);
-    await cdp.eval(`localStorage.removeItem('glp.p5.demoProgression.v1')`);
+    await cdp.eval(`localStorage.removeItem('glp.p5.demoProgression.v1'); localStorage.removeItem('glp.wordJournal');`);
     await cdp.goto(`${baseUrl}/app/account`, 1200);
 
-    const p5RegistryCheck = await cdp.eval(`({
-      registry: window.RaidRegistry?.validateRegistry?.(),
-      unlockedHeroes: window.RaidProgressionStore?.loadState()?.unlockedHeroes,
-      selectLockedMage: window.RaidProgressionStore?.selectHero('arcane_mage'),
-      wrongClassLoadout: window.RaidProgressionStore?.setHeroLoadout('archer', ['knight_slash']),
-      over5Loadout: window.RaidProgressionStore?.setHeroLoadout('warrior', ['knight_slash','heavy_slash','royal_guard','sacred_recovery','blade_storm','fire_blade']),
-      spBefore: window.RaidProgressionStore?.loadState()?.skillPoints
-    })`);
+    const p5RegistryCheck = await cdp.eval(`(() => {
+      const store = window.RaidProgressionStore;
+      const st = store.loadState();
+      const lockedSkillsBeforeClear = [
+        'phantom_dash', 'shield_counter', 'rune_prison', 'earthbreaker',
+        'heavens_pillar', 'divine_aegis', 'celestial_arrow', 'dragon_lance', 'meteor_fall'
+      ];
+      const strictStates = Object.fromEntries(lockedSkillsBeforeClear.map((id) => {
+        const heroId = window.RaidRegistry.SKILL_MAP[id]?.heroId || 'warrior';
+        const status = store.getSkillStatus(id, heroId, st);
+        const attemptLearn = store.learnOrUpgradeSkill(id, heroId);
+        return [id, { state: status.state, canLearn: status.canLearn, attemptOk: attemptLearn.ok }];
+      }));
+      const lexicalStatus = store.getSkillStatus('lexical_judgment', 'warrior', st);
+      return {
+        registry: window.RaidRegistry?.validateRegistry?.(),
+        unlockedHeroes: st.unlockedHeroes,
+        starterCelestial: Number(st.skillLevels?.celestial_arrow || 0),
+        starterDragon: Number(st.skillLevels?.dragon_lance || 0),
+        selectLockedMage: store.selectHero('arcane_mage'),
+        wrongClassLoadout: store.setHeroLoadout('archer', ['knight_slash']),
+        over5Loadout: store.setHeroLoadout('warrior', ['knight_slash','heavy_slash','royal_guard','sacred_recovery','blade_storm','fire_blade']),
+        spBefore: st.skillPoints,
+        strictStates,
+        lexicalCanUpgradeFresh: lexicalStatus.canUpgrade
+      };
+    })()`);
 
+    const anyStrictBypassed = Object.values(p5RegistryCheck.strictStates || {}).some(
+      (v) => v.state !== 'LOCKED' || v.canLearn !== false || v.attemptOk !== false
+    );
     if (!p5RegistryCheck.registry?.valid ||
         p5RegistryCheck.registry.heroCount !== 4 ||
         p5RegistryCheck.registry.skillCount !== 27 ||
+        p5RegistryCheck.starterCelestial !== 0 ||
+        p5RegistryCheck.starterDragon !== 0 ||
         p5RegistryCheck.selectLockedMage?.ok !== false ||
         p5RegistryCheck.wrongClassLoadout?.ok !== false ||
-        p5RegistryCheck.over5Loadout?.ok !== false) {
-      fail('P5 Registry / Security / Loadout validation failed: ' + JSON.stringify(p5RegistryCheck));
+        p5RegistryCheck.over5Loadout?.ok !== false ||
+        p5RegistryCheck.lexicalCanUpgradeFresh !== false ||
+        anyStrictBypassed) {
+      fail('P5.1 Strict Registry / SP-bypass / Loadout validation failed: ' + JSON.stringify(p5RegistryCheck));
     }
 
-    // Check Skill Tree upgrade & Byte Kit visuals + Training Dummy zero reward mutation
+    // Task 2 + Task 5 Check: Mage Permanent Lock Fix + Chapter MASTERED Non-Downgrade + No Duplicate Stage SP
+    const p51MageAndMasteredCheck = await cdp.eval(`(() => {
+      const store = window.RaidProgressionStore;
+      store.resetDemoProgression();
+      const s0 = store.loadState();
+      const clearNoTopic = store.recordBattleCompletion({
+        victory: true, stageId: 1, isPractice: false, heroId: 'warrior', score: 450, validWords: 2, topicWords: 0, coreWords: 1
+      });
+      const spAfterClear1 = clearNoTopic.state.skillPoints;
+      const lockedMageAfter0Topic = !clearNoTopic.state.unlockedHeroes.includes('arcane_mage');
+      const statusAfter0Topic = clearNoTopic.state.chapterProgress[1].status;
+
+      const replayWithTopic = store.recordBattleCompletion({
+        victory: true, stageId: 1, isPractice: false, heroId: 'warrior', score: 920, validWords: 4, topicWords: 3, coreWords: 1
+      });
+      const mageUnlockedOnReplay = replayWithTopic.state.unlockedHeroes.includes('arcane_mage');
+      const spAfterReplay = replayWithTopic.state.skillPoints;
+      const statusAfterTopicReplay = replayWithTopic.state.chapterProgress[1].status;
+
+      const inferiorReplay = store.recordBattleCompletion({
+        victory: true, stageId: 1, isPractice: false, heroId: 'warrior', score: 120, validWords: 1, topicWords: 0, coreWords: 1
+      });
+      return {
+        spBefore: s0.skillPoints,
+        spAfterClear1,
+        spAfterReplay,
+        spAfterInferior: inferiorReplay.state.skillPoints,
+        lockedMageAfter0Topic,
+        statusAfter0Topic,
+        mageUnlockedOnReplay,
+        statusAfterTopicReplay,
+        statusAfterInferiorReplay: inferiorReplay.state.chapterProgress[1].status,
+        bestScoreAfterInferior: inferiorReplay.state.chapterProgress[1].bestScore
+      };
+    })()`);
+    if (!p51MageAndMasteredCheck.lockedMageAfter0Topic ||
+        !p51MageAndMasteredCheck.mageUnlockedOnReplay ||
+        p51MageAndMasteredCheck.spAfterReplay !== p51MageAndMasteredCheck.spAfterClear1 ||
+        p51MageAndMasteredCheck.statusAfterTopicReplay !== 'MASTERED' ||
+        p51MageAndMasteredCheck.statusAfterInferiorReplay !== 'MASTERED' ||
+        p51MageAndMasteredCheck.bestScoreAfterInferior !== 920) {
+      fail('P5.1 Mage Unlock / Non-Duplicate SP / Chapter MASTERED persistence failed: ' + JSON.stringify(p51MageAndMasteredCheck));
+    }
+
+    // Reset before Mastery UI + Tree UI checks
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
+    await cdp.goto(`${baseUrl}/app/account`, 1100);
+
+    // Task 5 Check: Word Mastery UI Integrity (TTS playback != reviewedWordsCount; deduped Recall Quiz only)
+    await cdp.eval(`(() => {
+      localStorage.setItem('glp.wordJournal', JSON.stringify([
+        { word: 'LEARN', wordCategory: 'CORE', meaningText: 'học hỏi tiếp thu kiến thức' },
+        { word: 'CACHE', wordCategory: 'TOPIC', meaningText: 'bộ nhớ đệm tăng tốc' },
+        { word: 'QUERY', wordCategory: 'VALID', meaningText: 'câu truy vấn dữ liệu' }
+      ]));
+    })()`);
+    await cdp.clickSelector('[data-hall-tab="mastery"]');
+    await new Promise((r) => setTimeout(r, 200));
+    for (let k = 0; k < 3; k++) {
+      await cdp.clickSelector('[data-tts-word="LEARN"]');
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    const afterTtsOnly = await cdp.eval(`window.RaidProgressionStore.loadState().learningStats`);
+    // Wrong recall attempt must NOT increment reviewed/mastered
+    await cdp.clickSelector('[data-recall-idx="0"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.eval(`document.querySelector('[data-recall-choice]:not([data-recall-choice="LEARN"])')?.click()`);
+    await new Promise((r) => setTimeout(r, 120));
+    const afterWrongRecall = await cdp.eval(`window.RaidProgressionStore.loadState().learningStats`);
+    // Correct recall on LEARN twice (must dedupe to 1) + CACHE once (total unique = 2)
+    await cdp.clickSelector('[data-recall-idx="0"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('[data-recall-choice="LEARN"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('[data-recall-idx="0"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('[data-recall-choice="LEARN"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('[data-recall-idx="1"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('[data-recall-choice="CACHE"]');
+    await new Promise((r) => setTimeout(r, 150));
+    const p51MasteryCheck = await cdp.eval(`window.RaidProgressionStore.loadState().learningStats`);
+    if (afterTtsOnly.pronunciationPlays !== 3 ||
+        (afterTtsOnly.uniqueReviewedWords || []).length !== 0 ||
+        (afterWrongRecall.uniqueReviewedWords || []).length !== 0 ||
+        (p51MasteryCheck.uniqueReviewedWords || []).length !== 2 ||
+        (p51MasteryCheck.masteredWords || []).length !== 2 ||
+        p51MasteryCheck.reviewedWordsCount !== 2) {
+      fail('P5.1 Word Mastery TTS vs Recall integrity failed: ' + JSON.stringify({ afterTtsOnly, afterWrongRecall, p51MasteryCheck }));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p51_word_mastery_recall.png'), false);
+
+    // Skill Tree upgrade Lv1->Lv2 & Training Dummy zero reward mutation
+    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
+    await cdp.goto(`${baseUrl}/app/account`, 1100);
     await cdp.clickSelector('[data-hall-tab="tree"]');
     await new Promise((r) => setTimeout(r, 250));
     await cdp.clickSelector('[data-tree-skill="heavy_slash"]');
@@ -1327,12 +1448,10 @@ async function main() {
     }
     await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_training_dummy.png'), false);
 
-    // Chapter Map check
+    // Chapter Map check & Mobile responsive Character Hall check (390x844 & 320x568)
     await cdp.clickSelector('[data-hall-tab="chapters"]');
     await new Promise((r) => setTimeout(r, 200));
     await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_chapters.png'), false);
-
-    // Mobile responsive Character Hall check (390x844 & 320x568)
     for (const vp of [{ width: 390, height: 844, mobile: true }, { width: 320, height: 568, mobile: true }]) {
       await cdp.setViewport(vp.width, vp.height, true);
       await new Promise((r) => setTimeout(r, 180));
@@ -1342,13 +1461,47 @@ async function main() {
     await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_character_hall_mobile.png'), false);
     await cdp.setViewport(1366, 768, false);
 
-    // 2. All 10 Animation Profiles Verification (Knight, Archer, Lancer, Arcane Mage) + Ranged Hold Position + Lazy VFX + Canvas Parity
+    // Task 4 Check: Locked Stage URL Guard + Unlearned / Unequipped Skill Cast Rejection
     await cdp.eval(`(() => {
+      window.RaidProgressionStore.resetDemoProgression();
       const s = window.RaidProgressionStore.loadState();
-      if (!s.unlockedHeroes.includes('arcane_mage')) s.unlockedHeroes.push('arcane_mage');
-      ['phantom_dash','earthbreaker','shield_counter','divine_aegis','rune_prison','heavens_pillar','arcane_beam','meteor_fall','triple_shot','celestial_arrow','impaling_charge','iron_fortress','dragon_lance'].forEach(id => { s.skillLevels[id] = 1; });
-      s.selectedHero = 'warrior';
+      s.chapterProgress[1] = { status: 'COMPLETED', clears: 1, bestScore: 300, stars: 2 };
+      s.chapterProgress[2] = { status: 'AVAILABLE', clears: 0, bestScore: 0, stars: 0 };
+      s.skillLevels.phantom_dash = 1; // learned, NOT equipped in warrior loadout
       window.RaidProgressionStore.saveState(s);
+    })()`);
+    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=3`, 1500);
+    const p51SecurityGuardCheck = await cdp.eval(`({
+      lockedAttempt: window.__LEX_RAID_TEST_HOOKS__.getLockedStageAttempt(),
+      stageTitle: document.getElementById('stageTitle')?.innerText || '',
+      castUnlearnedEarthbreaker: window.__LEX_RAID_TEST_HOOKS__.castSkill('earthbreaker'),
+      castUnequippedPhantomDash: window.__LEX_RAID_TEST_HOOKS__.castSkill('phantom_dash')
+    })`);
+    if (!p51SecurityGuardCheck.lockedAttempt ||
+        p51SecurityGuardCheck.lockedAttempt.requestedStageId !== 3 ||
+        p51SecurityGuardCheck.lockedAttempt.fallbackStageId !== 2 ||
+        p51SecurityGuardCheck.castUnlearnedEarthbreaker !== false ||
+        p51SecurityGuardCheck.castUnequippedPhantomDash !== false) {
+      fail('P5.1 Locked stage / unequipped skill rejection failed: ' + JSON.stringify(p51SecurityGuardCheck));
+    }
+    await cdp.screenshot(path.join(OUTPUT_DIR, 'p51_locked_stage_guard.png'), false);
+
+    // 2. Complete 27-Skill Matrix Verification + Lv1->Lv3 Diff + Multi-Hit Real Multi-Tick HP + Canvas Parity
+    await cdp.eval(`(() => {
+      const store = window.RaidProgressionStore;
+      const reg = window.RaidRegistry;
+      const s = store.loadState();
+      s.unlockedHeroes = ['warrior', 'archer', 'lancer', 'arcane_mage'];
+      [1, 2, 3, 4, 5].forEach((sid) => {
+        s.chapterProgress[sid] = { status: 'MASTERED', clears: 1, bestScore: 999, stars: 3 };
+      });
+      s.learningStats.topicWordsSolved = 10;
+      s.learningStats.uniqueReviewedWords = ['LEARN', 'CACHE', 'QUERY', 'STACK'];
+      s.learningStats.masteredWords = ['LEARN', 'CACHE', 'QUERY', 'STACK'];
+      s.learningStats.reviewedWordsCount = 4;
+      reg.SKILLS.forEach((sk) => { s.skillLevels[sk.id] = 2; });
+      s.selectedHero = 'warrior';
+      store.saveState(s);
     })()`);
 
     const perfStartLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=5&seed=555`, 1800);
@@ -1363,114 +1516,220 @@ async function main() {
       };
     })()`);
 
-    const profileTests = [
-      { profile: 'MELEE_SLASH', hero: 'warrior', skillId: 'knight_slash' },
-      { profile: 'DASH_STRIKE', hero: 'warrior', skillId: 'phantom_dash' },
-      { profile: 'SHIELD_CAST', hero: 'warrior', skillId: 'royal_guard' },
-      { profile: 'SELF_HEAL', hero: 'warrior', skillId: 'sacred_recovery' },
-      { profile: 'MELEE_SLASH', hero: 'lancer', skillId: 'spear_thrust' },
-      { profile: 'DASH_STRIKE', hero: 'lancer', skillId: 'impaling_charge' },
-      { profile: 'PROJECTILE', hero: 'archer', skillId: 'quick_shot', mustStayRanged: true },
-      { profile: 'MULTI_HIT', hero: 'archer', skillId: 'triple_shot', mustStayRanged: true },
-      { profile: 'PROJECTILE', hero: 'arcane_mage', skillId: 'fireball', mustStayRanged: true },
-      { profile: 'CHANNEL_BEAM', hero: 'arcane_mage', skillId: 'arcane_beam', mustStayRanged: true },
-      { profile: 'GROUND_CAST', hero: 'warrior', skillId: 'frost_seal' },
-      { profile: 'SKY_STRIKE', hero: 'warrior', skillId: 'thunder_strike' },
-      { profile: 'ULTIMATE', hero: 'arcane_mage', skillId: 'meteor_fall', mustStayRanged: true }
-    ];
+    const all27MatrixSpec = await cdp.eval(`window.RaidRegistry.SKILLS.map((sk) => {
+      const l1 = window.RaidRegistry.getSkill(sk.id, 1);
+      const l2 = window.RaidRegistry.getSkill(sk.id, 2);
+      const l3 = window.RaidRegistry.getSkill(sk.id, 3);
+      const scaleDiff12 = (l2.previewDmg !== l1.previewDmg) || (l2.healHp !== l1.healHp) || (l2.mitigationPct !== l1.mitigationPct) || (l2.cooldown !== l1.cooldown) || (l2.applyStatus !== l1.applyStatus);
+      const scaleDiff23 = (l3.previewDmg !== l2.previewDmg) || (l3.healHp !== l2.healHp) || (l3.mitigationPct !== l2.mitigationPct) || (l3.cooldown !== l2.cooldown) || (l3.applyStatus !== l2.applyStatus);
+      const heroId = sk.allowedHeroes.includes('warrior') ? 'warrior' : sk.allowedHeroes[0];
+      return {
+        id: sk.id,
+        heroId,
+        allowedHeroes: sk.allowedHeroes,
+        expectedProfile: window.RaidRegistry.resolveAnimationProfile(sk, heroId),
+        manaCost: l2.manaCost,
+        cooldown: l2.cooldown,
+        hitCount: Number(l2.hitCount || 1),
+        applyStatus: l2.applyStatus || (l2.mitigationPct ? 'guard' : (l2.healHp ? 'heal' : 'dmg')),
+        requiresCoreClue: Boolean(sk.requiresCoreClue),
+        minCombo: Number(sk.minCombo || 0),
+        deckGroup: sk.deckGroup,
+        scaleDiff12,
+        scaleDiff23
+      };
+    })`);
+
+    const skillMatrixReport = [];
     const profileResults = [];
-    for (let idx = 0; idx < profileTests.length; idx++) {
-      const pt = profileTests[idx];
-      // Reload clean Stage 5 between every 3 skills so MP & Boss HP stay fresh without bypassing BattleScene
-      if (idx > 0 && idx % 3 === 0) {
-        await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=5&seed=555`, 1400);
+    for (let idx = 0; idx < all27MatrixSpec.length; idx++) {
+      const spec = all27MatrixSpec[idx];
+      if (!spec.scaleDiff12 || !spec.scaleDiff23) {
+        fail(`Skill ${spec.id} lacks distinct Lv1/Lv2/Lv3 scaling progression!`);
+      }
+      // Fresh Stage 5 every 2 skills so Boss survives multi-hit sampling & MP stays plentiful
+      if (idx > 0 && idx % 2 === 0) {
+        await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=5&seed=555`, 1450);
       }
       const pOutcome = await cdp.eval(`(async () => {
-        const s = window.RaidProgressionStore.loadState();
-        s.selectedHero = '${pt.hero}';
-        window.RaidProgressionStore.saveState(s);
-        window.__LEX_RAID_TEST_HOOKS__.setLoadoutAndBoss({ unitCode: '${pt.hero}' });
-        await new Promise(res => setTimeout(res, 220));
-        // Build MP naturally via valid word if needed
-        for (const w of window.__LEX_RAID_TEST_HOOKS__.getValidWords().slice(0, 8)) {
-          if (window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana >= 4) break;
-          const wordStr = String(typeof w === 'string' ? w : (w?.word || '')).toUpperCase();
-          if (wordStr.length < 3) continue;
-          const board = window.__LEX_RAID_TEST_HOOKS__.getBoard();
-          const path = [];
-          const used = Array.from({ length: board.length }, () => Array(board[0].length).fill(false));
-          let ok = true;
-          for (const ch of wordStr) {
-            let f = false;
-            for (let r = 0; r < board.length && !f; r++) {
-              for (let c = 0; c < board[r].length && !f; c++) {
-                if (!used[r][c] && board[r][c] === ch) { used[r][c] = true; path.push([r, c]); f = true; }
+        const store = window.RaidProgressionStore;
+        const reg = window.RaidRegistry;
+        const s = store.loadState();
+        s.selectedHero = '${spec.heroId}';
+        // Equip this skill cleanly into valid Hero Loadout if not a shared elemental spell
+        const isSharedSpell = ['fire_blade', 'frost_seal', 'thunder_strike', 'sacred_recovery'].includes('${spec.id}');
+        if (!isSharedSpell) {
+          const skObj = reg.SKILL_MAP['${spec.id}'];
+          const heroBase = reg.getHero('${spec.heroId}');
+          const cleanActive = (heroBase?.defaultLoadout || []).filter((id) => !reg.SKILL_MAP[id]?.isUltimate && id !== '${spec.id}').slice(0, 3);
+          const nextLoadout = skObj.isUltimate ? [...cleanActive, '${spec.id}'] : ['${spec.id}', ...cleanActive];
+          s.loadouts['${spec.heroId}'] = nextLoadout;
+        }
+        store.saveState(s);
+        window.__LEX_RAID_TEST_HOOKS__.setLoadoutAndBoss({ unitCode: '${spec.heroId}' });
+        await new Promise(res => setTimeout(res, 180));
+
+        // Build Mana / Combo / Clue naturally via valid words or hint when skill requires them
+        const targetMp = Math.max(${spec.manaCost}, 4);
+        let attempts = 0;
+        while ((window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana < targetMp || ${spec.minCombo > 1 ? 'true' : 'false'}) && attempts < 5) {
+          attempts++;
+          const words = window.__LEX_RAID_TEST_HOOKS__.getValidWords();
+          let castWord = false;
+          for (const w of words) {
+            const wordStr = String(typeof w === 'string' ? w : (w?.word || '')).toUpperCase();
+            if (wordStr.length < 3 || wordStr === window.__LEX_RAID_TEST_HOOKS__.getActiveCoreWord()) continue;
+            const board = window.__LEX_RAID_TEST_HOOKS__.getBoard();
+            const path = [];
+            const used = Array.from({ length: board.length }, () => Array(board[0].length).fill(false));
+            let ok = true;
+            for (const ch of wordStr) {
+              let f = false;
+              for (let r = 0; r < board.length && !f; r++) {
+                for (let c = 0; c < board[r].length && !f; c++) {
+                  if (!used[r][c] && board[r][c] === ch) { used[r][c] = true; path.push([r, c]); f = true; }
+                }
               }
+              if (!f) { ok = false; break; }
             }
-            if (!f) { ok = false; break; }
-          }
-          if (ok && path.length >= 3) {
-            for (const [r, c] of path) document.querySelector(\`.board-tile[data-row="\${r}"][data-col="\${c}"]\`)?.click();
-            document.getElementById('submitWordBtn')?.click();
-            for (let t = 0; t < 15; t++) {
-              await new Promise(res => setTimeout(res, 120));
-              if (!window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()) break;
+            if (ok && path.length >= 3) {
+              for (const [r, c] of path) document.querySelector(\`.board-tile[data-row="\${r}"][data-col="\${c}"]\`)?.click();
+              document.getElementById('submitWordBtn')?.click();
+              for (let t = 0; t < 14; t++) {
+                await new Promise(res => setTimeout(res, 110));
+                if (!window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()) break;
+              }
+              castWord = true;
+              break;
             }
           }
+          if (!castWord) break;
+          if (${spec.minCombo > 1 ? 'true' : 'false'} && attempts >= 2 && window.__LEX_RAID_TEST_HOOKS__.getSkillState().previewMana >= targetMp) break;
+        }
+        if (${spec.requiresCoreClue ? 'true' : 'false'}) {
+          window.__LEX_RAID_TEST_HOOKS__.useHintReveal();
         }
         for (let t = 0; t < 12; t++) {
           if (!window.__LEX_RAID_TEST_HOOKS__.isAnimationBusy()) break;
           await new Promise(res => setTimeout(res, 100));
         }
-        const castOk = window.__LEX_RAID_TEST_HOOKS__.castSkill('${pt.skillId}');
-        await new Promise(res => setTimeout(res, 240));
+
+        const preHp = window.__LEX_RAID_TEST_HOOKS__.getBossHp();
+        const preShield = window.__LEX_RAID_TEST_HOOKS__.getBossShield();
+        const prePlayerHp = window.__LEX_RAID_TEST_HOOKS__.getPlayerHp();
+        const castOk = window.__LEX_RAID_TEST_HOOKS__.castSkill('${spec.id}');
+        await new Promise(res => setTimeout(res, 30));
+        const tick1Ehp = window.__LEX_RAID_TEST_HOOKS__.getBossHp() + window.__LEX_RAID_TEST_HOOKS__.getBossShield();
+        await new Promise(res => setTimeout(res, 210));
         const mid = window.__LEX_RAID_SCENE_STATE__();
-        await new Promise(res => setTimeout(res, 1250));
+        await new Promise(res => setTimeout(res, 1200));
         const settled = window.__LEX_RAID_SCENE_STATE__();
-        return { castOk, mid, settled };
+        const postHp = window.__LEX_RAID_TEST_HOOKS__.getBossHp();
+        const postShield = window.__LEX_RAID_TEST_HOOKS__.getBossShield();
+        const postEhp = postHp + postShield;
+        const postPlayerHp = window.__LEX_RAID_TEST_HOOKS__.getPlayerHp();
+        const postState = window.__LEX_RAID_TEST_HOOKS__.getSkillState();
+        return {
+          castOk, preHp, preShield, prePlayerHp, tick1Ehp, postHp, postShield, postEhp, postPlayerHp,
+          postState, mid, settled
+        };
       })()`);
-      if (!pOutcome.castOk || !pOutcome.mid || pOutcome.mid.lastProfile !== pt.profile) {
-        fail(`P5 Animation profile mismatch for ${pt.hero}:${pt.skillId}: ` + JSON.stringify(pOutcome));
+
+      const isRangedSkill = ['archer', 'arcane_mage'].includes(spec.heroId);
+      const multiTickVerified = spec.hitCount <= 1 ? true : (pOutcome.postEhp < pOutcome.tick1Ehp || pOutcome.postHp <= 0);
+      if (!pOutcome.castOk ||
+          !pOutcome.mid ||
+          pOutcome.mid.lastProfile !== spec.expectedProfile ||
+          (isRangedSkill && pOutcome.mid.lastHeroMovedX > 16) ||
+          !multiTickVerified ||
+          pOutcome.settled.fsmState !== 'IDLE' ||
+          pOutcome.settled.activeTempObjects !== 0) {
+        fail(`P5.1 27-Skill Matrix check failed for ${spec.heroId}:${spec.id}: ` + JSON.stringify({ spec, pOutcome }));
       }
-      if (pt.mustStayRanged && pOutcome.mid.lastHeroMovedX > 16) {
-        fail(`P5 Ranged Hero ${pt.hero} moved ${pOutcome.mid.lastHeroMovedX}px into melee during ${pt.profile}!`);
+      if (['phantom_dash', 'triple_shot', 'fireball', 'arcane_beam', 'meteor_fall', 'dragon_lance'].includes(spec.id)) {
+        await cdp.screenshot(path.join(OUTPUT_DIR, `p5_anim_${spec.heroId}_${spec.id}.png`), false);
       }
-      if (pOutcome.settled.fsmState !== 'IDLE' || pOutcome.settled.activeTempObjects !== 0) {
-        fail(`P5 Scene failed cleanup/IDLE settle after ${pt.skillId}: ` + JSON.stringify(pOutcome.settled));
-      }
-      if ([1, 7, 8, 9, 12].includes(idx)) {
-        await cdp.screenshot(path.join(OUTPUT_DIR, `p5_anim_${pt.hero}_${pt.profile.toLowerCase()}.png`), false);
-      }
-      profileResults.push({ ...pt, lastProfile: pOutcome.mid.lastProfile, lastHeroMovedX: pOutcome.mid.lastHeroMovedX, endFsm: pOutcome.settled.fsmState, tempLeft: pOutcome.settled.activeTempObjects });
+      const entry = {
+        skillId: spec.id,
+        hero: spec.heroId,
+        profile: spec.expectedProfile,
+        lv1to3Scaling: true,
+        manaCost: spec.manaCost,
+        cooldown: spec.cooldown,
+        hitCount: spec.hitCount,
+        multiTickVerified,
+        preEhp: pOutcome.preHp + pOutcome.preShield,
+        tick1Ehp: pOutcome.tick1Ehp,
+        postEhp: pOutcome.postEhp,
+        endFsm: pOutcome.settled.fsmState,
+        activeTempObjects: pOutcome.settled.activeTempObjects
+      };
+      skillMatrixReport.push(entry);
+      profileResults.push(entry);
     }
 
-    // Check P5 Canvas 2D fallback parity for Arcane Mage ranged attack
-    await cdp.eval(`(() => { const s = window.RaidProgressionStore.loadState(); s.selectedHero = 'arcane_mage'; window.RaidProgressionStore.saveState(s); })()`);
-    const p5CanvasLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1&renderer=canvas&stage=2`, 1400);
-    const p5CanvasMage = await cdp.eval(`(async () => {
-      const ok = window.__LEX_RAID_TEST_HOOKS__.castSkill('fireball');
-      await new Promise(r => setTimeout(r, 180));
-      const mid = window.__LEX_RAID_SCENE_STATE__();
-      await new Promise(r => setTimeout(r, 600));
-      const end = window.__LEX_RAID_SCENE_STATE__();
-      return { renderer: window.__LEX_RAID_TEST_HOOKS__.getRenderer(), ok, mid, end };
-    })()`);
-    if (p5CanvasLogs.failedRequests.length || !p5CanvasMage.ok || p5CanvasMage.mid?.lastHeroMovedX > 10 || p5CanvasMage.end?.fsmState !== 'IDLE') {
-      fail('P5 Canvas 2D fallback parity failed for Arcane Mage: ' + JSON.stringify(p5CanvasMage));
+    // Representative Canvas 2D Fallback Parity across profiles
+    const canvasProfileChecks = [
+      { hero: 'warrior', skillId: 'knight_slash', profile: 'MELEE_SLASH' },
+      { hero: 'warrior', skillId: 'phantom_dash', profile: 'DASH_STRIKE' },
+      { hero: 'warrior', skillId: 'royal_guard', profile: 'SHIELD_CAST' },
+      { hero: 'warrior', skillId: 'sacred_recovery', profile: 'SELF_HEAL' },
+      { hero: 'archer', skillId: 'triple_shot', profile: 'MULTI_HIT', mustStayRanged: true },
+      { hero: 'arcane_mage', skillId: 'fireball', profile: 'PROJECTILE', mustStayRanged: true },
+      { hero: 'arcane_mage', skillId: 'arcane_beam', profile: 'CHANNEL_BEAM', mustStayRanged: true },
+      { hero: 'warrior', skillId: 'frost_seal', profile: 'GROUND_CAST' },
+      { hero: 'warrior', skillId: 'thunder_strike', profile: 'SKY_STRIKE' },
+      { hero: 'arcane_mage', skillId: 'meteor_fall', profile: 'ULTIMATE', mustStayRanged: true }
+    ];
+    const canvasParityResults = [];
+    for (let cIdx = 0; cIdx < canvasProfileChecks.length; cIdx++) {
+      const cp = canvasProfileChecks[cIdx];
+      await cdp.eval(`(() => {
+        const s = window.RaidProgressionStore.loadState();
+        s.selectedHero = '${cp.hero}';
+        if (!['fire_blade','frost_seal','thunder_strike','sacred_recovery'].includes('${cp.skillId}')) {
+          const heroBase = window.RaidRegistry.getHero('${cp.hero}');
+          const baseClean = (heroBase?.defaultLoadout || []).filter(id => !window.RaidRegistry.SKILL_MAP[id]?.isUltimate && id !== '${cp.skillId}').slice(0, 3);
+          const skObj = window.RaidRegistry.SKILL_MAP['${cp.skillId}'];
+          s.loadouts['${cp.hero}'] = skObj.isUltimate ? [...baseClean, '${cp.skillId}'] : ['${cp.skillId}', ...baseClean];
+        }
+        window.RaidProgressionStore.saveState(s);
+      })()`);
+      const cLogs = await cdp.goto(`${baseUrl}/app/minigame?qa=1&renderer=canvas&stage=5&seed=555`, 1300);
+      const cRes = await cdp.eval(`(async () => {
+        const ok = window.__LEX_RAID_TEST_HOOKS__.castSkill('${cp.skillId}');
+        await new Promise(r => setTimeout(r, 170));
+        const mid = window.__LEX_RAID_SCENE_STATE__();
+        let end = window.__LEX_RAID_SCENE_STATE__();
+        for (let t = 0; t < 16; t++) {
+          if (end?.fsmState === 'IDLE') break;
+          await new Promise(r => setTimeout(r, 120));
+          end = window.__LEX_RAID_SCENE_STATE__();
+        }
+        return { renderer: window.__LEX_RAID_TEST_HOOKS__.getRenderer(), ok, mid, end };
+      })()`);
+      if (cLogs.failedRequests.length || !cRes.ok || cRes.renderer !== 'canvas-fallback' ||
+          (cp.mustStayRanged && cRes.mid?.lastHeroMovedX > 10) || cRes.end?.fsmState !== 'IDLE') {
+        fail(`P5.1 Canvas 2D fallback failed for ${cp.hero}:${cp.skillId}: ` + JSON.stringify(cRes));
+      }
+      if (cp.skillId === 'triple_shot') {
+        await cdp.screenshot(path.join(OUTPUT_DIR, 'p51_canvas_multihit.png'), false);
+      }
+      canvasParityResults.push({ ...cp, renderer: cRes.renderer, movedX: cRes.mid?.lastHeroMovedX, endFsm: cRes.end?.fsmState });
     }
 
-    // 3. Full E2E Progression Playthrough (Fresh Reset -> Topic Word + 5-Wave Stage 1 Victory -> Unlock Arcane Mage + Phantom Dash -> Upgrade -> Equip -> Stage 2 Battle -> Cast Newly Unlocked Skill -> Reload Persistence -> Duplicate Victory Rejection)
+    // 3. True End-to-End UI Flow (Fresh Reset -> Stage 1 Topic + 5-Wave Victory -> Chapter Map UI -> Heroes UI -> Skill Tree Learn UI -> Loadout Unequip/Equip UI -> Stage 2 Battle -> Cast Unlocked Phantom Dash via Hotbar DOM -> Reload Persistence)
     await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
     await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=1&seed=777`, 1600);
 
-    // Practice mode check first: switching to Practice shouldn't grant campaign unlock on early check, then switch back to Campaign
+    // Practice mode isolation check
     await cdp.clickSelector('#modePracticeBtn');
     const pracRes = await cdp.eval(`window.RaidProgressionStore.recordBattleCompletion({ victory: true, stageId: 1, isPractice: true, score: 100, topicWords: 1 })`);
     if (pracRes.grantedRewards.length !== 0 || pracRes.state.unlockedHeroes.includes('arcane_mage')) {
       fail('Practice Mode erroneously granted Campaign unlock rewards!');
     }
-    await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
-    await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=1&seed=777`, 1600);
+    await cdp.clickSelector('#modeCampaignBtn');
+    await new Promise((r) => setTimeout(r, 200));
 
     for (let step = 0; step < 36; step++) {
       const done = await cdp.eval(`window.__LEX_RAID_TEST_HOOKS__.isFinished()`);
@@ -1482,7 +1741,6 @@ async function main() {
         board: window.__LEX_RAID_TEST_HOOKS__.getBoard(),
         validWords: window.__LEX_RAID_TEST_HOOKS__.getValidWords()
       })`);
-      // Solve at least 1 topic word first cleanly, then use Core Word guesses
       const preferTopic = curState.validWords.map((x) => String(typeof x === 'string' ? x : (x?.word || '')).toUpperCase()).find((wUpper) => {
         if (!wUpper || wUpper.length < 3 || wUpper === curState.core) return false;
         const used = Array.from({ length: curState.board.length }, () => Array(curState.board[0].length).fill(false));
@@ -1527,60 +1785,90 @@ async function main() {
     })`);
     if (!e2eUnlockCheck.finished ||
         !e2eUnlockCheck.prog.unlockedHeroes.includes('arcane_mage') ||
-        !e2eUnlockCheck.prog.skillLevels.phantom_dash ||
         e2eUnlockCheck.prog.chapterProgress[2].status !== 'AVAILABLE') {
-      fail('P5 E2E Stage 1 Victory Reward Unlock failed: ' + JSON.stringify(e2eUnlockCheck));
+      fail('P5.1 E2E Stage 1 Victory Reward Unlock failed: ' + JSON.stringify(e2eUnlockCheck));
     }
     await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_e2e_stage1_unlock_victory.png'), false);
 
-    // Duplicate reward rejection check on same Stage 1 clear
-    const dupCheck = await cdp.eval(`(() => {
-      const beforeSp = window.RaidProgressionStore.loadState().skillPoints;
-      const res = window.RaidProgressionStore.recordBattleCompletion({ victory: true, stageId: 1, isPractice: false, score: 999, topicWords: 2 });
-      return { beforeSp, afterSp: res.state.skillPoints, granted: res.grantedRewards.length };
-    })()`);
-    if (dupCheck.granted !== 0 || dupCheck.afterSp !== dupCheck.beforeSp) {
-      fail('Duplicate milestone reward granted on Stage 1 replay: ' + JSON.stringify(dupCheck));
-    }
-
-    // Open Character Hall -> Equip newly unlocked phantom_dash on Warrior -> Switch to unlocked Arcane Mage or Warrior -> Reload Battle Stage 2 -> Cast newly unlocked skill!
+    // Navigate to Character Hall via UI flow: Chapters -> Heroes -> Skill Tree -> Learn Phantom Dash -> Loadout Unequip Royal Guard + Equip Phantom Dash -> Stage 2 Battle Link -> Cast via DOM!
     await cdp.goto(`${baseUrl}/app/account`, 1100);
-    await cdp.eval(`(() => {
-      const res = window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'phantom_dash');
-      window.RaidProgressionStore.selectHero('warrior');
-      window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'royal_guard');
-      if (!window.RaidProgressionStore.loadState().loadouts.warrior.includes('phantom_dash')) {
-        window.RaidProgressionStore.toggleSkillInLoadout('warrior', 'phantom_dash');
-      }
-    })()`);
+    await cdp.clickSelector('[data-hall-tab="chapters"]');
+    await new Promise((r) => setTimeout(r, 150));
+    const stage2HrefOk = await cdp.eval(`Boolean(document.querySelector('a[href="/app/minigame?stage=2"]'))`);
+    await cdp.clickSelector('[data-hall-tab="tree"]');
+    await new Promise((r) => setTimeout(r, 180));
+    await cdp.clickSelector('[data-tree-skill="phantom_dash"]');
+    await new Promise((r) => setTimeout(r, 120));
+    // Learn Phantom Dash if Stage 1 reward granted skill or upgrade if learned
+    await cdp.eval(`(() => { const btn = document.getElementById('inspectUpgradeBtn'); if (btn && !btn.disabled) btn.click(); })()`);
+    await new Promise((r) => setTimeout(r, 150));
+    await cdp.clickSelector('[data-hall-tab="loadout"]');
+    await new Promise((r) => setTimeout(r, 180));
+    await cdp.clickSelector('[data-unequip="royal_guard"]');
+    await new Promise((r) => setTimeout(r, 150));
+    await cdp.clickSelector('[data-toggle-loadout="phantom_dash"]');
+    await new Promise((r) => setTimeout(r, 150));
     await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=2`, 1600);
-    const stage2EquippedCheck = await cdp.eval(`(() => {
-      const okPhantom = window.__LEX_RAID_TEST_HOOKS__.castSkill('phantom_dash');
-      const hotbarHasPhantom = Boolean(document.querySelector('[data-skill-id="phantom_dash"]'));
-      return { okPhantom, hotbarHasPhantom, unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(), stageTitle: document.getElementById('stageTitle')?.innerText || '' };
-    })()`);
-    if (!stage2EquippedCheck.hotbarHasPhantom || !stage2EquippedCheck.okPhantom || !stage2EquippedCheck.stageTitle.includes('Đầm Lầy')) {
-      fail('P5 E2E Cast newly unlocked Phantom Dash on Stage 2 failed: ' + JSON.stringify(stage2EquippedCheck));
+    await cdp.clickSelector('[data-skill-id="phantom_dash"]');
+    await new Promise((r) => setTimeout(r, 400));
+    const stage2EquippedCheck = await cdp.eval(`({
+      hotbarHasPhantom: Boolean(document.querySelector('[data-skill-id="phantom_dash"]')),
+      activeSkillId: window.__LEX_RAID_TEST_HOOKS__.getSkillState().activeSkillId,
+      unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(),
+      stageTitle: document.getElementById('stageTitle')?.innerText || ''
+    })`);
+    if (!stage2HrefOk || !stage2EquippedCheck.hotbarHasPhantom || stage2EquippedCheck.activeSkillId !== 'phantom_dash' || !stage2EquippedCheck.stageTitle.includes('Đầm Lầy')) {
+      fail('P5.1 UI E2E Cast newly equipped Phantom Dash on Stage 2 failed: ' + JSON.stringify({ stage2HrefOk, stage2EquippedCheck }));
     }
 
-    // Now select unlocked Arcane Mage -> reload page -> confirm persistence -> cast fireball!
-    await cdp.eval(`window.RaidProgressionStore.selectHero('arcane_mage')`);
+    // Select unlocked Arcane Mage via Heroes UI -> Save -> Reload Stage 2 -> Verify persistence & Cast Fireball via DOM
+    await cdp.goto(`${baseUrl}/app/account`, 1100);
+    await cdp.clickSelector('[data-select-hero="arcane_mage"]');
+    await new Promise((r) => setTimeout(r, 120));
+    await cdp.clickSelector('#saveLoadoutBtn');
+    await new Promise((r) => setTimeout(r, 150));
     await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=2`, 1600);
-    const stage2MageCheck = await cdp.eval(`(() => {
-      const okCast = window.__LEX_RAID_TEST_HOOKS__.castSkill('fireball');
-      return {
-        unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(),
-        progHero: window.RaidProgressionStore.loadState().selectedHero,
-        stageTitle: document.getElementById('stageTitle')?.innerText || '',
-        okCast
-      };
-    })()`);
-    if (stage2MageCheck.unit !== 'arcane_mage' || !stage2MageCheck.stageTitle.includes('Đầm Lầy') || !stage2MageCheck.okCast) {
-      fail('P5 E2E Equipped Unlocked Arcane Mage on Stage 2 failed: ' + JSON.stringify(stage2MageCheck));
+    await cdp.clickSelector('[data-skill-id="fireball"]');
+    await new Promise((r) => setTimeout(r, 400));
+    const stage2MageCheck = await cdp.eval(`({
+      unit: window.__LEX_RAID_TEST_HOOKS__.getUnitCode(),
+      progHero: window.RaidProgressionStore.loadState().selectedHero,
+      stageTitle: document.getElementById('stageTitle')?.innerText || '',
+      activeSkillId: window.__LEX_RAID_TEST_HOOKS__.getSkillState().activeSkillId
+    })`);
+    if (stage2MageCheck.unit !== 'arcane_mage' || stage2MageCheck.progHero !== 'arcane_mage' || stage2MageCheck.activeSkillId !== 'fireball') {
+      fail('P5.1 UI E2E Equipped Unlocked Arcane Mage on Stage 2 failed: ' + JSON.stringify(stage2MageCheck));
     }
     await cdp.screenshot(path.join(OUTPUT_DIR, 'p5_e2e_arcane_mage_stage2_battle.png'), false);
 
-    // Reset clean Progression state before concluding static/theme checks
+    // 4. Multi-Run / Wave Performance & Cleanup Telemetry (>= 5 consecutive combat runs/waves)
+    const multiRunTelemetry = [];
+    for (let runIdx = 1; runIdx <= 5; runIdx++) {
+      await cdp.goto(`${baseUrl}/app/minigame?qa=1&stage=2&seed=${800 + runIdx}`, 1300);
+      const runMetrics = await cdp.eval(`(async () => {
+        const s0 = performance.memory ? performance.memory.usedJSHeapSize : 0;
+        window.__LEX_RAID_TEST_HOOKS__.castSkill('fireball');
+        await new Promise(r => setTimeout(r, 1200));
+        window.__LEX_RAID_TEST_HOOKS__.castSkill('magic_bolt');
+        await new Promise(r => setTimeout(r, 1250));
+        const scene = window.__LEX_RAID_SCENE_STATE__();
+        const s1 = performance.memory ? performance.memory.usedJSHeapSize : 0;
+        return {
+          run: ${runIdx},
+          heapStartMB: Number((s0 / (1024 * 1024)).toFixed(2)),
+          heapEndMB: Number((s1 / (1024 * 1024)).toFixed(2)),
+          fsmState: scene?.fsmState,
+          activeTempObjects: scene?.activeTempObjects,
+          pendingTimers: scene?.pendingTimers
+        };
+      })()`);
+      if (runMetrics.activeTempObjects !== 0 || runMetrics.pendingTimers !== 0 || runMetrics.fsmState !== 'IDLE') {
+        fail('P5.1 Multi-run memory/cleanup regression on run ' + runIdx + ': ' + JSON.stringify(runMetrics));
+      }
+      multiRunTelemetry.push(runMetrics);
+    }
+
+    // Reset clean Progression state before concluding report
     await cdp.eval(`window.RaidProgressionStore.resetDemoProgression()`);
 
     report.p4b2Features = {
@@ -1622,10 +1910,17 @@ async function main() {
     };
     report.p5Features = {
       p5RegistryCheck,
+      p51MageAndMasteredCheck,
+      p51MasteryCheck,
+      p51SecurityGuardCheck,
       p5ColdStartMetrics,
-      profileResults,
+      skillMatrixCount: skillMatrixReport.length,
+      skillMatrixReport,
+      canvasParityResults,
       e2eUnlockCheck,
+      stage2EquippedCheck,
       stage2MageCheck,
+      multiRunTelemetry,
       p5HallFailed: p5HallLogs.failedRequests.length,
       perfStartFailed: perfStartLogs.failedRequests.length
     };

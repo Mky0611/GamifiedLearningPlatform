@@ -533,7 +533,8 @@ public class LexRaidServiceImpl implements LexRaidService {
                     raidSession.setEndedAt(LocalDateTime.now());
                     finalizeWonNow = true;
                 }
-            } else {
+            } else if (nextHp <= 0) {
+                // Only transition to next Wave Boss full HP when the current Boss HP actually reached 0
                 raidSession.setBossHpRemaining(stage.getBoss().getBaseHp());
                 raidSession.setBossShieldRemaining(stage.getBoss().getBaseShield());
             }

@@ -458,6 +458,46 @@ class LexRaidGlobalLexiconTest {
         assertEquals("ACTIVE", session.getStatus());
     }
 
+    @Test
+    void guessCoreWordDoesNotResetBossHpWhenNextCoreWordExistsAndBossSurvives() {
+        VocabularyWord wordOne = new VocabularyWord();
+        wordOne.setWordId(65L);
+        wordOne.setWordText("LEARN");
+        wordOne.setNormalizedText("LEARN");
+        StageCoreWord cw1 = new StageCoreWord();
+        cw1.setStageCoreWordId(310L);
+        cw1.setRevealOrder(1);
+        cw1.setWord(wordOne);
+        cw1.setBonusDamage(40);
+        cw1.setBonusXp(25);
+
+        VocabularyWord wordTwo = new VocabularyWord();
+        wordTwo.setWordId(66L);
+        wordTwo.setWordText("STACK");
+        wordTwo.setNormalizedText("STACK");
+        StageCoreWord cw2 = new StageCoreWord();
+        cw2.setStageCoreWordId(311L);
+        cw2.setRevealOrder(2);
+        cw2.setWord(wordTwo);
+        cw2.setBonusDamage(45);
+        cw2.setBonusXp(30);
+
+        session.setBossHpRemaining(500);
+        session.setBossShieldRemaining(0);
+        when(stageCoreWordRepository.findByStageStageIdOrderByRevealOrderAsc(1L)).thenReturn(List.of(cw1, cw2));
+
+        org.example.dto.LexRaidGuessCoreWordRequest guessReq = new org.example.dto.LexRaidGuessCoreWordRequest();
+        guessReq.setStageCoreWordId(310L);
+        guessReq.setGuessedWord("LEARN");
+
+        LexRaidActionResultDto res = service.guessCoreWord(200L, guessReq);
+        assertTrue(res.isAccepted());
+        assertEquals("STACK", res.getActiveCoreWord());
+        assertEquals(500 - res.getDamageDealt(), session.getBossHpRemaining(), "Remaining Boss HP must carry over instead of resetting to baseHp");
+        assertTrue(session.getBossHpRemaining() < 500 && session.getBossHpRemaining() > 0);
+        assertEquals("ACTIVE", session.getStatus());
+    }
+
     private List<WordPathTileDto> findWordPathOnBoard(List<List<String>> board, String word) {
         List<WordPathTileDto> path = new java.util.ArrayList<>();
         boolean[][] used = new boolean[board.size()][board.get(0).size()];

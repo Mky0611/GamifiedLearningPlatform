@@ -121,25 +121,30 @@ class AccountProfileServiceTest {
     }
 
     @Test
-    void testSaveLoadoutAcceptsArcaneMage() {
+    void testSaveLoadoutRejectsArcaneMageWhileDemoOnlyAndSavesValidUnit() {
         Long userId = 30L;
         User user = new User();
         user.setUserId(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        org.example.dto.AccountLoadoutRequest req = new org.example.dto.AccountLoadoutRequest();
-        req.setUserId(userId);
-        req.setUnitCode("arcane_mage");
-        req.setAvatarCode("avatar1");
+        org.example.dto.AccountLoadoutRequest mageReq = new org.example.dto.AccountLoadoutRequest();
+        mageReq.setUserId(userId);
+        mageReq.setUnitCode("arcane_mage");
+        mageReq.setAvatarCode("avatar1");
 
-        when(userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(userId, 0)).thenReturn(0L);
-        assertThrows(IllegalArgumentException.class, () -> accountService.saveLoadout(req));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> accountService.saveLoadout(mageReq));
+        assertTrue(ex.getMessage().contains("Demo Progression"));
 
-        when(userStageProgressRepository.countByUserUserIdAndClearCountGreaterThan(userId, 0)).thenReturn(1L);
+        org.example.dto.AccountLoadoutRequest validReq = new org.example.dto.AccountLoadoutRequest();
+        validReq.setUserId(userId);
+        validReq.setUnitCode("archer");
+        validReq.setAvatarCode("avatar2");
         when(userLoadoutRepository.findByUserUserId(userId)).thenReturn(Optional.empty());
         when(userLoadoutRepository.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        AccountLoadoutDto res = accountService.saveLoadout(req);
-        assertEquals("arcane_mage", res.getUnitCode());
+        AccountLoadoutDto res = accountService.saveLoadout(validReq);
+        assertEquals("archer", res.getUnitCode());
+        assertEquals("avatar2", res.getAvatarCode());
+        verify(userLoadoutRepository, times(1)).saveAndFlush(any());
     }
 }
