@@ -1,6 +1,6 @@
 # TASK TRACKER — LEX RAID PIXEL RPG
 
-**Trạng thái cập nhật:** 2026-11-26  
+**Trạng thái cập nhật:** 2026-11-27  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
 **Nhánh phát hành:** `feature/p4b3-rpg-combat-learning`
@@ -19,6 +19,7 @@
 | **P4-B / B.2** | Visual Redesign, 9-Slice UI, Animation FSM & World Env | **STATIC PASS (43/43) & BROWSER PASS** | Curated runtime assets, FSM pooled VFX, Canvas 2D fallback, 9/9 viewports PASS. |
 | **P4-B.3** | Final Polish, Post-Release Correction, 5-Wave QA, SEO & Production Release | **BACKEND UNIT PASS (26/26), STATIC PASS (43/43), SCOPED CONTRAST (0), SEO PASS, BROWSER PASS (0)** | Hoàn tất tới `870faac`, deploy **Vercel Production** & verify live. |
 | **P5 (Frontend Demo + Parity)** | Path of Legends: 4 Heroes (`Arcane Mage`), 27 Evolved Skills (Lv1–3), 10 Animation Profiles, 6-Tab Character Hall, Chapter Map | **BACKEND UNIT PASS (28/28), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (0)** | P5 progression chạy Demo cục bộ (`localStorage`), backend P5 migration vẫn ở dạng draft; SQL Server live `NOT TESTED`. |
+| **P5.1 (Progression Integrity & Full QA)** | Fix Mage lock, strict SP/unlock/loadout/stage-lock rules, Word Mastery Recall UI, Multi-hit HP ticks, `27/27` skills matrix, Boss HP carry-over, SQL Server lock draft | **BACKEND UNIT PASS (29/29), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (`27/27` skills, `0` failures)** | Giữ `arcane_mage` ở Demo Only trên DB; SQL Server live `NOT TESTED`. |
 | **P5-DB / CI-CD** | Docker, CI/CD & SQL Server Migration Apply cho Skill Tree / Hero Ownership | `DRAFT ONLY` | Bản nháp DDL/API tại `docs/P5_BACKEND_DRAFT.md` chờ phê duyệt DB migration. |
 
 ---
@@ -34,3 +35,4 @@
 | **P5-F/G** | Nâng cấp `/app/account` thành 6-Tab Character Hall + Training Dummy Preview + sửa sạch contrast Daylight/Moonlight (`0` issues) | `account.html`, `account.css`, `account.js`, `base.css` | **DONE** |
 | **P5-H** | Parity `LexRaidBalanceConfig.computeCoreWordDamage`, stage-unlock check cho `arcane_mage`, `28/28` Mockito PASS & P5 SQL Draft | `LexRaidServiceImpl.java`, `AccountServiceImpl.java`, `docs/P5_BACKEND_DRAFT.md` | **DONE** |
 | **P5-I/J** | Extended Chromium QA (`0` failures), `P5_QA_REPORT.md`, stamp `build-info.json` (`95bdfa5`), push & deploy Production | `95bdfa5`, `docs/P5_QA_REPORT.md` | **DONE** |
+| **P5.1-K** | Mage unlock decoupling, strict unlock/loadout/stage-lock guards, Word Mastery Recall, `27/27` skills + 5-run telemetry (`0` failures), Backend readiness | `docs/P5_QA_REPORT.md`, `docs/P5_CHECKPOINT.md` | **DONE** |

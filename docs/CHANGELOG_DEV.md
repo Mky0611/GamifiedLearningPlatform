@@ -7,6 +7,14 @@
 
 ---
 
+## [P5.1 Progression Integrity & Full 27-Skill QA] — 2026-11-27
+- **Mage Permanent Lock & Milestone Separation (`progression-store.js`):** Tách `stage_first_clear_*`, `skill_unlock_*`, `hero_unlock_*`; sửa triệt để lỗi clear Stage 1 với 0 từ Topic khiến khóa vĩnh viễn Arcane Mage khi replay, chống cấp trùng SP, và không hạ cấp Chapter `MASTERED` khi replay điểm thấp.
+- **Strict Skill Unlock Rules (`raid-registry.js`, `progression-store.js`):** Bỏ SP bypass trên `STAGE_CLEAR` / `LEARNING`, bỏ `celestial_arrow` & `dragon_lance` khỏi starter `archer`/`lancer`, bổ sung `upgradeRequirements` Lv2–3 cho Ultimate và giữ nguyên dữ liệu sở hữu cũ trong `localStorage`.
+- **Loadout Enforcement, Stage Guard & Multi-Hit (`minigame.js`):** Xóa fallback ngầm ở `castKnightSkill`, chặn skill chưa học/chưa equip/sai lớp, chặn mở URL `?stage=` đang khóa về Stage đã mở cao nhất kèm banner, và trừ Boss HP theo nhiều nhịp thật (`hitCount > 1`).
+- **Word Mastery Recall UI (`account.js`, `account.css`):** Tách lượt nghe TTS (`pronunciationPlays`) khỏi `uniqueReviewedWords` / `masteredWords`; thêm thử thách Recall kiểm tra nghĩa tiếng Việt + dedupe theo từ duy nhất (`issues=0` Daylight/Moonlight).
+- **Backend Readiness & SQL Server Draft (`LexRaidServiceImpl.java`, `AccountServiceImpl.java`, `docs/P5_BACKEND_DRAFT.md`):** Bảo toàn Boss HP còn lại khi chuyển sang Core Word kế tiếp, giữ `arcane_mage` ở phạm vi Demo Progression cho tới khi migrate SQL Server, chuẩn hóa `WITH (UPDLOCK, ROWLOCK)` + bảng `user_milestone_rewards` + Rollback T-SQL (`29/29` Mockito PASS; SQL Server live `NOT TESTED`).
+- **Full P5.1 QA Acceptance (`chromium_p4b2_acceptance.js`):** Kiểm chứng `27/27` public skills, `10/10` Canvas 2D fallback profiles, true UI E2E flow, locked stage guard, Mage replay unlock, Mastery Recall UI và 5-run telemetry (`activeTempObjects = 0`, `pendingTimers = 0`, `Total failures: 0`).
+
 ## [P5 Path of Legends — Frontend Demo & Combat Parity] — 2026-11-26
 - **P5 Asset Curation (`audit_p5_assets.py`, `P5_ASSET_DELTA.json`):** Tích hợp `63` asset đã xác minh license (`Arcane Mage v1.1` 9 strips `210x180`, 12 `PVFX` CC0, 12 `Mira Forge` 64px, 13 `Byte Progression Kit` CC-BY-4.0 kèm attribution, 16 `Questwood UI`); giữ `monk` (`LICENSE_PENDING`) và `rogue` (`32x32` mismatch) ngoài runtime công khai.
 - **Registry & Demo Progression (`raid-registry.js`, `progression-store.js`):** Xây dựng cấu trúc chuẩn cho `4` Hero playable, `27` kỹ năng tiến hóa `Lv 1..3`, `10` hồ sơ hoạt ảnh, `5` Stage Chapter; bảo tồn starter `warrior`/`archer`/`lancer`, chống equip sai class/vượt 4+1 slot và chống cấp trùng milestone.
