@@ -173,13 +173,11 @@ public class AccountServiceImpl implements AccountService {
 
 
     private User resolveUserForLoadoutSave(Long requestedUserId) {
-        if (requestedUserId != null) {
-            Optional<User> exact = userRepository.findById(requestedUserId);
-            if (exact.isPresent()) return exact.get();
+        if (requestedUserId == null || requestedUserId <= 0) {
+            throw new IllegalArgumentException("Thieu userId hop le khi luu loadout");
         }
-        return userRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay user de luu loadout"));
+        return userRepository.findById(requestedUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay user voi id = " + requestedUserId));
     }
 
     private AccountLoadoutDto toDto(UserLoadout loadout) {
