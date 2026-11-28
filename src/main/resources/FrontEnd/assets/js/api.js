@@ -5,6 +5,11 @@
   async function request(path,options={}){
     const hasBody = options.body !== undefined;
     const headers = { ...(options.headers||{}) };
+    const auth = getAuth();
+    const isAuthPublic = String(path || '').startsWith('/api/v1/auth/');
+    if (!isAuthPublic && auth?.accessToken && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${auth.accessToken}`;
+    }
     if(hasBody && !headers['Content-Type']) headers['Content-Type']='application/json';
     const config={method:options.method||'GET',headers,credentials:'same-origin'};
     if(hasBody){config.body=typeof options.body==='string'?options.body:JSON.stringify(options.body)}
@@ -22,6 +27,7 @@
   function escapeHtml(input){const map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};return String(input??'').replace(/[&<>"']/g,ch=>map[ch])}
   function getUserInitials(auth){const s=(auth?.displayName||auth?.username||'Learner').trim().split(/\s+/); return s.slice(0,2).map(v=>v.charAt(0).toUpperCase()).join('')}
   function getCurrentUserId(){const value=Number(getAuth()?.userId); return Number.isFinite(value) && value>0 ? value : null}
+  function isBackendConnected(){const auth=getAuth(); return Boolean(auth && auth.jwtEnabled && auth.accessToken && getCurrentUserId())}
 
   function normalizeUnitCode(value){
     const v=String(value||'').trim().toLowerCase();
@@ -131,13 +137,15 @@
   }
   document.addEventListener('DOMContentLoaded', initFancyCursor);
 
-  window.appApi={request,getAuth,saveAuth,clearAuth,escapeHtml,getUserInitials,getCurrentUserId,renderNavUser,bindMobileNav,getAccountPreferences,saveAccountPreferences,getAvatarUrl,normalizeUnitCode,normalizeAvatarCode,toDbAvatarKey,
+  window.appApi={request,getAuth,saveAuth,clearAuth,escapeHtml,getUserInitials,getCurrentUserId,isBackendConnected,renderNavUser,bindMobileNav,getAccountPreferences,saveAccountPreferences,getAvatarUrl,normalizeUnitCode,normalizeAvatarCode,toDbAvatarKey,
     login:(body)=>request('/api/v1/auth/login',{method:'POST',body}), register:(body)=>request('/api/v1/auth/register',{method:'POST',body}),
     getHomeOverview:()=>request('/api/v1/home/overview'), getGames:()=>request('/api/v1/games'),
-    getStages:()=>request('/api/v1/lex-raid/stages'), getRecommendedStage:()=>request('/api/v1/lex-raid/stages/recommended'), getStageDetail:(id)=>request(`/api/v1/lex-raid/stages/${id}`), getStageRuntime:(id)=>request(`/api/v1/lex-raid/stages/${id}/runtime`), startRaidSession:(body)=>request('/api/v1/lex-raid/sessions/start',{method:'POST',body}), getRaidSession:(id)=>request(`/api/v1/lex-raid/sessions/${id}`), syncRaidSession:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/sync`,{method:'POST',body}), finishRaidSession:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/finish`,{method:'POST',body}), submitRaidWord:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/submit-word`,{method:'POST',body}), guessCoreWord:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/guess-core-word`,{method:'POST',body}),
+    getStages:()=>request('/api/v1/lex-raid/stages'), getRecommendedStage:()=>request('/api/v1/lex-raid/stages/recommended'), getStageDetail:(id)=>request(`/api/v1/lex-raid/stages/${id}`), getStageRuntime:(id)=>request(`/api/v1/lex-raid/stages/${id}/runtime`), startRaidSession:(body)=>request('/api/v1/lex-raid/sessions/start',{method:'POST',body}), getRaidSession:(id)=>request(`/api/v1/lex-raid/sessions/${id}`), syncRaidSession:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/sync`,{method:'POST',body}), finishRaidSession:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/finish`,{method:'POST',body}), submitRaidWord:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/submit-word`,{method:'POST',body}), guessCoreWord:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/guess-core-word`,{method:'POST',body}), castRaidSkill:(id,body)=>request(`/api/v1/lex-raid/sessions/${id}/cast-skill`,{method:'POST',body}),
     getQuizSets:()=>request('/api/v1/quiz/sets'), getQuizSet:(id)=>request(`/api/v1/quiz/sets/${id}`), startQuizSession:(body)=>request('/api/v1/quiz/sessions/start',{method:'POST',body}), submitQuizAnswer:(id,body)=>request(`/api/v1/quiz/sessions/${id}/submit`,{method:'POST',body}),
     getVolcardTopics:()=>request('/api/v1/volcard/topics'), getVolcardSets:(topicId)=>request(`/api/v1/volcard/topics/${topicId}/sets`), getVolcardCards:(setId,offset=0,limit=50,cefrLevel='',search='')=>request(`/api/v1/volcard/sets/${setId}/cards?offset=${offset}&limit=${limit}${cefrLevel?`&cefrLevel=${encodeURIComponent(cefrLevel)}`:''}${search?`&search=${encodeURIComponent(search)}`:''}`),
-    getAccountCatalog:()=>request('/api/v1/account/options'), getAccountLoadout:(userId)=>request(`/api/v1/account/loadout?userId=${userId}`), saveAccountLoadout:(body)=>request('/api/v1/account/loadout',{method:'PUT',body}),
-    getAccountProfile:(userId)=>request(`/api/v1/account/profile?userId=${userId}`)
+    getAccountCatalog:()=>request('/api/v1/account/options'), getAccountLoadout:(userId)=>request(`/api/v1/account/loadout${userId ? `?userId=${userId}` : ''}`), saveAccountLoadout:(body)=>request('/api/v1/account/loadout',{method:'PUT',body}),
+    getAccountProfile:(userId)=>request(`/api/v1/account/profile${userId ? `?userId=${userId}` : ''}`),
+    getProgression:()=>request('/api/v1/progression'), getProgressionHeroes:()=>request('/api/v1/progression/heroes'), getProgressionSkills:(heroCode)=>request(`/api/v1/progression/skills${heroCode?`?heroCode=${encodeURIComponent(heroCode)}`:''}`), learnProgressionSkill:(body)=>request('/api/v1/progression/skills/learn',{method:'POST',body}), upgradeProgressionSkill:(body)=>request('/api/v1/progression/skills/upgrade',{method:'POST',body}), saveProgressionLoadout:(body)=>request('/api/v1/progression/loadout',{method:'PUT',body}),
+    getMasterySummary:()=>request('/api/v1/mastery'), createMasteryChallenge:(wordId)=>request(`/api/v1/mastery/recall-challenge?wordId=${encodeURIComponent(wordId)}`,{method:'POST'}), submitMasteryRecall:(body)=>request('/api/v1/mastery/recall',{method:'POST',body})
   };
 })();

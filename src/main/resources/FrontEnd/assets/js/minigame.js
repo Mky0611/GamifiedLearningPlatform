@@ -1622,7 +1622,7 @@
       scoreTotal: state.score,
       xpEarned: state.score,
       coinsEarned: Math.floor(state.score / 5)
-    }).then(res => {
+    }).then(async (res) => {
       if(res){
         renderBattleResultOverlay('CONFIRMED', res, win);
         const auth = window.appApi.getAuth();
@@ -1632,6 +1632,12 @@
           auth.coins = res.userCoins;
           window.appApi.saveAuth(auth);
           window.appApi.renderNavUser();
+        }
+        if (window.appApi.isBackendConnected?.() && window.RaidProgressionStore?.hydrateFromServerSnapshot) {
+          try {
+            const snap = await window.appApi.getProgression();
+            window.RaidProgressionStore.hydrateFromServerSnapshot(snap);
+          } catch (_) {}
         }
       } else {
         renderBattleResultOverlay('ERROR', null, win);
@@ -2336,7 +2342,27 @@
     }
     fillBars();
     renderSkillBar();
-    renderStatus(`${skill.name} (Lv${skill.level || 1}): ${skill.levelSummary || skill.desc}`, 'success', { badge: 'DEMO SKILL', isPreview: true });
+    if (state.raidSessionId && window.appApi?.isBackendConnected?.() && window.appApi.castRaidSkill) {
+      const actionId = `skill-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      window.appApi.castRaidSkill(state.raidSessionId, { skillCode: skill.id, actionId })
+        .then((res) => {
+          if (res && res.accepted) {
+            if (typeof res.bossHpRemaining === 'number') state.bossHp = res.bossHpRemaining;
+            if (typeof res.bossShieldRemaining === 'number') state.bossShield = res.bossShieldRemaining;
+            if (typeof res.waveIndex === 'number') state.waveIndex = res.waveIndex;
+            if (typeof res.totalWaves === 'number') state.totalWaves = res.totalWaves;
+            if (typeof res.manaAfter === 'number') state.previewMana = res.manaAfter;
+            if (res.skillCooldowns && typeof res.skillCooldowns === 'object') state.skillCooldowns = { ...res.skillCooldowns };
+            fillBars();
+            renderSkillBar();
+            if (res.raidStatus === 'WON') {
+              finishGame(true);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+    renderStatus(`${skill.name} (Lv${skill.level || 1}): ${skill.levelSummary || skill.desc}`, 'success', { badge: state.raidSessionId ? 'SERVER SKILL' : 'DEMO SKILL', isPreview: !state.raidSessionId });
     finalizeBossZeroIfNeeded();
     return true;
   }
@@ -2373,14 +2399,19 @@
 
   async function init(){
     const lexiconPromise = window.LexRaidBalance?.loadOfflineLexicon();
+    if (window.appApi.isBackendConnected?.() && window.RaidProgressionStore?.hydrateFromServerSnapshot) {
+      try {
+        const snap = await window.appApi.getProgression();
+        window.RaidProgressionStore.hydrateFromServerSnapshot(snap);
+      } catch (_) {}
+    }
     await applyLoadout();
     window.appApi.renderNavUser();
     window.appApi.bindMobileNav();
 
     const requestedStageParam = Number(query.get('stageId') || query.get('stage') || 0);
     const isPracticeBoot = String(query.get('mode') || '').toLowerCase() === 'practice';
-    const bootUserId = window.appApi.getCurrentUserId ? window.appApi.getCurrentUserId() : null;
-    if (!bootUserId && requestedStageParam > 1 && !isPracticeBoot && window.RaidProgressionStore) {
+    if (requestedStageParam > 1 && !isPracticeBoot && window.RaidProgressionStore) {
       const progBoot = window.RaidProgressionStore.loadState();
       const reqProg = progBoot?.chapterProgress?.[requestedStageParam];
       if (!reqProg || reqProg.status === 'LOCKED') {
@@ -2486,13 +2517,26 @@
     try{
       const userId = window.appApi.getCurrentUserId ? window.appApi.getCurrentUserId() : null;
       if(userId){
-        const session = await window.appApi.startRaidSession({ userId, stageId: state.stage.stageId || stageId });
+        const session = await window.appApi.startRaidSession({
+          userId,
+          stageId: state.stage.stageId || stageId,
+          playMode: state.playMode === 'practice' ? 'PRACTICE' : 'CAMPAIGN',
+          heroCode: state.unitCode || 'warrior'
+        });
         state.raidSessionId = session?.raidSessionId || session?.id || null;
         if(session) {
+          state.waveIndex = Number(session.waveIndex ?? 1);
+          state.totalWaves = Number(session.totalWaves ?? 5);
+          state.playerHp = Number(session.playerHp ?? state.playerHp);
+          state.playerMaxHp = Number(session.playerMaxHp ?? state.playerMaxHp);
+          state.previewMana = Number(session.manaValue ?? state.previewMana);
           state.bossHp = Number(session.bossHpRemaining ?? state.bossHp);
           state.bossShield = Number(session.bossShieldRemaining ?? state.bossShield);
-          state.bossMaxHp = Math.max(state.bossMaxHp, state.bossHp);
-          state.bossMaxShield = Math.max(state.bossMaxShield, state.bossShield);
+          state.bossMaxHp = Math.max(1, state.bossHp);
+          state.bossMaxShield = Math.max(0, state.bossShield);
+          if (Array.isArray(session.encounterRoster) && session.encounterRoster.length) {
+            state.serverEncounterRoster = session.encounterRoster;
+          }
         }
       } else {
         state.raidSessionId = null;

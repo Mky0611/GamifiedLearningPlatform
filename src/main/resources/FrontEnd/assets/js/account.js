@@ -25,6 +25,21 @@
     dummyRenderer: null
   };
   let liveProfile = null;
+  let liveMastery = null;
+
+  async function saveServerHeroLoadout(heroId, showSuccessMsg = true) {
+    if (!window.appApi.isBackendConnected?.()) return null;
+    const prog = store()?.loadState();
+    const list = prog?.loadouts?.[heroId] || [];
+    const activeSkillCodes = list.filter((id) => !reg()?.SKILL_MAP[id]?.isUltimate).slice(0, 4);
+    const ultimateSkillCode = list.find((id) => reg()?.SKILL_MAP[id]?.isUltimate) || null;
+    const snap = await window.appApi.saveProgressionLoadout({ heroCode: heroId, activeSkillCodes, ultimateSkillCode });
+    store()?.hydrateFromServerSnapshot(snap, liveMastery);
+    if (showSuccessMsg) {
+      showStatus(`Đã lưu Hero ${reg()?.getHero(heroId)?.shortName || heroId} & Loadout vào SQL Server!`, 'success');
+    }
+    return snap;
+  }
 
   function normalizeAvatarCode(input) {
     const value = String(input || '').trim().toLowerCase();
@@ -88,7 +103,8 @@
 
     const spEl = document.getElementById('demoSpBadge');
     if (spEl && prog) {
-      spEl.innerHTML = `<i class="bi bi-gem"></i> ${prog.skillPoints} SP · ${prog.unlockedHeroes.length}/4 Heroes`;
+      const modeTag = window.appApi.isBackendConnected?.() ? 'SQL Server' : 'Demo';
+      spEl.innerHTML = `<i class="bi bi-gem"></i> ${modeTag} · ${prog.skillPoints} SP · ${prog.unlockedHeroes.length}/4 Heroes`;
     }
 
     const av = avatars.find((v) => v.code === state.avatarCode) || avatars[0];
@@ -130,7 +146,7 @@
       }).join('');
 
       grid.querySelectorAll('[data-select-hero]').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           e.stopPropagation();
           const hid = btn.dataset.selectHero;
           const res = store()?.selectHero(hid);
@@ -141,9 +157,17 @@
           state.unitCode = hid;
           state.treeHero = hid;
           state.loadoutHero = hid;
+          if (window.appApi.isBackendConnected?.()) {
+            try {
+              await saveServerHeroLoadout(hid, true);
+            } catch (err) {
+              showStatus(`Không thể lưu vào SQL Server: ${err.message}`, 'warning');
+            }
+          } else {
+            showStatus(`Đã chọn ${reg().getHero(hid).name} làm đơn vị xuất chiến (Demo Progression).`, 'success');
+          }
           renderHeroesTab();
           renderProfile();
-          showStatus(`Đã chọn ${reg().getHero(hid).name} làm đơn vị xuất chiến (Demo Progression).`, 'success');
         });
       });
 
@@ -306,15 +330,37 @@
       <div class="small-muted">${window.appApi.escapeHtml(status.reason)}</div>
       <div class="evolution-steps">${levelsHtml}</div>`;
 
-    document.getElementById('inspectUpgradeBtn')?.addEventListener('click', () => {
-      const res = store().learnOrUpgradeSkill(sk.id, state.treeHero);
-      showStatus(res.ok ? `Đã nâng ${sk.name} lên Level ${res.newLevel}!` : res.reason, res.ok ? 'success' : 'warning');
+    document.getElementById('inspectUpgradeBtn')?.addEventListener('click', async () => {
+      if (window.appApi.isBackendConnected?.()) {
+        try {
+          const snap = status.level === 0
+            ? await window.appApi.learnProgressionSkill({ heroCode: state.treeHero, skillCode: sk.id })
+            : await window.appApi.upgradeProgressionSkill({ heroCode: state.treeHero, skillCode: sk.id });
+          store()?.hydrateFromServerSnapshot(snap, liveMastery);
+          const nextLv = snap?.skillLevels?.[sk.id] || (status.level + 1);
+          showStatus(`Đã nâng ${sk.name} lên Level ${nextLv} trong SQL Server!`, 'success');
+        } catch (err) {
+          showStatus(err.message, 'warning');
+        }
+      } else {
+        const res = store().learnOrUpgradeSkill(sk.id, state.treeHero);
+        showStatus(res.ok ? `Đã nâng ${sk.name} lên Level ${res.newLevel}!` : res.reason, res.ok ? 'success' : 'warning');
+      }
       renderSkillTreeTab();
       renderProfile();
     });
-    document.getElementById('inspectEquipBtn')?.addEventListener('click', () => {
+    document.getElementById('inspectEquipBtn')?.addEventListener('click', async () => {
       const res = store().toggleSkillInLoadout(state.treeHero, sk.id);
-      showStatus(res.ok ? `Đã cập nhật Loadout cho ${reg().getHero(state.treeHero).shortName}.` : res.reason, res.ok ? 'success' : 'warning');
+      if (res.ok && window.appApi.isBackendConnected?.()) {
+        try {
+          await saveServerHeroLoadout(state.treeHero, false);
+          showStatus(`Đã lưu Loadout ${reg().getHero(state.treeHero).shortName} lên SQL Server.`, 'success');
+        } catch (err) {
+          showStatus(err.message, 'warning');
+        }
+      } else {
+        showStatus(res.ok ? `Đã cập nhật Loadout cho ${reg().getHero(state.treeHero).shortName}.` : res.reason, res.ok ? 'success' : 'warning');
+      }
       renderSkillTreeTab();
     });
     document.getElementById('inspectTestAnimBtn')?.addEventListener('click', () => {
@@ -444,8 +490,11 @@
       slotsEl.innerHTML = slotBoxes.join('');
 
       slotsEl.querySelectorAll('[data-unequip]').forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const res = store().toggleSkillInLoadout(state.loadoutHero, btn.dataset.unequip);
+          if (res.ok && window.appApi.isBackendConnected?.()) {
+            try { await saveServerHeroLoadout(state.loadoutHero, false); } catch (err) { showStatus(err.message, 'warning'); }
+          }
           showStatus(res.ok ? 'Đã gỡ kỹ năng khỏi Loadout.' : res.reason, res.ok ? 'success' : 'warning');
           renderLoadoutTab();
         });
@@ -474,8 +523,11 @@
       }).join('');
 
       poolEl.querySelectorAll('[data-toggle-loadout]').forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const res = store().toggleSkillInLoadout(state.loadoutHero, btn.dataset.toggleLoadout);
+          if (res.ok && window.appApi.isBackendConnected?.()) {
+            try { await saveServerHeroLoadout(state.loadoutHero, false); } catch (err) { showStatus(err.message, 'warning'); }
+          }
           showStatus(res.ok ? 'Đã cập nhật Loadout xuất trận.' : res.reason, res.ok ? 'success' : 'warning');
           renderLoadoutTab();
         });
@@ -577,12 +629,50 @@
     });
 
     container.querySelectorAll('[data-recall-idx]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const idx = Number(btn.dataset.recallIdx || 0);
         const entry = journal[idx];
-        if (!entry) return;
         const quizBox = document.getElementById('masteryRecallBox');
         if (!quizBox) return;
+
+        // If BACKEND_CONNECTED and liveMastery has wordId matching this word, use server single-use challenge
+        const upperWord = String(entry?.word || '').trim().toUpperCase();
+        const serverItem = window.appApi.isBackendConnected?.()
+          ? (liveMastery?.items || []).find((m) => String(m.wordText || '').trim().toUpperCase() === upperWord) || (liveMastery?.items || [])[idx]
+          : null;
+
+        if (serverItem?.wordId && window.appApi.createMasteryChallenge) {
+          try {
+            const ch = await window.appApi.createMasteryChallenge(serverItem.wordId);
+            quizBox.hidden = false;
+            quizBox.innerHTML = `
+              <div><strong>Thử thách Recall (Server):</strong> Chọn đúng từ tiếng Anh có nghĩa: <em>"${window.appApi.escapeHtml(ch.promptMeaning || serverItem.wordText)}"</em></div>
+              <div class="mastery-quiz-choices">
+                ${(ch.options || []).map((opt) => `<button class="pixel-chip-btn mastery-choice-btn" data-recall-choice="${window.appApi.escapeHtml(opt)}" type="button">${window.appApi.escapeHtml(opt)}</button>`).join('')}
+              </div>`;
+            quizBox.querySelectorAll('[data-recall-choice]').forEach((choiceBtn) => {
+              choiceBtn.addEventListener('click', async () => {
+                try {
+                  const res = await window.appApi.submitMasteryRecall({
+                    challengeId: ch.challengeId,
+                    wordId: ch.wordId,
+                    selectedWord: choiceBtn.dataset.recallChoice
+                  });
+                  liveMastery = await window.appApi.getMasterySummary();
+                  const snap = await window.appApi.getProgression();
+                  store()?.hydrateFromServerSnapshot(snap, liveMastery);
+                  showStatus(res.message || (res.correct ? 'Chính xác!' : 'Chưa đúng!'), res.correct ? 'success' : 'warning');
+                  renderMasteryTab();
+                } catch (err) {
+                  showStatus(err.message, 'warning');
+                }
+              });
+            });
+            return;
+          } catch (_) {}
+        }
+
+        if (!entry) return;
         const options = buildRecallQuizOptions(entry, journal);
         quizBox.hidden = false;
         quizBox.innerHTML = `
@@ -633,6 +723,7 @@
 
   async function save() {
     const prog = store()?.loadState();
+    const isConnected = window.appApi.isBackendConnected?.();
     if (prog && !store().isHeroUnlocked(state.unitCode, prog)) {
       showStatus('Hero chưa được mở khóa; không thể lưu làm đơn vị xuất chiến.', 'warning');
       return;
@@ -647,16 +738,23 @@
     store()?.selectHero(state.unitCode);
     const userId = window.appApi.getCurrentUserId();
     try {
-      if (userId) {
+      if (isConnected) {
+        await saveServerHeroLoadout(state.unitCode, false);
         const dbUnit = state.unitCode === 'arcane_mage' ? 'warrior' : state.unitCode;
         await window.appApi.saveAccountLoadout({ userId, ...payload, unitCode: dbUnit, selectedUnitCode: dbUnit });
+        showStatus('Đã lưu Hero, Loadout & Avatar lên SQL Server thành công!', 'success');
+      } else {
+        if (userId) {
+          const dbUnit = state.unitCode === 'arcane_mage' ? 'warrior' : state.unitCode;
+          await window.appApi.saveAccountLoadout({ userId, ...payload, unitCode: dbUnit, selectedUnitCode: dbUnit });
+        }
+        showStatus(
+          state.unitCode === 'arcane_mage'
+            ? 'Đã lưu Arcane Mage ở Demo Progression cục bộ & đồng bộ Avatar.'
+            : 'Đã lưu thiết lập nhân vật & loadout thành công!',
+          'success'
+        );
       }
-      showStatus(
-        state.unitCode === 'arcane_mage'
-          ? 'Đã lưu Arcane Mage ở Demo Progression cục bộ & đồng bộ Avatar.'
-          : 'Đã lưu thiết lập nhân vật & loadout thành công!',
-        'success'
-      );
       window.appApi.renderNavUser();
     } catch (err) {
       showStatus(`Đã lưu cục bộ trên trình duyệt: ${err.message}`, 'warning');
@@ -667,7 +765,7 @@
     window.appApi.renderNavUser();
     window.appApi.bindMobileNav();
 
-    const prog = store()?.loadState();
+    let prog = store()?.loadState();
     const prefs = window.appApi.getAccountPreferences() || {};
     state.unitCode = prog && store().isHeroUnlocked(prog.selectedHero, prog)
       ? prog.selectedHero
@@ -678,18 +776,33 @@
     state.lastDummyHeroId = state.unitCode;
 
     const userId = window.appApi.getCurrentUserId();
+    const isConnected = window.appApi.isBackendConnected?.();
     try {
       if (userId) {
-        const [loadoutRes, profileRes] = await Promise.allSettled([
+        const reqs = [
           window.appApi.getAccountLoadout(userId),
           window.appApi.getAccountProfile(userId)
-        ]);
-        if (loadoutRes.status === 'fulfilled' && loadoutRes.value) {
+        ];
+        if (isConnected) {
+          reqs.push(window.appApi.getProgression(), window.appApi.getMasterySummary());
+        }
+        const [loadoutRes, profileRes, progRes, masteryRes] = await Promise.allSettled(reqs);
+        if (masteryRes?.status === 'fulfilled' && masteryRes.value) {
+          liveMastery = masteryRes.value;
+        }
+        if (progRes?.status === 'fulfilled' && progRes.value && store()?.hydrateFromServerSnapshot) {
+          prog = store().hydrateFromServerSnapshot(progRes.value, liveMastery);
+          state.unitCode = prog.selectedHero || state.unitCode;
+          state.treeHero = state.unitCode;
+          state.loadoutHero = state.unitCode;
+          state.lastDummyHeroId = state.unitCode;
+        }
+        if (loadoutRes?.status === 'fulfilled' && loadoutRes.value) {
           const norm = normalizeIncoming(loadoutRes.value);
           state.avatarCode = norm.avatarCode;
-          if (!prog || store().isHeroUnlocked(norm.unitCode, prog)) state.unitCode = norm.unitCode;
+          if (!isConnected && (!prog || store().isHeroUnlocked(norm.unitCode, prog))) state.unitCode = norm.unitCode;
         }
-        if (profileRes.status === 'fulfilled' && profileRes.value) {
+        if (profileRes?.status === 'fulfilled' && profileRes.value) {
           liveProfile = profileRes.value;
           const auth = window.appApi.getAuth();
           if (auth) {
@@ -718,6 +831,10 @@
       renderProfile();
     });
     document.getElementById('resetDemoProgBtn')?.addEventListener('click', () => {
+      if (isConnected) {
+        showStatus('Đang ở chế độ SQL Server: tiến trình thật được bảo toàn trên DB.', 'warning');
+        return;
+      }
       store()?.resetDemoProgression();
       state.unitCode = 'warrior';
       state.treeHero = 'warrior';
@@ -733,7 +850,9 @@
     switchTab('heroes');
     renderProfile();
 
-    if (!userId) {
+    if (isConnected) {
+      showStatus('Đã kết nối SQL Server (BACKEND_CONNECTED · JWT Authenticated).', 'success');
+    } else if (!userId) {
       showStatus('Đang chạy Demo Progression cục bộ trên trình duyệt (chưa đồng bộ SQL Server).', 'warning');
     }
   }

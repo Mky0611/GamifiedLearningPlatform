@@ -496,10 +496,70 @@
     return fresh;
   }
 
+  function hydrateFromServerSnapshot(snapshot, masterySummary) {
+    if (!snapshot || typeof snapshot !== 'object') return loadState();
+    const base = createDefaultState();
+    const loadouts = { ...base.loadouts };
+    if (snapshot.loadouts && typeof snapshot.loadouts === 'object') {
+      Object.entries(snapshot.loadouts).forEach(([heroCode, hl]) => {
+        const active = Array.isArray(hl?.activeSkillCodes) ? [...hl.activeSkillCodes] : [];
+        if (hl?.ultimateSkillCode) active.push(hl.ultimateSkillCode);
+        loadouts[heroCode] = active;
+      });
+    }
+    const chapters = { ...base.chapterProgress };
+    if (Array.isArray(snapshot.chapters)) {
+      snapshot.chapters.forEach((ch) => {
+        if (ch && ch.stageId) {
+          chapters[ch.stageId] = {
+            status: ch.status || 'LOCKED',
+            clears: Number(ch.clears || 0),
+            bestScore: Number(ch.bestScore || 0),
+            stars: Number(ch.stars || 0)
+          };
+        }
+      });
+    }
+    const reviewedWords = Array.isArray(masterySummary?.items)
+      ? masterySummary.items.filter((m) => Number(m.timesAnsweredCorrect || 0) > 0).map((m) => String(m.wordText || '').trim().toUpperCase()).filter(Boolean)
+      : [];
+    const masteredWords = Array.isArray(masterySummary?.items)
+      ? masterySummary.items.filter((m) => String(m.masteryState || '').toUpperCase() === 'MASTERED').map((m) => String(m.wordText || '').trim().toUpperCase()).filter(Boolean)
+      : [];
+
+    const hydrated = {
+      ...base,
+      modeLabel: 'BACKEND_CONNECTED (SQL Server)',
+      serverSynced: true,
+      skillPoints: Number(snapshot.skillPoints ?? 3),
+      selectedHero: snapshot.selectedHeroCode || 'warrior',
+      unlockedHeroes: Array.isArray(snapshot.unlockedHeroes) && snapshot.unlockedHeroes.length
+        ? snapshot.unlockedHeroes
+        : base.unlockedHeroes,
+      skillLevels: snapshot.skillLevels && typeof snapshot.skillLevels === 'object'
+        ? { ...snapshot.skillLevels }
+        : base.skillLevels,
+      loadouts,
+      chapterProgress: chapters,
+      rewardedMilestones: Array.isArray(snapshot.rewardedMilestones) ? snapshot.rewardedMilestones : [],
+      learningStats: {
+        ...base.learningStats,
+        topicWordsSolved: Number(masterySummary?.topicWordsSolved ?? snapshot.topicWordsSolved ?? 0),
+        uniqueReviewedWords: reviewedWords,
+        masteredWords,
+        reviewedWordsCount: Number(masterySummary?.uniqueReviewedCount ?? snapshot.uniqueReviewedWordsCount ?? reviewedWords.length)
+      }
+    };
+    saveState(hydrated);
+    syncLegacyUnitPref(hydrated.selectedHero);
+    return hydrated;
+  }
+
   root.RaidProgressionStore = {
     STORE_KEY,
     loadState,
     saveState,
+    hydrateFromServerSnapshot,
     isHeroUnlocked,
     selectHero,
     getUniqueReviewedCount,
