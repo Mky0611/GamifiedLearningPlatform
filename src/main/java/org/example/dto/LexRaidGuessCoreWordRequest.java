@@ -10,4 +10,5 @@ public class LexRaidGuessCoreWordRequest {
     private Long stageCoreWordId;
     @NotBlank
     private String guessedWord;
+    private Long userId;
 }

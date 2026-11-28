@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class LexRaidSessionStartRequest {
-    @NotNull
     private Long userId;
     @NotNull
     private Long stageId;

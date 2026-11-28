@@ -16,4 +16,5 @@ public class LexRaidSubmitWordRequest {
     private String boardJson;
     private Integer roundNo;
     private Long userId;
+    private String actionId;
 }

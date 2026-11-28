@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class QuizSessionStartRequest {
-    @NotNull
     private Long userId;
     @NotNull
     private Long questionSetId;

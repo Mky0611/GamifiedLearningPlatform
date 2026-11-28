@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 public class ProgressionLoadoutSaveRequest {
-    @NotNull
     private Long userId;
     @NotBlank
     private String heroCode;

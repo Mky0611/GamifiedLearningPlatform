@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 public class MasteryRecallRequest {
-    @NotNull
     private Long userId;
+    private String challengeId;
     @NotNull
     private Long wordId;
     @NotBlank

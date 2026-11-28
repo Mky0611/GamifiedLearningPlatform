@@ -8,6 +8,7 @@ import org.example.entity.Role;
 import org.example.entity.User;
 import org.example.repository.RoleRepository;
 import org.example.repository.UserRepository;
+import org.example.security.JwtTokenService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenService jwtTokenService;
 
     @Override
     @Transactional
@@ -58,7 +60,8 @@ public class AuthServiceImpl implements AuthService {
         user.setStreakDays(0);
 
         User savedUser = userRepository.save(user);
-        return toAuthResponse(savedUser, null, false);
+        String token = jwtTokenService.generateToken(savedUser);
+        return toAuthResponse(savedUser, token, true);
     }
 
     @Override
@@ -74,7 +77,8 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLoginAt(LocalDateTime.now());
         User savedUser = userRepository.save(user);
 
-        return toAuthResponse(savedUser, null, false);
+        String token = jwtTokenService.generateToken(savedUser);
+        return toAuthResponse(savedUser, token, true);
     }
 
     private AuthResponse toAuthResponse(User user, String accessToken, boolean jwtEnabled) {

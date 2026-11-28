@@ -3,8 +3,10 @@ package org.example.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.*;
+import org.example.security.SecurityPrincipalUtils;
 import org.example.service.LexRaidService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,41 +39,65 @@ public class LexRaidController {
     }
 
     @PostMapping("/sessions/start")
-    public ApiResponse<LexRaidSessionDto> startSession(@Valid @RequestBody LexRaidSessionStartRequest request) {
+    public ApiResponse<LexRaidSessionDto> startSession(@Valid @RequestBody LexRaidSessionStartRequest request,
+                                                       Authentication authentication) {
+        request.setUserId(SecurityPrincipalUtils.resolveOwnerUserId(authentication, request.getUserId()));
         return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Tao raid session thanh cong").data(lexRaidService.startSession(request)).build();
     }
 
     @GetMapping("/sessions/{raidSessionId}")
-    public ApiResponse<LexRaidSessionDto> getSession(@PathVariable Long raidSessionId) {
-        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Lay raid session thanh cong").data(lexRaidService.getSession(raidSessionId)).build();
+    public ApiResponse<LexRaidSessionDto> getSession(@PathVariable Long raidSessionId,
+                                                     @RequestParam(required = false) Long userId,
+                                                     Authentication authentication) {
+        Long callerUserId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, userId);
+        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Lay raid session thanh cong").data(lexRaidService.getSession(raidSessionId, callerUserId)).build();
     }
 
     @PostMapping("/sessions/{raidSessionId}/sync")
-    public ApiResponse<LexRaidSessionDto> syncSession(@PathVariable Long raidSessionId, @RequestBody LexRaidSessionSyncRequest request) {
-        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Dong bo raid session thanh cong").data(lexRaidService.syncSession(raidSessionId, request, "MANUAL_SAVE")).build();
+    public ApiResponse<LexRaidSessionDto> syncSession(@PathVariable Long raidSessionId,
+                                                      @RequestBody(required = false) LexRaidSessionSyncRequest request,
+                                                      @RequestParam(required = false) Long userId,
+                                                      Authentication authentication) {
+        Long callerUserId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, userId);
+        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Dong bo raid session thanh cong")
+                .data(lexRaidService.syncSession(raidSessionId, request, "MANUAL_SAVE", callerUserId)).build();
     }
 
     @PostMapping("/sessions/{raidSessionId}/finish")
-    public ApiResponse<LexRaidSessionDto> finishSession(@PathVariable Long raidSessionId, @RequestBody LexRaidSessionSyncRequest request) {
-        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Ket thuc raid session thanh cong").data(lexRaidService.finishSession(raidSessionId, request)).build();
+    public ApiResponse<LexRaidSessionDto> finishSession(@PathVariable Long raidSessionId,
+                                                        @RequestBody(required = false) LexRaidSessionSyncRequest request,
+                                                        @RequestParam(required = false) Long userId,
+                                                        Authentication authentication) {
+        Long callerUserId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, userId);
+        return ApiResponse.<LexRaidSessionDto>builder().success(true).message("Ket thuc raid session thanh cong")
+                .data(lexRaidService.finishSession(raidSessionId, request, callerUserId)).build();
     }
 
     @PostMapping("/sessions/{raidSessionId}/submit-word")
     public ApiResponse<LexRaidActionResultDto> submitWord(@PathVariable Long raidSessionId,
-                                                          @Valid @RequestBody LexRaidSubmitWordRequest request) {
-        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly submit word thanh cong").data(lexRaidService.submitWord(raidSessionId, request)).build();
+                                                          @Valid @RequestBody LexRaidSubmitWordRequest request,
+                                                          Authentication authentication) {
+        request.setUserId(SecurityPrincipalUtils.resolveOwnerUserId(authentication, request.getUserId()));
+        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly submit word thanh cong")
+                .data(lexRaidService.submitWord(raidSessionId, request)).build();
     }
 
     @PostMapping("/sessions/{raidSessionId}/guess-core-word")
     public ApiResponse<LexRaidActionResultDto> guessCoreWord(@PathVariable Long raidSessionId,
-                                                             @Valid @RequestBody LexRaidGuessCoreWordRequest request) {
-        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly core word guess thanh cong").data(lexRaidService.guessCoreWord(raidSessionId, request)).build();
+                                                             @Valid @RequestBody LexRaidGuessCoreWordRequest request,
+                                                             Authentication authentication) {
+        request.setUserId(SecurityPrincipalUtils.resolveOwnerUserId(authentication, request.getUserId()));
+        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly core word guess thanh cong")
+                .data(lexRaidService.guessCoreWord(raidSessionId, request)).build();
     }
 
     @PostMapping("/sessions/{raidSessionId}/cast-skill")
     public ApiResponse<LexRaidActionResultDto> castSkill(@PathVariable Long raidSessionId,
-                                                         @Valid @RequestBody LexRaidCastSkillRequest request) {
-        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly ky nang thanh cong").data(lexRaidService.castSkill(raidSessionId, request)).build();
+                                                         @Valid @RequestBody LexRaidCastSkillRequest request,
+                                                         Authentication authentication) {
+        request.setUserId(SecurityPrincipalUtils.resolveOwnerUserId(authentication, request.getUserId()));
+        return ApiResponse.<LexRaidActionResultDto>builder().success(true).message("Xu ly ky nang thanh cong")
+                .data(lexRaidService.castSkill(raidSessionId, request)).build();
     }
 
     @ExceptionHandler(SecurityException.class)
@@ -80,9 +106,9 @@ public class LexRaidController {
         return ApiResponse.<Void>builder().success(false).message(ex.getMessage()).data(null).build();
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiResponse<Void> handleStageNotFound(IllegalArgumentException ex) {
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleBadRequest(RuntimeException ex) {
         return ApiResponse.<Void>builder().success(false).message(ex.getMessage()).data(null).build();
     }
 }

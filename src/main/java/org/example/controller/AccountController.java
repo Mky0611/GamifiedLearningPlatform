@@ -7,16 +7,11 @@ import org.example.dto.AccountLoadoutDto;
 import org.example.dto.AccountLoadoutRequest;
 import org.example.dto.ApiResponse;
 import org.example.dto.PlayerProfileDto;
+import org.example.security.SecurityPrincipalUtils;
 import org.example.service.AccountService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -31,18 +26,29 @@ public class AccountController {
     }
 
     @GetMapping("/loadout")
-    public ApiResponse<AccountLoadoutDto> getLoadout(@RequestParam Long userId) {
-        return ApiResponse.success(accountService.getLoadout(userId));
+    public ApiResponse<AccountLoadoutDto> getLoadout(@RequestParam(required = false) Long userId, Authentication authentication) {
+        Long ownerId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, userId);
+        return ApiResponse.success(accountService.getLoadout(ownerId));
     }
 
     @GetMapping("/profile")
-    public ApiResponse<PlayerProfileDto> getProfile(@RequestParam Long userId) {
-        return ApiResponse.success(accountService.getProfile(userId));
+    public ApiResponse<PlayerProfileDto> getProfile(@RequestParam(required = false) Long userId, Authentication authentication) {
+        Long ownerId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, userId);
+        return ApiResponse.success(accountService.getProfile(ownerId));
     }
 
     @PutMapping("/loadout")
-    public ApiResponse<AccountLoadoutDto> saveLoadout(@Valid @RequestBody AccountLoadoutRequest request) {
+    public ApiResponse<AccountLoadoutDto> saveLoadout(@Valid @RequestBody AccountLoadoutRequest request,
+                                                      Authentication authentication) {
+        Long ownerId = SecurityPrincipalUtils.resolveOwnerUserId(authentication, request.getUserId());
+        request.setUserId(ownerId);
         return ApiResponse.success(accountService.saveLoadout(request));
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleForbidden(SecurityException ex) {
+        return ApiResponse.failure(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
