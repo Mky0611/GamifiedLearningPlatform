@@ -97,7 +97,7 @@ class LexRaidP6CombatTest {
         gs.setGameSessionId(100L);
         gs.setUser(user);
         gs.setStatus("IN_PROGRESS");
-        gs.setMetadataJson("{\"source\":\"lex_raid\",\"playMode\":\"CAMPAIGN\",\"heroCode\":\"warrior\",\"playerHp\":112,\"playerMaxHp\":112,\"waveIndex\":1,\"totalWaves\":5}");
+        gs.setMetadataJson("{\"source\":\"lex_raid\"}");
 
         raidSession = new RaidSession();
         raidSession.setRaidSessionId(200L);
@@ -111,8 +111,22 @@ class LexRaidP6CombatTest {
         raidSession.setManaValue(6);
         raidSession.setComboCount(2);
         raidSession.setClueProgressJson("[]");
+        raidSession.setWaveIndex(1);
+        raidSession.setTotalWaves(5);
+        raidSession.setPlayMode("CAMPAIGN");
+        raidSession.setHeroCode("warrior");
+        raidSession.setPlayerHp(112);
+        raidSession.setPlayerMaxHp(112);
+        raidSession.setEncounterRosterJson("["
+                + "{\"waveIndex\":1,\"enemyCode\":\"WAVE_SCOUT\",\"enemyName\":\"Vanguard Scout\",\"boss\":false,\"maxHp\":28,\"shield\":0},"
+                + "{\"waveIndex\":2,\"enemyCode\":\"WAVE_ACOLYTE\",\"enemyName\":\"Rune Acolyte\",\"boss\":false,\"maxHp\":36,\"shield\":5},"
+                + "{\"waveIndex\":3,\"enemyCode\":\"WAVE_WARDEN\",\"enemyName\":\"Iron Warden\",\"boss\":false,\"maxHp\":45,\"shield\":9},"
+                + "{\"waveIndex\":4,\"enemyCode\":\"WAVE_ELITE\",\"enemyName\":\"Shadow Captain\",\"boss\":false,\"maxHp\":56,\"shield\":13},"
+                + "{\"waveIndex\":5,\"enemyCode\":\"BOSS_ARCHIVE_PHANTOM\",\"enemyName\":\"Archive Phantom\",\"boss\":true,\"maxHp\":100,\"shield\":20}"
+                + "]");
 
         castEvents.clear();
+        lenient().when(raidSessionRepository.findByIdForUpdate(200L)).thenReturn(Optional.of(raidSession));
         lenient().when(raidSessionRepository.findById(200L)).thenReturn(Optional.of(raidSession));
         lenient().when(raidSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         lenient().when(gameSessionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -228,6 +242,34 @@ class LexRaidP6CombatTest {
         assertEquals(List.of(11, 11, 10), stormRes.getHitDamages());
         assertEquals(2, stormRes.getWaveIndex()); // Advanced Wave 1 -> Wave 2, did NOT premature-win!
         assertEquals("ACTIVE", stormRes.getRaidStatus());
-        assertEquals(100, stormRes.getBossHpRemaining());
+        assertEquals(36, stormRes.getBossHpRemaining());
+        assertEquals("WAVE_ACOLYTE", stormRes.getCurrentEnemyCode());
+        verify(raidSessionRepository, atLeastOnce()).findByIdForUpdate(200L);
+    }
+
+    @Test
+    void syncCannotIncrementRoundAndPracticeDoesNotIncrementClearCount() {
+        LexRaidSessionSyncRequest syncReq = new LexRaidSessionSyncRequest();
+        syncReq.setCurrentRound(99);
+        LexRaidSessionDto synced = service.syncSession(200L, syncReq, "MANUAL_SAVE", 10L);
+        assertEquals(1, synced.getCurrentRound(), "/sync must not allow client to inflate currentRound");
+
+        raidSession.setPlayMode("PRACTICE");
+        raidSession.setWaveIndex(5);
+        raidSession.setTotalWaves(5);
+        raidSession.setBossHpRemaining(0);
+        raidSession.setStatus("ACTIVE");
+        UserStageProgress existing = new UserStageProgress();
+        existing.setUser(user);
+        existing.setStage(stage1);
+        existing.setClearCount(0);
+        existing.setStarsEarned(0);
+        when(userStageProgressRepository.findByUserUserIdAndStageStageId(10L, 1L)).thenReturn(Optional.of(existing));
+        when(wordSubmitEventRepository.findByRaidSessionRaidSessionIdAndIsValidTrue(200L)).thenReturn(List.of());
+        when(coreWordGuessEventRepository.findByRaidSessionRaidSessionIdAndIsCorrectTrue(200L)).thenReturn(List.of());
+
+        service.finishSession(200L, null, 10L);
+        assertEquals(0, existing.getClearCount(), "PRACTICE win must NEVER increment Campaign clearCount");
+        verify(progressionService, never()).recordCampaignVictoryMilestones(any(), any(), anyBoolean(), eq(false), anyInt());
     }
 }
