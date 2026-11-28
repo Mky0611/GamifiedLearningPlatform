@@ -57,6 +57,39 @@ public class RaidSession {
     @Column(name = "clue_progress_json", columnDefinition = "NVARCHAR(MAX)")
     private String clueProgressJson;
 
+    @Column(name = "wave_index", nullable = false)
+    private Integer waveIndex = 1;
+
+    @Column(name = "total_waves", nullable = false)
+    private Integer totalWaves = 1;
+
+    @Column(name = "play_mode", nullable = false, length = 16)
+    private String playMode = "CAMPAIGN";
+
+    @Column(name = "hero_code", nullable = false, length = 32)
+    private String heroCode = "warrior";
+
+    @Column(name = "player_hp", nullable = false)
+    private Integer playerHp = 112;
+
+    @Column(name = "player_max_hp", nullable = false)
+    private Integer playerMaxHp = 112;
+
+    @Column(name = "zero_mana_casts_turn", nullable = false)
+    private Integer zeroManaCastsTurn = 0;
+
+    @Column(name = "topic_words_solved", nullable = false)
+    private Integer topicWordsSolved = 0;
+
+    @Column(name = "boss_statuses_json", length = 1024)
+    private String bossStatusesJson;
+
+    @Column(name = "skill_cooldowns_json", length = 1024)
+    private String skillCooldownsJson;
+
+    @Column(name = "encounter_roster_json", columnDefinition = "NVARCHAR(MAX)")
+    private String encounterRosterJson;
+
     @Column(name = "started_at", insertable = false, updatable = false)
     private LocalDateTime startedAt;
 
