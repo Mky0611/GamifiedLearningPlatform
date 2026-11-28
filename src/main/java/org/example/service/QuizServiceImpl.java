@@ -100,9 +100,18 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request) {
+        return submitAnswer(gameSessionId, request, null);
+    }
+
+    @Override
+    @Transactional
+    public QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request, Long callerUserId) {
         GameSession session = gameSessionRepository.findByIdForUpdate(gameSessionId)
                 .orElseGet(() -> gameSessionRepository.findById(gameSessionId)
                         .orElseThrow(() -> new IllegalArgumentException("Khong tim thay game session voi id = " + gameSessionId)));
+        if (callerUserId != null && session.getUser() != null && !java.util.Objects.equals(session.getUser().getUserId(), callerUserId)) {
+            throw new SecurityException("Khong co quyen nop bai cho quiz session cua user khac.");
+        }
         if (COMPLETED.equalsIgnoreCase(session.getStatus())) {
             throw new IllegalArgumentException("Game session da ket thuc");
         }

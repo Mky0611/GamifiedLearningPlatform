@@ -38,5 +38,8 @@ public class LexRaidSessionDto {
     private Integer totalWaves;
     private String playMode;
     private String heroCode;
+    private String currentEnemyCode;
+    private String currentEnemyName;
+    private java.util.List<LexRaidEncounterWaveDto> encounterRoster;
     private java.util.List<String> grantedMilestones;
 }

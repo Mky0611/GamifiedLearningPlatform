@@ -41,10 +41,12 @@ public class MasterySummaryDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RecallChallengeDto {
+        private String challengeId;
         private Long wordId;
         private String promptMeaning;
         private String partOfSpeech;
         private List<String> options;
+        private String expiresAt;
     }
 
     @Data

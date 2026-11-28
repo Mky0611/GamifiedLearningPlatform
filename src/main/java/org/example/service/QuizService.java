@@ -9,4 +9,7 @@ public interface QuizService {
     QuizSessionDto getQuestionSetDetail(Long questionSetId);
     QuizSessionDto startSession(QuizSessionStartRequest request);
     QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request);
+    default QuizSubmitAnswerResultDto submitAnswer(Long gameSessionId, QuizSubmitAnswerRequest request, Long callerUserId) {
+        return submitAnswer(gameSessionId, request);
+    }
 }

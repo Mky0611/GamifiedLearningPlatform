@@ -35,7 +35,7 @@ public class ProgressionServiceImpl implements ProgressionService {
     @Override
     @Transactional
     public ProgressionSnapshotDto getProgression(Long userId) {
-        User user = requireUser(userId);
+        User user = requireUserForUpdate(userId);
         UserProgressionWallet wallet = ensureInitialized(user);
         return buildSnapshot(user, wallet);
     }
@@ -43,7 +43,7 @@ public class ProgressionServiceImpl implements ProgressionService {
     @Override
     @Transactional
     public List<Map<String, Object>> getHeroStatuses(Long userId) {
-        User user = requireUser(userId);
+        User user = requireUserForUpdate(userId);
         ensureInitialized(user);
         Set<String> owned = getOwnedHeroSet(userId);
         List<Map<String, Object>> result = new ArrayList<>();
@@ -66,7 +66,7 @@ public class ProgressionServiceImpl implements ProgressionService {
     @Override
     @Transactional
     public List<Map<String, Object>> getSkillTree(Long userId, String heroCode) {
-        User user = requireUser(userId);
+        User user = requireUserForUpdate(userId);
         UserProgressionWallet wallet = ensureInitialized(user);
         String targetHero = normalizeHero(heroCode != null ? heroCode : wallet.getSelectedHeroCode());
         RpgCatalogRegistry.HeroSpec hero = requireHeroSpec(targetHero);
@@ -112,7 +112,7 @@ public class ProgressionServiceImpl implements ProgressionService {
         if (request == null || request.getUserId() == null) {
             throw new IllegalArgumentException("Thieu userId hop le khi hoc skill");
         }
-        User user = requireUser(request.getUserId());
+        User user = requireUserForUpdate(request.getUserId());
         ensureInitialized(user);
         UserProgressionWallet wallet = walletRepository.findByUserIdForUpdate(user.getUserId())
                 .orElseThrow(() -> new IllegalStateException("Khong the khoa wallet progression cua user"));
@@ -154,7 +154,7 @@ public class ProgressionServiceImpl implements ProgressionService {
         if (request == null || request.getUserId() == null) {
             throw new IllegalArgumentException("Thieu userId hop le khi nang cap skill");
         }
-        User user = requireUser(request.getUserId());
+        User user = requireUserForUpdate(request.getUserId());
         ensureInitialized(user);
         UserProgressionWallet wallet = walletRepository.findByUserIdForUpdate(user.getUserId())
                 .orElseThrow(() -> new IllegalStateException("Khong the khoa wallet progression cua user"));
@@ -195,7 +195,7 @@ public class ProgressionServiceImpl implements ProgressionService {
         if (request == null || request.getUserId() == null) {
             throw new IllegalArgumentException("Thieu userId hop le khi luu loadout");
         }
-        User user = requireUser(request.getUserId());
+        User user = requireUserForUpdate(request.getUserId());
         ensureInitialized(user);
         UserProgressionWallet wallet = walletRepository.findByUserIdForUpdate(user.getUserId())
                 .orElseThrow(() -> new IllegalStateException("Khong the khoa wallet progression cua user"));
@@ -332,7 +332,9 @@ public class ProgressionServiceImpl implements ProgressionService {
         if (existing.isPresent()) {
             return existing.get();
         }
-        return createInitialProgression(user);
+        userRepository.findByIdForUpdate(user.getUserId());
+        return walletRepository.findById(user.getUserId())
+                .orElseGet(() -> createInitialProgression(user));
     }
 
     private UserProgressionWallet ensureInitializedForUpdate(User user) {
@@ -340,7 +342,9 @@ public class ProgressionServiceImpl implements ProgressionService {
         if (existing.isPresent()) {
             return existing.get();
         }
-        return createInitialProgression(user);
+        userRepository.findByIdForUpdate(user.getUserId());
+        return walletRepository.findByUserIdForUpdate(user.getUserId())
+                .orElseGet(() -> createInitialProgression(user));
     }
 
     private UserProgressionWallet createInitialProgression(User user) {
@@ -457,16 +461,15 @@ public class ProgressionServiceImpl implements ProgressionService {
     private ProgressionContext buildLearningContext(Long userId) {
         List<UserStageProgress> progresses = stageProgressRepository.findByUserUserId(userId);
         Set<Integer> clearedOrders = new HashSet<>();
-        int totalWordsFound = 0;
         for (UserStageProgress p : progresses) {
             if (p.getClearCount() != null && p.getClearCount() > 0 && p.getStage() != null) {
                 clearedOrders.add(resolveStageOrder(p.getStage()));
             }
-            totalWordsFound += (p.getTotalWordsFound() != null ? p.getTotalWordsFound() : 0);
         }
+        // Only count real Topic vocabulary words found in UserWordMastery — never substitute Global lexicon words
         int foundMastery = (int) wordMasteryRepository.countByUserUserIdAndTimesFoundGreaterThan(userId, 0);
         int reviewedCorrect = (int) wordMasteryRepository.countByUserUserIdAndTimesAnsweredCorrectGreaterThan(userId, 0);
-        return new ProgressionContext(clearedOrders, Math.max(foundMastery, totalWordsFound), reviewedCorrect);
+        return new ProgressionContext(clearedOrders, foundMastery, reviewedCorrect);
     }
 
     private int resolveStageOrder(Stage stage) {
@@ -549,6 +552,15 @@ public class ProgressionServiceImpl implements ProgressionService {
             set.add(ho.getHeroCode());
         }
         return set;
+    }
+
+    private User requireUserForUpdate(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Thieu userId hop le");
+        }
+        return userRepository.findByIdForUpdate(userId)
+                .or(() -> userRepository.findById(userId))
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay user voi id = " + userId));
     }
 
     private User requireUser(Long userId) {

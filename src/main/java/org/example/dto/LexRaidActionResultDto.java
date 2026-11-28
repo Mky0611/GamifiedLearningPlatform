@@ -53,4 +53,7 @@ public class LexRaidActionResultDto {
     private String animationProfile;
     private Integer skillLevel;
     private Integer healHp;
+    private String currentEnemyCode;
+    private String currentEnemyName;
+    private boolean replayed;
 }

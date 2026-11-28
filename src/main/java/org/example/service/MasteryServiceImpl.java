@@ -3,12 +3,15 @@ package org.example.service;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.MasteryRecallRequest;
 import org.example.dto.MasterySummaryDto;
+import org.example.entity.MasteryRecallChallenge;
 import org.example.entity.User;
 import org.example.entity.UserWordMastery;
 import org.example.entity.VocabularyWord;
+import org.example.repository.MasteryRecallChallengeRepository;
 import org.example.repository.UserRepository;
 import org.example.repository.UserWordMasteryRepository;
 import org.example.repository.VocabularyWordRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +20,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class MasteryServiceImpl implements MasteryService {
+
+    private static final long CHALLENGE_TTL_MINUTES = 5L;
 
     private final UserRepository userRepository;
     private final UserWordMasteryRepository wordMasteryRepository;
     private final VocabularyWordRepository vocabularyWordRepository;
+    private final MasteryRecallChallengeRepository challengeRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -59,9 +65,9 @@ public class MasteryServiceImpl implements MasteryService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public MasterySummaryDto.RecallChallengeDto generateRecallChallenge(Long userId, Long wordId) {
-        requireUser(userId);
+        User user = requireUser(userId);
         if (wordId == null) throw new IllegalArgumentException("Thieu wordId de tao thu thach Recall");
         VocabularyWord target = vocabularyWordRepository.findById(wordId)
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tu vung voi id = " + wordId));
@@ -92,12 +98,23 @@ public class MasteryServiceImpl implements MasteryService {
                 ? target.getMeaningVi()
                 : target.getMeaningEn();
 
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(CHALLENGE_TTL_MINUTES);
+        MasteryRecallChallenge entity = new MasteryRecallChallenge();
+        entity.setChallengeId(UUID.randomUUID().toString());
+        entity.setUser(user);
+        entity.setWord(target);
+        entity.setOptionsJson(toJsonStringArray(options));
+        entity.setExpiresAt(expiresAt);
+        challengeRepository.save(entity);
+
         // Strictly do NOT send correctAnswer / isCorrect flag in challenge payload
         return MasterySummaryDto.RecallChallengeDto.builder()
+                .challengeId(entity.getChallengeId())
                 .wordId(target.getWordId())
                 .promptMeaning(meaning != null ? meaning : targetText)
                 .partOfSpeech(target.getPartOfSpeech())
                 .options(options)
+                .expiresAt(expiresAt.toString())
                 .build();
     }
 
@@ -107,13 +124,36 @@ public class MasteryServiceImpl implements MasteryService {
         if (request == null || request.getUserId() == null || request.getWordId() == null) {
             throw new IllegalArgumentException("Thieu userId hoac wordId khi kiem tra Recall");
         }
+        if (request.getChallengeId() == null || request.getChallengeId().isBlank()) {
+            throw new IllegalArgumentException("Thieu challengeId hop le tu server.");
+        }
         User user = requireUser(request.getUserId());
+        MasteryRecallChallenge challenge = challengeRepository.findByIdForUpdate(request.getChallengeId().trim())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay thu thach Recall: " + request.getChallengeId()));
+
+        if (challenge.getUser() == null || !Objects.equals(challenge.getUser().getUserId(), user.getUserId())) {
+            throw new SecurityException("Thu thach Recall thuoc ve tai khoan khac.");
+        }
+        if (challenge.getWord() == null || !Objects.equals(challenge.getWord().getWordId(), request.getWordId())) {
+            throw new IllegalArgumentException("wordId khong khop voi thu thach Recall.");
+        }
+        if (challenge.getConsumedAt() != null) {
+            throw new IllegalStateException("Thu thach Recall nay da duoc su dung (single-use).");
+        }
+        if (challenge.getExpiresAt() != null && LocalDateTime.now().isAfter(challenge.getExpiresAt())) {
+            throw new IllegalStateException("Thu thach Recall da het han; vui long tao thu thach moi.");
+        }
+
         VocabularyWord word = vocabularyWordRepository.findById(request.getWordId())
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tu vung voi id = " + request.getWordId()));
 
         String expected = normalize(word.getWordText());
         String submitted = normalize(request.getSelectedWord());
         boolean isCorrect = !submitted.isEmpty() && expected.equals(submitted);
+
+        challenge.setConsumedAt(LocalDateTime.now());
+        challenge.setIsCorrect(isCorrect);
+        challengeRepository.save(challenge);
 
         UserWordMastery mastery = wordMasteryRepository.findByUserUserIdAndWordWordId(user.getUserId(), word.getWordId())
                 .orElseGet(() -> {
@@ -142,7 +182,6 @@ public class MasteryServiceImpl implements MasteryService {
             newUniqueReview = prevCorrect == 0;
             curScore = Math.min(100, curScore + 15);
             mastery.setMasteryScore(BigDecimal.valueOf(curScore));
-            // Respect SQL Server CK_user_word_mastery_mastery_state & never downgrade MASTERED
             if (curScore >= 50 || "MASTERED".equalsIgnoreCase(mastery.getMasteryState())) {
                 mastery.setMasteryState("MASTERED");
                 if (mastery.getLastMasteredAt() == null) mastery.setLastMasteredAt(LocalDateTime.now());
@@ -167,7 +206,7 @@ public class MasteryServiceImpl implements MasteryService {
                 .masteryState(mastery.getMasteryState())
                 .uniqueReviewedCount(uniqueCount)
                 .masteredCount(masteredCount)
-                .message(isCorrect ? "Chinh xac! Da xac nhan Recall tu DB." : "Chua dung, hay thu lai.")
+                .message(isCorrect ? "Chinh xac! Da xac nhan Recall tu DB." : "Chua dung, hay thu lai voi challenge moi.")
                 .build();
     }
 
@@ -185,5 +224,14 @@ public class MasteryServiceImpl implements MasteryService {
 
     private static String normalize(String s) {
         return s == null ? "" : s.trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z]", "");
+    }
+
+    private static String toJsonStringArray(List<String> items) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) sb.append(',');
+            sb.append('"').append(items.get(i).replace("\"", "")).append('"');
+        }
+        return sb.append(']').toString();
     }
 }
