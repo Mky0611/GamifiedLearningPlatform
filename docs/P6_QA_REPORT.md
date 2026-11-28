@@ -1,40 +1,33 @@
-# LEX RAID — P6 QA & DATABASE INTEGRATION REPORT
+# LEX RAID — P6 & P6.1 QA & FULL-STACK INTEGRATION REPORT
 
-**Ngày kiểm định:** 2026-11-27  
+**Ngày kiểm định:** 2026-11-28  
 **Nhánh:** `feature/p4b3-rpg-combat-learning`  
-**Phạm vi kiểm định:** P6-A Database Baseline, P6-B Schema Audit, P6-C/D/E/F/G Backend Domain & Unit Tests (Frontend `demo-static` giữ nguyên từ P5.1 `5906f12`).
+**Phạm vi kiểm định:** P6.1 Database Backup/Clone, T-SQL Up/Rollback Migration trên `GamifiedLearningPlatform_P6_Test`, HS256 JWT + Ownership, P6.1 Integrity Fixes, Java Unit Suite, Live SQL Server + HTTP Integration Test, và Local Full-Stack Chromium E2E (`BACKEND_CONNECTED`).
 
 ---
 
-## 1. BẢNG PHÂN LOẠI BẰNG CHỨNG KIỂM THỬ (PHÂN BIỆT RÕ BỊ CHẶN VS ĐÃ PASS)
+## 1. BẢNG BẰNG CHỨNG KIỂM THỬ THỰC TẾ P6.1
 
-| Hạng mục | Công cụ / Lệnh | Kết quả thực tế | Phân loại chuẩn |
+| Hạng mục | Lệnh / Phạm vi | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :---: |
-| **SQL Server Environment** | `Get-Service *SQL*`, `Test-NetConnection localhost -Port 1433`, `sqlcmd -S localhost -E` (`BypassSandbox: true`) | `MSSQL$SQL2022` **Running**, Port `1433` mở (`True`), DB `GamifiedLearningPlatform` **ONLINE** (`55` base tables, `20` stages, `14` bosses, `2,098` words) | **READ-ONLY AUDIT PASS** |
-| **Spring Boot + SQL Server (`MainTests.contextLoads`)** | `mvn test -Dtest=MainTests` (`BypassSandbox: true`, profile `dev`) | `ErrorCode: 18456, SQLState: S0001 — Login failed for user 'sa'` (`SPRING_DATASOURCE_PASSWORD` chưa được set) | **FAIL / BLOCKED (CREDENTIAL)** |
-| **SQL Server Migration Execution** | `docs/P6_DATABASE_AUDIT.md` DDL + Backfill | Chưa áp dụng DDL lên live DB theo quy tắc chờ người dùng phê duyệt | **NOT TESTED / PENDING APPROVAL** |
-| **Java Backend Mockito Suite** | `mvn.cmd surefire:test -Dtest=*ServiceTest,*ProgressionTest,*GlobalLexiconTest,*CombatTest` | **`Tests run: 38, Failures: 0, Errors: 0, Skipped: 0`**, `BUILD SUCCESS` | **BACKEND UNIT PASS** |
-| **Static Verification Suite** | `python src/main/resources/tools/test_p4b_verification.py` | `43/43 PASS` (`0` failed) | **STATIC PASS** |
-| **Case Sensitivity & Asset Map** | `python src/main/resources/tools/check_case_sensitivity.py` | `544` files on disk, `134` Phaser URLs, `0` missing, `0` case mismatches | **STATIC PASS** |
-| **HTTP Integration & Full-Stack E2E (DB + FE)** | N/A | Chờ cấp `SPRING_DATASOURCE_PASSWORD`, phê duyệt chạy migration DDL và phê duyệt JWT/HttpSession Principal trên `SecurityConfig` | **NOT TESTED** |
-| **Vercel Production (`demo-static`)** | `https://gamified-learning-platform-sandy.vercel.app/` | Không thay đổi codebase frontend trong P6; bản `P5.1` (`5906f12`) giữ nguyên trạng thái hoạt động | **LIVE DEMO HEALTHY** |
+| **1. DB Backup & Isolated Test DB** | `BACKUP DATABASE [GamifiedLearningPlatform] WITH COPY_ONLY`, `RESTORE VERIFYONLY`, `RESTORE DATABASE [GamifiedLearningPlatform_P6_Test]` | Backup thành công (`1674` pages), Verifyvalid, DB test `GamifiedLearningPlatform_P6_Test` `ONLINE`; DB gốc `GamifiedLearningPlatform` không bị sửa đổi | **PASS** |
+| **2. T-SQL Up / Rollback / Idempotent** | `docs/sql/P6_1_MIGRATION_UP.sql` & `docs/sql/P6_1_MIGRATION_ROLLBACK.sql` chạy tuần tự `Up -> Rollback -> Up -> Up` trên `GamifiedLearningPlatform_P6_Test` | Exit code `0`; backfill `1` wallet, `3` starter heroes, `15` starter/shared skills, `3` loadouts; bảo toàn `159` `raid_sessions`, `20` `stages`, `1` `user_word_mastery`; nới & rollback đối xứng `CK_user_loadouts_unit` & `CK_word_submit_events_word_type` | **PASS (TEST DB)** |
+| **3. Java Unit + JWT Suite** | `mvn.cmd surefire:test -Dtest=*ServiceTest,*ProgressionTest,*GlobalLexiconTest,*CombatTest,JwtSecurityTest` | **`Tests run: 41, Failures: 0, Errors: 0, Skipped: 0`**, `BUILD SUCCESS` | **BACKEND UNIT PASS** |
+| **4. Live SQL Server & HTTP Auth IT** | `mvn.cmd surefire:test -Dtest=MainTests,P61SqlServerIntegrationTest` kết nối JDBC tới `GamifiedLearningPlatform_P6_Test` (`SQL Server 16.0`) | **`Tests run: 2, Failures: 0, Errors: 0, Skipped: 0`**, `BUILD SUCCESS` (BCrypt JWT `register/login`, `401` missing/invalid/expired, `403` cross-user/session/challenge, 4-thread concurrent wallet init `UPDLOCK`, Skill upgrade/Loadout, Practice non-`clearCount`, 5-wave roster + `cast-skill` `actionId` idempotency, `/sync` anti-tamper, Recall challenge UUID + expiry + single-use) | **SQL + HTTP IT PASS** |
+| **5. Static & Case Sensitivity** | `python test_p4b_verification.py ; python check_case_sensitivity.py` | **`43/43 PASS`**, `544` files on disk, `134` Phaser URLs, `0` missing, `0` case mismatches | **STATIC PASS** |
+| **6. Local Full-Stack Chromium E2E** | Spring Boot JAR (`127.0.0.1:18080` + `GamifiedLearningPlatform_P6_Test`) + Chrome 2 isolated contexts (`verify_p61_fullstack_e2e.js`) | Context 1 đăng ký -> nâng `knight_slash` Lv2 (`3 SP -> 2 SP`) -> vào trận Stage 1 (`Compiler Gate`, `backendConnected: true`); Context 2 profile mới hoàn toàn đăng nhập lại -> đọc trực tiếp SQL Server xác nhận `2 SP`, `knightSlashLv: 2`, `modeLabel: BACKEND_CONNECTED (SQL Server)` | **LOCAL FULL-STACK E2E PASS** |
+| **7. Vercel Production (`demo-static`)** | `node verify_live_prod.js` trên `https://gamified-learning-platform-sandy.vercel.app/` | HTTP `200`, `codeCommit: 5906f12`, `failedAssets: 0`, Stage Guard & Demo Hall hoạt động bình thường | **LIVE DEMO HEALTHY** |
 
 ---
 
-## 2. CHI TIẾT CÁC SUITE BACKEND UNIT TEST (`38/38 PASS`)
-
-1. **`AccountProfileServiceTest` (`3/3`):** Profile self-healing, `saveLoadout` từ chối `arcane_mage` trên DB trước migration & từ chối `userId` không tồn tại.
-2. **`LexRaidGlobalLexiconTest` (`8/8`):** Global lexicon attacks, non-adjacent tiles, Topic +30% bonus, Mana cap 6, 2-letter whitelist (`GO`), saving event trước finalize, giữ nguyên HP Boss khi giải Core Word còn sống, và authoritative `nextBoard` round-trip.
-3. **`LexRaidProgressionTest` (`4/4`):** Score tampering protection, duplicate finish idempotency, stage stars non-decreasing.
-4. **`LexRaidP6CombatTest` (`2/2`):** Campaign stage-lock vs Practice allow, cross-user `SecurityException`, unlearned skill rejection, anti-spam `0 MP` max `1/turn`, duplicate `actionId` idempotency, `MULTI_HIT` server split `[11, 11, 10]` và wave advance `1 -> 2` không auto-win sớm.
-5. **`ProgressionServiceTest` (`5/5`):** Catalog parity (`4` heroes, `27` skills, Archer/Lancer không có sẵn Ultimate), chống dùng SP bypass Stage Lock (SP giữ nguyên), **Mage permanent lock fix** (clear Stage 1 với 0 Topic -> replay với Topic mở Mage không cấp trùng SP Stage 1), Loadout enforcement (`<=4 Active`, đúng class, owned hero), Practice không cấp Campaign rewards.
-6. **`MasteryServiceTest` (`2/2`):** Recall challenge ẩn đáp án, chấm đáp án theo `VocabularyWord.wordText`, chống farm lặp trên cùng 1 từ, không hạ cấp `MASTERED`, và `AccountServiceImpl` chặn unsafe fallback user #1.
-7. **`QuizProgressionTest` (`5/5`) & `RpgProgressionServiceTest` (`9/9`):** Economy XP/Coin/Level giữ nguyên ổn định.
+## 2. LỖI THẬT ĐƯỢC PHÁT HIỆN & SỬA TRONG QUÁ TRÌNH CHẠY SQL SERVER THỰC TẾ
+1. **`LazyInitializationException` trên `User.role` khi ký JWT (`JwtTokenService`):** Do `User.role` `LAZY` + `open-in-view=false`, `JwtTokenService.generateTokenWithTtl` đã được bảo vệ bằng `Hibernate.isInitialized(user.getRole())` với fallback `"USER"`.
+2. **`CK_board_snapshots_reason_code` conflict trên `GamifiedLearningPlatform_P6_Test`:** `LexRaidServiceImpl` trước đây ghi `"SESSION_START"`, `"POST_CORE_GUESS"`, `"FINISH_SYNC"`, `"MANUAL_SYNC"` trái với constraint SQL Server (`'MANUAL_SAVE'`, `'POST_BOSS_ACTION'`, `'POST_REFILL'`, `'POST_SUBMIT'`, `'INITIAL'`). Đã chuẩn hóa toàn bộ về `'INITIAL'`, `'POST_SUBMIT'` và `'MANUAL_SAVE'`.
+3. **Duplication combat state & `totalWordsFound` leak:** Đã bỏ `CombatMeta` khỏi `GameSession.metadataJson`, chuyển 100% về cột của `dbo.raid_sessions`, và loại bỏ fallback lấy Global Words cộng dồn vào điều kiện mở Topic Hero/Skill.
 
 ---
 
-## 3. BLOCKERS CẦN NGƯỜI DÙNG PHÊ DUYỆT TRƯỚC KHI CHẠY P6-H/I FULL-STACK
-
-1. **DB Dev Credential (`P6-A`):** Cấp biến môi trường `SPRING_DATASOURCE_PASSWORD` cho `sa` (hoặc tài khoản dev riêng) để `MainTests.contextLoads` và Spring integration tests chạy được trên SQL Server `localhost:1433`.
-2. **Duyệt thực thi Migration T-SQL (`P6-B`):** Phê duyệt script tại `docs/P6_DATABASE_AUDIT.md` (tạo 6 bảng mới + nới `CK_user_loadouts_unit` & `CK_word_submit_events_word_type` + thêm cột combat state trên `raid_sessions`).
-3. **Duyệt kiến trúc Authentication / Principal (`SecurityConfig`):** Chuyển các route `/api/v1/progression/**`, `/api/v1/lex-raid/**`, `/api/v1/mastery/**`, `/api/v1/account/**` từ `.permitAll()` sang xác thực JWT / HttpSession Principal trước khi public Backend hoặc chuyển Vercel sang `BACKEND_CONNECTED`.
+## 3. LƯU Ý PHẠM VI & BLOCKER TRIỂN KHAI PUBLIC
+1. Migration mới chỉ thực thi và nghiệm thu trên bản test `GamifiedLearningPlatform_P6_Test`; database gốc `GamifiedLearningPlatform` được giữ nguyên vẹn chờ quyết định nâng cấp chính thức.
+2. Spring Boot + SQL Server mới chạy nghiệm thu trên máy local (`127.0.0.1`), chưa có server/cloud hosting cho Backend nên Vercel Production vẫn giữ ở chế độ `demo-static` (không tuyên bố Production Backend live).
+3. Trong môi trường dev/local của người dùng, nếu kết nối DB bằng tài khoản `sa` hoặc login riêng, cần set các biến môi trường `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` và `APP_JWT_SECRET`.

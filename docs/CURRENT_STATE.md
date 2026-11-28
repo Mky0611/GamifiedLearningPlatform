@@ -1,19 +1,25 @@
 # CURRENT PROJECT STATE — LEX RAID PIXEL RPG
 
-**Thời điểm cập nhật:** 2026-11-27  
+**Thời điểm cập nhật:** 2026-11-28  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
-**Nhánh phát hành:** `feature/p4b3-rpg-combat-learning` (Frontend Prod `demo-static`: `5906f12`; P6 Backend Domain implemented & Mockito verified)  
-**Trạng thái hiện tại:** **PHASE P6 (BACKEND DOMAIN & AUDIT COMPLETE) — `38/38` JAVA MOCKITO PASS, `43/43` STATIC PASS, SQL SERVER SCHEMA AUDITED READ-ONLY (`55` tables); LIVE `MainTests` BLOCKED ON `ErrorCode 18456` (`SPRING_DATASOURCE_PASSWORD` UNSET) & PENDING DDL/AUTH APPROVAL**
+**Nhánh phát hành:** `feature/p4b3-rpg-combat-learning`  
+**Trạng thái hiện tại:** **PHASE P6.1 COMPLETE (LOCAL FULL-STACK VERIFIED) — `41/41` JAVA UNIT PASS, `2/2` LIVE SQL SERVER + JWT HTTP IT PASS (`GamifiedLearningPlatform_P6_Test`), `43/43` STATIC PASS, LOCAL CHROMIUM E2E `BACKEND_CONNECTED` RE-LOGIN PASS; VERCEL PROD GIỮ AN TOÀN `demo-static` (`5906f12`)**
 
 ---
 
-## 1. HIỆN TRẠNG TÍCH HỢP P6 (BACKEND VS DEMO FRONTEND)
-- **Database Environment (`localhost:1433`):** `MSSQL$SQL2022` **Running**, Port `1433` **Open**, DB `GamifiedLearningPlatform` **ONLINE** (`55` base tables, `20` stages thực `1..6,8..21`, `14` bosses, `2,098` words). Kết nối read-only `sqlcmd -E` thành công, nhưng JDBC profile `dev` thất bại `Login failed for user 'sa'` (`ErrorCode 18456`) do thiếu env `SPRING_DATASOURCE_PASSWORD`.
-- **P6 Backend Domain (Implemented & Unit-Tested `38/38 PASS`):**
-  - `RpgCatalogRegistry`: Single source of truth cho `4` Hero, `27` Skills `Lv1–3`, Unlock/Upgrade rules, Loadout `4+1`.
-  - `ProgressionServiceImpl` (`/api/v1/progression/**`): Tách `user_progression_wallets` + `PESSIMISTIC_WRITE` (`WITH (UPDLOCK, ROWLOCK)`), `hero_ownership`, `user_skill_unlocks`, `user_hero_loadouts`, `user_milestone_rewards` (tách riêng `stage_first_clear_*`, `skill_unlock_*`, `hero_unlock_arcane_mage`).
-  - `LexRaidServiceImpl` (`/api/v1/lex-raid/sessions/{id}/cast-skill`): Ownership check, Stage Lock check theo `CAMPAIGN` vs `PRACTICE`, anti-spam `0 MP` (`MAX_ZERO_MANA_CASTS_PER_TURN = 1`), `actionId` idempotency (`SkillCastEvent`), multi-hit split & wave advancement, Core Word damage không auto-win sớm.
-  - `MasteryServiceImpl` (`/api/v1/mastery/**`): Server-verified Recall Quiz (không gửi đáp án, tách TTS, không hạ cấp `MASTERED`).
-  - `AccountServiceImpl`: Đã gỡ unsafe fallback `findAll().stream().findFirst()`.
-- **Frontend (`demo-static` trên Vercel Production):** Vẫn phục vụ bản `P5.1` (`5906f12`) ổn định tại `https://gamified-learning-platform-sandy.vercel.app/` — chưa bật `BACKEND_CONNECTED` cho tới khi Auth Principal & DB Migration được duyệt và kiểm thử full-stack thực tế.
+## 1. HIỆN TRẠNG DATABASE, AUTH & BACKEND P6.1
+- **Database Backup & Test Clone (`MSSQL$SQL2022`, `localhost:1433`):**
+  - Backup gốc: `GamifiedLearningPlatform_P6_PreMigration.bak` (`COPY_ONLY`, `RESTORE VERIFYONLY` PASS). Database gốc `GamifiedLearningPlatform` được bảo toàn nguyên vẹn (chưa chạy DDL).
+  - Database test: `GamifiedLearningPlatform_P6_Test` đã chạy sạch kịch bản `Up -> Rollback -> Up -> Idempotent Up` từ `docs/sql/P6_1_MIGRATION_UP.sql` & `docs/sql/P6_1_MIGRATION_ROLLBACK.sql`.
+  - Kết nối JDBC xác thực bằng login test-only `lexraid_p6_test` (`db_owner` chỉ trên DB test, password env tạm trong bộ nhớ); `MainTests` & `P61SqlServerIntegrationTest` PASS hoàn toàn.
+- **JWT Authentication & Ownership (`org.example.security.*`):**
+  - `JwtTokenService` (HS256), `JwtAuthenticationFilter`, `RestAuthenticationEntryPoint`, `SecurityPrincipalUtils` + `SecurityConfig` (`STATELESS`).
+  - Bảo vệ toàn bộ `/api/v1/progression/**`, `/api/v1/mastery/**`, `/api/v1/account/{profile,loadout}`, `/api/v1/lex-raid/sessions/**`, `/api/v1/quiz/sessions/**` (`401` khi thiếu/sai/hết hạn JWT; `403` khi cross-user `userId` hoặc cross-session).
+- **P6.1 Integrity & Single Combat Store:**
+  - `RaidSession.java` là nguồn lưu combat state duy nhất (`waveIndex`, `totalWaves`, `playMode`, `heroCode`, `playerHp`, `playerMaxHp`, `bossStatusesJson`, `skillCooldownsJson`, `encounterRosterJson` 5 wave), bỏ trùng lặp `CombatMeta` ở `GameSession.metadataJson`.
+  - Fix transaction lock (`findByIdForUpdate`), Practice không tăng `clearCount`, tách Topic vs Global words trong `ProgressionServiceImpl`, `MasteryRecallChallenge` có UUID + expiry 5 phút + single-use, anti-tamper `/sync` `currentRound`, và chuẩn hóa `CK_board_snapshots_reason_code`.
+
+## 2. HIỆN TRẠNG FRONTEND & PRODUCTION
+- **Local `BACKEND_CONNECTED` (`api.js`, `progression-store.js`, `account.js`, `minigame.js`):** Tự động đính kèm `Authorization: Bearer <token>` khi đăng nhập có JWT, đồng bộ Character Hall / Skill Tree / Loadout / 5-Wave Battle / Word Mastery Recall với SQL Server, đã verify đăng nhập lại trên Chrome context mới vẫn còn `2 SP` và `knight_slash Lv 2`.
+- **Vercel Production (`https://gamified-learning-platform-sandy.vercel.app/`):** Giữ nguyên trạng thái `demo-static` (`5906f12`) lành mạnh (`verify_live_prod.js` PASS), không public backend hoặc SQL Server ra Internet.

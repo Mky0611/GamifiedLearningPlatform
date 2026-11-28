@@ -1,6 +1,6 @@
 # TASK TRACKER — LEX RAID PIXEL RPG
 
-**Trạng thái cập nhật:** 2026-11-27  
+**Trạng thái cập nhật:** 2026-11-28  
 **Chủ sở hữu GitHub:** `Mky0611`  
 **Repository:** `https://github.com/Mky0611/GamifiedLearningPlatform.git`  
 **Nhánh phát hành:** `feature/p4b3-rpg-combat-learning`
@@ -12,18 +12,16 @@
 | Giai đoạn | Nội dung trọng tâm | Mức chứng nhận | Chi tiết & Ghi chú |
 | :---: | :--- | :---: | :--- |
 | **SEC** | Security Post-Audit & Credential Sanitization | **STATIC PASS** | Không lộ secret/token hay QA hook ra public domain. |
-| **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật; Backend live SQL `NOT TESTED`. |
+| **P0/P1** | Java 21 / Spring Boot 4.2.0 / Pixel UI Foundation | **CODE COMPLETE / BROWSER PASS (FE)** | Giao diện FE & responsiveness đã nghiệm thu trên Chromium thật. |
 | **P2** | Vocabulary Engine, CEFR A1–C2, IT Taxonomy | **UNIT PASS / STATIC REVIEW** | DB seed audit; giữ nguyên dịch vụ & dữ liệu. |
 | **P3** | RPG Progression, XP, Coins, Level, Idempotency | **UNIT PASS** | Java 21 Mockito tests pass (`26/26`). |
 | **P4-A** | Vercel Static Deployment & Preview Mode Fallbacks | **HTTP PASS** | `vercel.json` routing clean, `/api/**` trả về 404 kích hoạt Preview fallback. |
 | **P4-B / B.2** | Visual Redesign, 9-Slice UI, Animation FSM & World Env | **STATIC PASS (43/43) & BROWSER PASS** | Curated runtime assets, FSM pooled VFX, Canvas 2D fallback, 9/9 viewports PASS. |
 | **P4-B.3** | Final Polish, Post-Release Correction, 5-Wave QA, SEO & Production Release | **BACKEND UNIT PASS (26/26), STATIC PASS (43/43), SCOPED CONTRAST (0), SEO PASS, BROWSER PASS (0)** | Hoàn tất tới `870faac`, deploy **Vercel Production** & verify live. |
-| **P5 (Frontend Demo + Parity)** | Path of Legends: 4 Heroes (`Arcane Mage`), 27 Evolved Skills (Lv1–3), 10 Animation Profiles, 6-Tab Character Hall, Chapter Map | **BACKEND UNIT PASS (28/28), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (0)** | P5 progression chạy Demo cục bộ (`localStorage`), backend P5 migration vẫn ở dạng draft; SQL Server live `NOT TESTED`. |
-| **P5.1 (Progression Integrity & Full QA)** | Fix Mage lock, strict SP/unlock/loadout/stage-lock rules, Word Mastery Recall UI, Multi-hit HP ticks, `27/27` skills matrix, Boss HP carry-over, SQL Server lock draft | **BACKEND UNIT PASS (29/29), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (`27/27` skills, `0` failures)** | Deployed Vercel Production (`5906f12`). |
-| **P6-A/B (SQL Baseline & Schema Audit)** | Check `MSSQL$SQL2022` / `1433` / `MainTests`, audit `55` base tables + `20` stages + CHECK constraints & T-SQL migration plan | **READ-ONLY AUDIT PASS / `MainTests` BLOCKED (`ErrorCode 18456`)** | Chờ `SPRING_DATASOURCE_PASSWORD` & duyệt DDL tại `docs/P6_DATABASE_AUDIT.md`. |
-| **P6-C..G (Backend Persistence, Combat & Mastery)** | `RpgCatalogRegistry`, Progression/Mastery APIs, `/cast-skill`, `0 MP` anti-spam, Campaign Stage Lock, ownership fix (`AccountServiceImpl`) | **BACKEND UNIT PASS (`38/38`)** | Đang chờ SQL migration + Auth Principal để nối P6-H/I full-stack E2E. |
-| **P6-H/I/J (FE Integration, Full-Stack QA & Prod Gate)** | Nối `api.js` / `account.js` / `minigame.js`, SQL Server integration & Auth `SecurityConfig` | `NOT TESTED / PENDING APPROVAL` | Vercel giữ `demo-static` an toàn cho tới khi duyệt Auth & DB. |
-| **P5-DB / CI-CD** | Docker, CI/CD & SQL Server Migration Apply cho Skill Tree / Hero Ownership | `DRAFT ONLY` | Bản nháp DDL/API tại `docs/P5_BACKEND_DRAFT.md` chờ phê duyệt DB migration. |
+| **P5 / P5.1** | Path of Legends (4 Hero, 27 Skill, 10 Profile, 6-Tab Hall, Word Mastery Recall, `27/27` QA) | **BACKEND UNIT PASS (29/29), STATIC PASS (43/43), CONTRAST (0), SEO PASS, BROWSER PASS (`0` failures)** | Deployed Vercel Production `demo-static` (`5906f12`). |
+| **P6** | Server Domain Architecture, Schema Audit & Mockito Verification | **BACKEND UNIT PASS (`38/38`), STATIC PASS (`43/43`)** | Tách wallet/ownership/skill/loadout/milestone + `/cast-skill` + `/mastery`. |
+| **P6.1 (DB + JWT + Full-Stack Local)** | Backup DB gốc -> Test DB `GamifiedLearningPlatform_P6_Test`, Migration Up/Rollback, HS256 JWT + Ownership (`401/403`), P6 Integrity Fixes & Local `BACKEND_CONNECTED` E2E | **UNIT (`41/41`) + SQL/HTTP IT (`2/2` trên `P6_Test`) + LOCAL CHROMIUM E2E (`0` failures)** | Migration mới chạy trên `GamifiedLearningPlatform_P6_Test`; Vercel Prod giữ `demo-static` (`5906f12`). |
+| **P6-Prod Backend Host** | Deploy Spring Boot + Migration lên DB Production thật | `PENDING INFRA` | Chờ quyết định hạ tầng cloud/DB production của chủ dự án. |
 
 ---
 
